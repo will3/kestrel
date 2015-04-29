@@ -12,7 +12,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_PATH=./config:./app/controllers nodemon server.js"
+    "start": "nodemon server.js"
   },
   "author": "",
   "license": "ISC"
