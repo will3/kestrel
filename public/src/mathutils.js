@@ -19,18 +19,27 @@ var MathUtils = (function(){
 			return unitZ;
 		},
 
-		//get sum of cross products ignoring y
-		getSumOverEdgesXZ: function(points){
-			var sum = 0;
+		//graham scan
+		ccw: function(p1, p2, p3){
+			return (p2.x - p1.x) * (p3.z - p1.z) - (p2.z - p1.z) * (p3.x - p1.x);
+		},
 
-			for(var i = 0; i < points.length; i++){
-				var point = points[i];
-				var nextPoint = (i == points.length - 1) ? points[0] : points[i + 1];
-				
-				sum += (nextPoint.x - point.x) * (nextPoint.z + point.z);
-			}
+		//v * w = ||v|| ||w|| cos0
+		angleBetween: function(p1, p2, p3){
+			// p12 = new THREE.Vector3();
+			// p23 = new THREE.Vector3();
 
-			return sum;
-		}
+			// p12.subVectors(p2, p1);
+			// p23.subVectors(p3, p2);
+
+			// return Math.acos(p12.dot(p23) / (p12.length() * p23.length()));
+
+			var v1x = p1.x - p2.x;
+			var v1y = p1.z - p2.z;
+			var v2x = p3.x - p2.x;
+			var v2y = p3.z - p2.z;
+
+			return Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y);
+		},
 	};
 })();

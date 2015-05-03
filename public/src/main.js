@@ -14,4 +14,4 @@ Console.setCommands([
 Console.setInput(document.getElementById('console_text'));
 
 Console.run("add ship");
-Console.run("move ship0 0 0");
+Console.run("move ship0 100 100");

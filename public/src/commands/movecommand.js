@@ -20,10 +20,36 @@ var MoveCommand = Command.extend(function(){
 
 	update: function(){
 		var shipController = this.actor.shipController;
-		shipController.accelerate(1.0);
 
 		var rotation = this.actor.getTransform().rotation;
 		var position = this.actor.getTransform().position;
+		
+		this.updateIndicator();
+
+		var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
+
+		var a = new THREE.Vector3();
+		a.copy(this.target);
+		var b = new THREE.Vector3();
+		b.copy(position)
+		var c = new THREE.Vector3();
+		c.addVectors(b, unitFacing);
+
+		var angleBetween = MathUtils.angleBetween(a, b, c);
+
+		var desiredYawSpeed = angleBetween * 0.1;
+		shipController.bankForYawVelocity(desiredYawSpeed);
+
+		var distanceVector = new THREE.Vector3();
+		distanceVector.subVectors(a, b);
+		var distance = distanceVector.length();
+		var desiredVelocity = (distance - 10.0) * 0.01;
+		shipController.accelerateForVelocity(desiredVelocity);
+	},
+
+	updateIndicator: function(){
+		var position = this.actor.getTransform().position;
+
 		var targetIndicatorPosition = this.targetIndicator == null ? null : this.targetIndicator.getTransform().position;
 		var targetIndicatorNeedsRedraw = targetIndicatorPosition == null ? true : targetIndicatorPosition.equals(position);
 		if(targetIndicatorNeedsRedraw){
@@ -36,24 +62,6 @@ var MoveCommand = Command.extend(function(){
 			Game.nameEntity("target", this.targetIndicator);
 			this.targetIndicator.getTransform().position.copy(this.target);
 			this.actor.addEntity(this.targetIndicator);
-		}
-		var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
-
-		var a = new THREE.Vector3();
-		a.copy(position)
-
-		var b = new THREE.Vector3();
-		b.copy(this.target);
-
-		var c = new THREE.Vector3();
-		c.addVectors(a, unitFacing);
-
-		var sum = MathUtils.getSumOverEdgesXZ([a, b, c]);
-
-		if(sum > 0){
-			shipController.bank(1);
-		}else{
-			shipController.bank(-1);
 		}
 	},
 });
