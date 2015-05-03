@@ -4,6 +4,7 @@ var Entity = klass(function(){
 	this.started = false;
 	this.transform = null;
 	this.components = [];
+	this.childEntities = [];
 
 	this.destroyable = true;
 }).methods({
@@ -13,6 +14,14 @@ var Entity = klass(function(){
 		}
 
 		return this.transform;
+	},
+
+	addEntity: function(entity){
+		this.childEntities.push(entity);
+	},
+
+	removeEntity: function(entity){
+		this.childEntities.remove(entity);
 	},
 
 	addComponent: function(component){
