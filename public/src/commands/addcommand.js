@@ -18,10 +18,12 @@ var AddCommand = Command.extend(function(){
 			throw "cannot add " + param;
 		}
 
-		Game.addEntity(new constructor());
+		var entity = new constructor();
+		Game.nameEntity(className.toLowerCase(), entity);
+		Game.addEntity(entity);
 
 		function capitalizeFirstLetter(string) {
 		    return string.charAt(0).toUpperCase() + string.slice(1);
 		}
-	}
+	},
 })

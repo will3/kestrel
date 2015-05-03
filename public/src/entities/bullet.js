@@ -14,7 +14,7 @@ var BulletRenderComponent = RenderComponent.extend(function(){
 	},
 
 	initMaterial: function(){
-		var map = THREE.ImageUtils.loadTexture("static/assets/textures/bullet.png");
+		var map = THREE.ImageUtils.loadTexture("static/assets/textures/point16x16.png");
 		map.minFilter = THREE.NearestFilter;
 		var material = new THREE.SpriteMaterial({ map: map, color: 0xffffff, fog:true });
 		return material;

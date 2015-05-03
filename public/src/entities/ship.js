@@ -1,11 +1,8 @@
 var Ship = Entity.extend(function(){
 	this.commands = [];
 	this.shipController = null;
-}).statics({
-	id: 0,
 }).methods({
 	start: function(){
-		this.name = "ship" + Ship.id;
 		Ship.id ++;
 
 		this.addComponent(new ShipRenderComponent());

@@ -19,7 +19,11 @@ var RenderComponent = Component.extend(function(){
 		var rotation = this.getTransform().rotation;
 		this.innerObject.rotation.setFromRotationMatrix(MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z));
 
-		// this.innerObject.updateMatrix();
+		var scale = this.getTransform().scale;
+		var actualScale = this.innerObject.scale;
+		if(!scale.equals(actualScale)){
+			this.innerObject.scale.set(scale.x, scale.y, scale.z);
+		}
 	},
 
 	destroy: function(){

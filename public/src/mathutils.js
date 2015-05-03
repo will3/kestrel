@@ -17,6 +17,20 @@ var MathUtils = (function(){
 			unitZ.applyMatrix4(m);
 
 			return unitZ;
+		},
+
+		//get sum of cross products ignoring y
+		getSumOverEdgesXZ: function(points){
+			var sum = 0;
+
+			for(var i = 0; i < points.length; i++){
+				var point = points[i];
+				var nextPoint = (i == points.length - 1) ? points[0] : points[i + 1];
+				
+				sum += (nextPoint.x - point.x) * (nextPoint.z + point.z);
+			}
+
+			return sum;
 		}
 	};
 })();

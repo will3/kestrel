@@ -103,6 +103,10 @@ var Console = (function(){
 
 		setCommands: function(value){
 			commands = value;
+		},
+
+		run: function(command){
+			onEnterCommand(command);
 		}
 	}
 })();

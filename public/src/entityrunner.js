@@ -10,7 +10,7 @@ var EntityRunner = klass(function(){
 		entity.childEntities.forEach(function(childEntity){
 			that.removeEntity(childEntity);
 		});
-		
+
 		this.entities.remove(entity);
 		entity.components.forEach(function(c){ c.destroy(); });
 		entity.destroy();
@@ -27,7 +27,7 @@ var EntityRunner = klass(function(){
 		if(!entity.started){
 			entity.start();
 			entity.started = true;
-		}			
+		}
 		entity.update();
 		entity.components.forEach(function(component){
 			if(!component.started){
@@ -37,8 +37,9 @@ var EntityRunner = klass(function(){
 			component.update();
 		});
 
+		var that = this;
 		entity.childEntities.forEach(function(childEntity){
-			this.runEntity(childEntity);
+			that.runEntity(childEntity);
 		});
 	},
 });

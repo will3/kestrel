@@ -166,6 +166,19 @@ var Game = (function(){
 
 		getEntities: function(){
 			return entityRunner.entities;
+		},
+
+		nameEntity: function(name, entity){
+			var nameRegistry = Game.nameRegistry;
+			if(nameRegistry[name] == undefined){
+				nameRegistry[name] = 0;
+			}else{
+				nameRegistry[name] = nameRegistry[name] + 1;
+			}
+
+			entity.name = name + nameRegistry[name];
 		}
 	};
 })();
+
+Game.nameRegistry = {};
