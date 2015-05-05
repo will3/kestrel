@@ -4,12 +4,15 @@ var ShipController = Component.extend(function(){
 	this.acceleration = new THREE.Vector3();
 	this.decceleration = 1.0;
 
-	this.maxDecceleration = 0.5;
+	this.maxDecceleration = 0.7;
 	this.maxRoll = Math.PI / 2;
 	this.desiredRoll = 0;
 	this.rollSpeed = 0.1;
 	this.rollStability = 0.95;
 	this.yawForce = 0.02;
+	this.friction = 0.96;
+
+	this.command = null;
 }).methods({
 	getName: function(){
 		return "ShipController";
@@ -19,25 +22,37 @@ var ShipController = Component.extend(function(){
 
 	},
 
+	setCommand: function(command){
+		if(this.command != null){
+			this.command.destroy();
+			this.command = null;
+		}
+
+		this.command = command;
+	},
+
 	getPosition: function(){
 		return this.getTransform().position;
 	},
 
 	getMaxVelocity: function(){
-		var physics = this.getPhysics();
-		return this.force / (1 - physics.friction);
+		return this.force / (1 - this.friction);
 	},
 
 	update: function(){
 		this.updatePosition();
 		this.updateRoll();
 		this.updateYaw();
+
+		if(this.command != null){
+			this.command.update();
+		}
 	},
 
 	updatePosition: function(){
 		this.velocity.add(this.acceleration);
 		this.velocity.multiplyScalar(this.decceleration);
-		this.velocity.multiplyScalar(this.getPhysics().friction);
+		this.velocity.multiplyScalar(this.friction);
 		this.getTransform().position.add(this.velocity);
 		this.acceleration.set(0, 0, 0);
 		this.decceleration = 1.0;
@@ -110,7 +125,29 @@ var ShipController = Component.extend(function(){
 		this.bank(amount);
 	},
 
-	getPhysics: function(){
-		return Game.getPhysics();
-	}
+	bankForPoint: function(point){
+		var position = this.getTransform().position;
+
+		var a = new THREE.Vector3();
+		a.copy(point);
+		var b = new THREE.Vector3();
+		b.copy(position)
+		var c = this.getUnitFacing();
+
+		var angleBetween = MathUtils.angleBetween(a, b, c);
+
+		var desiredYawSpeed = angleBetween * 0.1;
+
+		this.bankForYawVelocity(desiredYawSpeed);
+	},
+
+	getUnitFacing: function(){
+		var position = this.getTransform().position;
+		var rotation = this.getTransform().rotation;
+		var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
+		var c = new THREE.Vector3();
+		c.addVectors(position, unitFacing);
+
+		return c;
+	},
 });

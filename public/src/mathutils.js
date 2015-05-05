@@ -39,7 +39,19 @@ var MathUtils = (function(){
 			var v2x = p3.x - p2.x;
 			var v2y = p3.z - p2.z;
 
-			return Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y);
+			return this.normalizeAngle(Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y));
 		},
+
+		//normalize an angle between -pi pi
+		normalizeAngle: function(angle){
+			angle %= (Math.PI * 2);
+			if(angle > Math.PI){
+				angle -= (Math.PI * 2);
+			}else if(angle < -Math.PI){
+				angle += (Math.PI * 2);
+			}
+
+			return angle;
+		}
 	};
 })();

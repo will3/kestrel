@@ -24,16 +24,8 @@ var EntityRunner = klass(function(){
 	},
 
 	runEntity: function(entity){
-		if(!entity.started){
-			entity.start();
-			entity.started = true;
-		}
 		entity.update();
 		entity.components.forEach(function(component){
-			if(!component.started){
-				component.start();
-				component.started = true;
-			}
 			component.update();
 		});
 

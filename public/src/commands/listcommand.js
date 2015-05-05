@@ -1,5 +1,4 @@
 var ListCommand = Command.extend({
-
 }).methods({
 	getOp: function(){
 		return "list";

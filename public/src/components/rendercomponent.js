@@ -13,6 +13,8 @@ var RenderComponent = Component.extend(function(){
 	},
 
 	update: function(){
+		this.supr();
+		
 		var position = this.getTransform().position;
 		this.innerObject.position.set(position.x, position.y, position.z);
 

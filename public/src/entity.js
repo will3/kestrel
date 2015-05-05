@@ -1,12 +1,13 @@
 var Entity = klass(function(){
 	this.name = null; //optional name
 	this.innerObject = null;
-	this.started = false;
 	this.transform = null;
 	this.components = [];
 	this.childEntities = [];
 
 	this.destroyable = true;
+	this.frameAge = 0;
+	this.parentEntity = null;
 }).methods({
 	getTransform: function(){
 		if(this.transform == null){
@@ -17,19 +18,28 @@ var Entity = klass(function(){
 	},
 
 	addEntity: function(entity){
+		if(entity.parentEntity != null){
+			throw "entity " + this.name + " already has a parent entity named: " + entity.parentEntity.name;
+		}
+
+		entity.parentEntity = this;
+		entity.start();
 		this.childEntities.push(entity);
 	},
 
 	removeEntity: function(entity){
+		entity.destroy();
 		this.childEntities.remove(entity);
 	},
 
 	addComponent: function(component){
+		component.start();
 		this.components.push(component);
 		component.entity = this;
 	},
 
 	removeComponent: function(component){
+		component.destroy();
 		this.components.remove(component);
 	},
 
@@ -51,25 +61,16 @@ var Entity = klass(function(){
 	},
 
 	update: function(){
-
+		this.frameAge ++;
 	},
 
 	destroy: function(){
-		
-	}
+		this.components.forEach(function(component){
+			component.destroy();
+		});
+	},
+
+	removeFromParent: function(){
+		this.parentEntity.removeEntity(this);
+	},
 });
-
-// TestEntity.prototype = new Entity();
-// TestEntity.prototype.constructor = TestEntity();
-// function TestEntity(){ }
-
-// TestEntity.prototype.initGeometry = function(){
-// 	var cubeSize = 10;
-// 	var geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-//  	return geometry;
-// }
-
-// TestEntity.prototype.initMaterial = function(){
-// 	var material = new SolidColorMaterial(new THREE.Vector4(1.0, 0.0, 0.0, 1.0));
-// 	return material;
-// }

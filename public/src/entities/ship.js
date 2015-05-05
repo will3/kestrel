@@ -1,28 +1,13 @@
 var Ship = Entity.extend(function(){
-	this.commands = [];
 	this.shipController = null;
 }).methods({
 	start: function(){
 		Ship.id ++;
 
 		this.addComponent(new ShipRenderComponent());
-		
 		this.shipController = new ShipController();
 		this.addComponent(this.shipController);
 	},
-
-	update: function(){
-		var command = this.commands[this.commands.length - 1];
-		if(command != null){
-			command.update();
-		}
-	},
-
-	//replaces current command
-	issueCommand: function(command){
-		this.commands = [];
-		this.commands.push(command);
-	}
 });
 
 var ShipRenderComponent = RenderComponent.extend(function(){

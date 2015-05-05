@@ -127,11 +127,13 @@ var Game = (function(){
 			setInterval(onEnterFrame, 1000 / frameRate);
 		},
 
-		addEntity : function(entity){
+		addEntity: function(entity){
+			entity.start();
 			entityRunner.addEntity(entity);
 		},
 
 		removeEntity: function(entity){
+			entity.destroy();
 			entityRunner.removeEntity(entity);
 		},
 

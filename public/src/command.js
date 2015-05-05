@@ -11,5 +11,9 @@ var Command = klass(function(){
 
 	update: function(){
 		throw "must override";
-	}
+	},
+
+	destroy: function(){
+
+	},
 });
