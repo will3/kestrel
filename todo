@@ -1,28 +1,39 @@
 - add pixel shader for alpha map
-- update target indicator after issuing different command
-- add orbit 
-- add keep distance
+- commands
+	- make orbit and move targetable to a moving target
+	- keep distance
+
 - start unit test project
+	- mocha
+
 - add weapons
 	- projectile
 	- laser
 	- missile
+
 - procedural generate ships
 	- different orientations
 	- different sizes
 	- procedural properties
 	- different classes
 	- weapons
+
 - add environment
 	- stars
 	- planet
 	- star
 		- sun flare
+
 - add effects
 	- explosions (flash, particle, camera shake)
 	- smoke trail
 	- pixelation post processing
-- user interface	
+
+- user interface
+
 - documentation
+
 - publish
 	- find hosting
+
+- find tester
