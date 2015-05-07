@@ -1,7 +1,7 @@
 - add pixel shader for alpha map
 - update target indicator after issuing different command
-- fix issue when y = 0, banking amount is not resolved correctly (need to normalize the angle)
-- add orbit and keep distance
+- add orbit 
+- add keep distance
 - start unit test project
 - add weapons
 	- projectile

@@ -38,11 +38,8 @@ var Console = (function(){
 
 		lastCommand = command;
 		var params = command.split(" ");
-		try{
-			processCommand(params);
-		}catch(error){
-			showError(error);
-		}
+		
+		processCommand(params);
 	}
 
 	function getMatchingCommand(name){

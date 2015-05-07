@@ -23,15 +23,7 @@ var MoveCommand = Command.extend(function(){
 	update: function(){
 		var shipController = this.actor.shipController;
 
-		shipController.bankForPoint(this.target);
-
-		var position = this.actor.getTransform().position;
-		
-		var distanceVector = new THREE.Vector3();
-		distanceVector.subVectors(this.target, position);
-		var distance = distanceVector.length();
-		var desiredVelocity = (distance - 10.0) * 0.05;
-		shipController.accelerateForVelocity(desiredVelocity);
+		shipController.move(this.target);
 	},
 
 	drawIndicator: function(){

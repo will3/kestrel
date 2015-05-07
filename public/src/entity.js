@@ -68,9 +68,17 @@ var Entity = klass(function(){
 		this.components.forEach(function(component){
 			component.destroy();
 		});
+
+		this.childEntities.forEach(function(childEntity){
+			childEntity.destroy();
+		});
 	},
 
 	removeFromParent: function(){
-		this.parentEntity.removeEntity(this);
+		if(this.parentEntity != null){
+			this.parentEntity.removeEntity(this);
+		}else{
+			Game.removeEntity(this);
+		}
 	},
 });

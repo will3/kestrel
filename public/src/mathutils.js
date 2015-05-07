@@ -1,4 +1,6 @@
 var MathUtils = (function(){
+	var yAxis = new THREE.Vector3(0, 1, 0);
+
 	return{
 
 		getRotationMatrix: function(yaw, pitch, roll){
@@ -52,6 +54,31 @@ var MathUtils = (function(){
 			}
 
 			return angle;
-		}
+		},
+
+		getYAxis: function(){
+			return yAxis;
+		},
+
+		findTangentPoints: function(center, radius, point){
+			var cx = center.x;
+			var cy = center.z;
+			var px = point.x;
+			var py = point.z;
+
+			var dx = cx - px;
+		    var dy = cy - py;
+		    var dd = Math.sqrt(dx * dx + dy * dy);
+		    var a = Math.asin(radius / dd);
+		    var b = Math.atan2(dy, dx);
+		    
+		    var t = b - a;
+		    var t = b + a;
+		
+		    return [
+		    	new THREE.Vector3(radius * Math.sin(t), 0, radius * -Math.cos(t)),
+		    	new THREE.Vector3(radius * -Math.sin(t), 0, radius * Math.cos(t)),
+		    ];
+		},
 	};
 })();

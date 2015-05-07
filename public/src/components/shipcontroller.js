@@ -4,12 +4,12 @@ var ShipController = Component.extend(function(){
 	this.acceleration = new THREE.Vector3();
 	this.decceleration = 1.0;
 
-	this.maxDecceleration = 0.7;
+	this.maxDecceleration = 0.9;
 	this.maxRoll = Math.PI / 2;
 	this.desiredRoll = 0;
 	this.rollSpeed = 0.1;
-	this.rollStability = 0.95;
-	this.yawForce = 0.02;
+	this.rollStability = 0.97;
+	this.yawForce = 0.016;
 	this.friction = 0.96;
 
 	this.command = null;
@@ -150,4 +150,16 @@ var ShipController = Component.extend(function(){
 
 		return c;
 	},
+
+	move: function(point){
+		this.bankForPoint(point);
+
+		var position = this.getTransform().position;
+		
+		var distanceVector = new THREE.Vector3();
+		distanceVector.subVectors(point, position);
+		var distance = distanceVector.length();
+		var desiredVelocity = (distance - 10.0) * 0.05;
+		this.accelerateForVelocity(desiredVelocity);
+	}
 });
