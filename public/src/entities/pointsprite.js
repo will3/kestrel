@@ -25,6 +25,6 @@ var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 	},
 
 	getDefaultTexture: function(){
-		return THREE.ImageUtils.loadTexture("static/assets/textures/point16x16.png");
+		return THREE.ImageUtils.loadTexture("public/assets/textures/point16x16.png");
 	}
 });

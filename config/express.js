@@ -13,5 +13,5 @@ module.exports = function(app){
 	}
 	app.engine('handlebars', exphbs(hbConfig));
 	app.set('view engine', 'handlebars');
-	app.use('/static', express.static(path.join(config.root, 'public')));
+	app.use('/public', express.static(path.join(config.root, 'public')));
 }
