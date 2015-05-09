@@ -1,7 +1,6 @@
-- add pixel shader for alpha map
 - commands
 	- make orbit and move targetable to a moving target
-	- keep distance
+	- keep distance ?
 
 - start unit test project
 	- mocha
@@ -37,3 +36,6 @@
 	- find hosting
 
 - find tester
+
+- add pixel shader for alpha map
+

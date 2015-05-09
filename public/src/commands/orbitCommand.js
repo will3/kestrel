@@ -2,6 +2,7 @@ var OrbitCommand = Command.extend(function(){
 	this.target = null;
 	this.actor = null;
 	this.distance = 0;
+	this.targetIndicators = [];
 }).methods({
 	getOp: function(){
 		return "orbit";
@@ -22,70 +23,25 @@ var OrbitCommand = Command.extend(function(){
 	},
 
 	update: function(){
+		Debug.addIndicator(this.target, 5);
+
 		var shipController = this.actor.shipController;
 
 		var position = this.actor.getTransform().position;
+		//a being vector from position to target
+		var a = new THREE.Vector3();
+		a.subVectors(this.target, position);
 
-		var diffX = this.target.x - position.x;
-		var diffZ = this.target.z - position.z;
-		var distanceFromTarget = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-		Debug.addIndicator(this.target);
-
-		if(distanceFromTarget < this.distance){
-			var vector = new THREE.Vector3();
-			vector.subVectors(position, this.target);
-			var length = vector.length();
-			vector.setLength(length + 10);
-
-			var b = new THREE.Vector3();
-			var c = new THREE.Vector3();
-			b.copy(vector);
-			c.copy(vector);
-
-			b.applyAxisAngle(MathUtils.getYAxis(), 0.1);
-			c.applyAxisAngle(MathUtils.getYAxis(), - 0.1);
-			b.addVectors(b, this.target);
-			c.addVectors(c, this.target);
-
-			var point = this.getPointWithCloserAngle(b, c);
-			shipController.bankForPoint(point);
-
-			Debug.addIndicator(point, 5);
-
-			shipController.accelerate(1.0);
-		}else{
-			this.orbit(this.distance, position);
-		}
-	},
-
-	orbit: function(radius, position){
-		var shipController = this.actor.shipController;
-
-		var tangentPoint = this.getTangentPoint(radius, position);
-
-		shipController.bankForPoint(tangentPoint);
-		Debug.addIndicator(tangentPoint);
-		shipController.accelerate(1.0);
-	},
-
-	getTangentPoint: function(radius, position){
-		var tangents = MathUtils.findTangentPoints(this.target, radius, position);	
-		var b = tangents[0];
-		var c = tangents[1];
-
+		//b and c being points |this.distance along vectors perpendicular to a
+		var b = new THREE.Vector3(a.z, 0, -a.x);
+		b.setLength(this.distance);
+		var c = new THREE.Vector3(-b.x, 0, -b.z);
+		c.setLength(this.distance);
 		b.addVectors(b, this.target);
 		c.addVectors(c, this.target);
 
-		var point = this.getPointWithCloserAngle(b, c);
-
-		return point;
-	},
-
-	getPointWithCloserAngle: function(b, c){
-		var position = this.actor.getTransform().position;
-
-		var shipController = this.actor.shipController;
+		Debug.addIndicator(b, 5);
+		Debug.addIndicator(c, 5);
 
 		var unitFacing = shipController.getUnitFacing();
 		var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
@@ -93,10 +49,15 @@ var OrbitCommand = Command.extend(function(){
 		
 		var point = angle1 < angle2 ? b : c;
 
-		return point;
+		shipController.bankForPoint(point);
+		shipController.accelerate(1.0);
 	},
 
 	destroy: function(){
+		var that = this;
 
+		this.targetIndicators.forEach(function(indicator){
+			that.actor.removeEntity(indicator);
+		});
 	}
 });
