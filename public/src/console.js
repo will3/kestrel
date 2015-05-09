@@ -1,4 +1,4 @@
-var Console = (function(){
+Kestrel.Console = function(){
 	var input;
 	var displayResult = false;
 	var result = null;
@@ -98,7 +98,7 @@ var Console = (function(){
 			displayResult = true;
 		},
 
-		setCommands: function(value){
+		loadCommands: function(value){
 			commands = value;
 		},
 
@@ -106,4 +106,6 @@ var Console = (function(){
 			onEnterCommand(command);
 		}
 	}
-})();
+};
+
+var Console = new Kestrel.Console();

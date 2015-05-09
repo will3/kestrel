@@ -1,9 +1,8 @@
 var container = $('#container');
 
-
 Game.initialize(container);
 
-Console.setCommands([		
+Console.loadCommands([		
 			new AddCommand(),
 			new AttackCommand(),
 			new ListCommand(),
