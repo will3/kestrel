@@ -9,12 +9,10 @@ var OrbitCommand = Command.extend(function(){
 	},
 
 	execute: function(){
-		this.actor = Game.getEntity(this.params[0]);
-
-		var x = parseInt(this.params[1]);
-		var z = parseInt(this.params[2]);
+		var x = parseInt(this.params[0]);
+		var z = parseInt(this.params[1]);
 		
-		var distanceParam = this.params[3];
+		var distanceParam = this.params[2];
 		this.distance = (distanceParam == null || distanceParam.length == 0) ? 50 : parseInt(distanceParam);
 
 		this.target = new THREE.Vector3(x, 0, z);

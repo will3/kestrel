@@ -10,9 +10,11 @@ Console.setCommands([
 			new DestroyCommand(),
 			new MoveCommand(),
 			new OrbitCommand(),
+			new SelectCommand(),
 		]);
 
 Console.setInput(document.getElementById('console_text'));
 
 Console.run("add ship");
-Console.run("move ship0 100 -100");
+Console.run("cd ship0");
+Console.run("move 100 100");

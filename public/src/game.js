@@ -142,7 +142,7 @@ var Game = (function(){
 		},
 
 		getEntity: function(name){
-			var entities = $.grep(entityRunner.entities, function(e){ return e.name == name });
+			var entities = this.getEntities( {name: name} );
 			if(entities == null || entities.length == 0){
 				throw "cannot find entity with name: " + name;
 			}
@@ -152,6 +152,18 @@ var Game = (function(){
 			}
 
 			return entities[0];
+		},
+
+		getEntities: function(params){
+			var name = params == null ? null : params.name;
+
+			var entities = entityRunner.entities;
+
+			if(name != null){
+				entities = $.grep(entities, function(e){ return e.name == name });
+			}
+
+			return entities;
 		},
 
 		getPhysics: function(){
@@ -164,10 +176,6 @@ var Game = (function(){
 			});
 
 			return entities;
-		},
-
-		getEntities: function(){
-			return entityRunner.entities;
 		},
 
 		nameEntity: function(name, entity){

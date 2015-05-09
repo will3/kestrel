@@ -8,10 +8,8 @@ var MoveCommand = Command.extend(function(){
 	},
 
 	execute: function(){
-		this.actor = Game.getEntity(this.params[0]);
-
-		var x = parseInt(this.params[1]);
-		var z = parseInt(this.params[2]);
+		var x = parseInt(this.params[0]);
+		var z = parseInt(this.params[1]);
 
 		this.target = new THREE.Vector3(x, 0, z);
 

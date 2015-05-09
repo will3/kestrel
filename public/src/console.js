@@ -4,6 +4,7 @@ var Console = (function(){
 	var result = null;
 	var lastCommand = null;
 	var commands = [];
+	var selectedEntity = null;
 
 	function onKeyDown(e){
 		if(displayResult){
@@ -59,19 +60,14 @@ var Console = (function(){
 	}
 
 	function processCommand(params){
-		var firstParam = params[0];
-		var commandIndex = 0;
 		var command = getMatchingCommand(params[0]);
 		if(command == null){
-			command = getMatchingCommand(params[1]);
-			commandIndex = 1;
-
-			if(command == null){
-				throw params + " is not a valid command or entity name";
-			}
+			throw params + " is not a valid command or entity name";
 		}
 
-		params.splice(commandIndex, 1);
+		params.splice(0, 1);
+
+		command.actor = selectedEntity;
 		command.params = params;
 		var resultBack = command.execute();
 		
@@ -87,6 +83,10 @@ var Console = (function(){
 			input.addEventListener('keydown', function(e){
 				onKeyDown(e);
 			}, false);
+		},
+
+		setSelectedEntity: function(value){
+			selectedEntity = value;
 		},
 
 		focus: function(){
