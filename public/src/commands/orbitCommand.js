@@ -38,8 +38,8 @@ var OrbitCommand = Command.extend(function(){
 		b.addVectors(b, this.target);
 		c.addVectors(c, this.target);
 
-		Debug.addIndicator(b, 5);
-		Debug.addIndicator(c, 5);
+		// Debug.addIndicator(b, 5);
+		// Debug.addIndicator(c, 5);
 
 		var unitFacing = shipController.getUnitFacing();
 		var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
