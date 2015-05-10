@@ -50,6 +50,25 @@ describe('Console', function(){
 				]);
 			console.run("list");
 		});
+
+		it('should pass params and execute command', function(){
+			var command = new Command();
+			command.getOp = function(){
+				return "test";
+			};
+			command.execute = function(){ };
+			var mock = sinon.mock(command);
+			console.loadCommands([command]);
+			mock.expects("execute");
+
+			console.run("test param1 param2 param3");
+
+			mock.verify();
+			expect(command.params.length).to.equal(3);
+			expect(command.params[0]).to.equal("param1");
+			expect(command.params[1]).to.equal("param2");
+			expect(command.params[2]).to.equal("param3");
+		});
 	});
 
 	function mockInput(){

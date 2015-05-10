@@ -1,4 +1,4 @@
-var Game = (function(){
+Kestrel.Game = function(entityRunner){
 	var scene;
 	var camera;
 	var renderer;
@@ -8,8 +8,9 @@ var Game = (function(){
 	var distance = 500.0;
 	var frameRate = 60.0;
 	var keyboard;
-	var entityRunner = new EntityRunner();
+	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
 	var physics = new Physics();
+	var nameRegistry = {};
 
 	var onEnterFrame = function(){ 
 		entityRunner.run();
@@ -148,7 +149,7 @@ var Game = (function(){
 			}
 
 			if(entities.length > 1){
-				throw "more than more entity with name: " + name + " found";
+				throw "more than one entity with name: " + name + " found";
 			}
 
 			return entities[0];
@@ -170,16 +171,7 @@ var Game = (function(){
 			return physics;
 		},
 
-		getNamedEntities: function(){
-			var entities = $.grep(this.getEntities(), function(e){
-				return e.name != null;
-			});
-
-			return entities;
-		},
-
 		nameEntity: function(name, entity){
-			var nameRegistry = Game.nameRegistry;
 			if(nameRegistry[name] == undefined){
 				nameRegistry[name] = 0;
 			}else{
@@ -189,6 +181,6 @@ var Game = (function(){
 			entity.name = name + nameRegistry[name];
 		}
 	};
-})();
+};
 
-Game.nameRegistry = {};
+var Game = new Kestrel.Game();
