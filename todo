@@ -1,9 +1,7 @@
 - commands
 	- make orbit and move targetable to a moving target
 	- keep distance ?
-
-- start unit test project
-	- mocha
+	- orbit on different planes
 
 - add weapons
 	- projectile
