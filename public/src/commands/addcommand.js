@@ -21,9 +21,7 @@ var AddCommand = Command.extend(function(){
 		var entity = new constructor();
 		Game.nameEntity(className.toLowerCase(), entity);
 		Game.addEntity(entity);
-		entity.start();
-		entity.started = true;
-
+		
 		function capitalizeFirstLetter(string) {
 		    return string.charAt(0).toUpperCase() + string.slice(1);
 		}

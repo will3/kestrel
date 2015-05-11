@@ -10,10 +10,11 @@ Console.loadCommands([
 			new MoveCommand(),
 			new OrbitCommand(),
 			new SelectCommand(),
+			new AlignCommand(),
 		]);
 
 Console.setInput(document.getElementById('console_text'));
 
 Console.run("add ship");
 Console.run("cd ship0");
-Console.run("move 100 100");
+Console.run("orbit 0 0");

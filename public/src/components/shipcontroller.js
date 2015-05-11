@@ -5,11 +5,21 @@ var ShipController = Component.extend(function(){
 	this.decceleration = 1.0;
 
 	this.maxDecceleration = 0.9;
+
+	//roll
 	this.maxRoll = Math.PI / 2;
 	this.desiredRoll = 0;
-	this.rollSpeed = 0.1;
+	this.rollCurve = 0.1;
 	this.rollStability = 0.97;
-	this.yawForce = 0.016;
+
+	//pitch
+	this.maxPitch = Math.PI / 2;
+	this.desiredPitch = 0;
+	this.pitchCurve = 0.1;
+	this.pitchStability = 0.97;
+
+	this.yawForce = 0.018;
+
 	this.friction = 0.96;
 
 	this.command = null;
@@ -43,6 +53,7 @@ var ShipController = Component.extend(function(){
 		this.updatePosition();
 		this.updateRoll();
 		this.updateYaw();
+		this.updatePitch();
 
 		if(this.command != null){
 			this.command.update();
@@ -62,11 +73,26 @@ var ShipController = Component.extend(function(){
 		var rotation = this.getTransform().rotation;
 
 		var roll = rotation.z;
-		roll += (this.desiredRoll - roll) * this.rollSpeed;
-		roll *= this.rollStability;
+		roll += (this.desiredRoll - roll) * this.rollCurve;
+		if(this.desiredRoll == 0){
+			roll *= this.rollStability;
+		}
 		rotation.setZ(roll);
 
 		this.desiredRoll = 0;
+	},
+
+	updatePitch: function(){
+		var rotation = this.getTransform().rotation;
+
+		var pitch = rotation.y;
+		pitch += (this.desiredPitch - pitch) * this.pitchCurve;
+		if(this.desiredPitch == 0){
+			pitch *= this.pitchStability;
+		}
+		rotation.setY(pitch);
+
+		this.desiredPitch = 0;
 	},
 
 	updateYaw: function(){
@@ -125,7 +151,7 @@ var ShipController = Component.extend(function(){
 		this.bank(amount);
 	},
 
-	bankForPoint: function(point){
+	align: function(point){
 		var position = this.getTransform().position;
 
 		var a = new THREE.Vector3();
@@ -139,6 +165,11 @@ var ShipController = Component.extend(function(){
 		var desiredYawSpeed = angleBetween * 0.1;
 
 		this.bankForYawVelocity(desiredYawSpeed);
+		var xDiff = point.x - position.x;
+		var yDiff = point.y - position.y;
+		var zDiff = point.z - position.z;
+
+		this.desiredPitch = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
 	},
 
 	getUnitFacing: function(){
@@ -152,7 +183,7 @@ var ShipController = Component.extend(function(){
 	},
 
 	move: function(point){
-		this.bankForPoint(point);
+		this.align(point);
 
 		var position = this.getTransform().position;
 		

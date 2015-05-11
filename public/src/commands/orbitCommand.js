@@ -47,7 +47,7 @@ var OrbitCommand = Command.extend(function(){
 		
 		var point = angle1 < angle2 ? b : c;
 
-		shipController.bankForPoint(point);
+		shipController.align(point);
 		shipController.accelerate(1.0);
 	},
 
