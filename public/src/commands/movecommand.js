@@ -3,10 +3,6 @@ var MoveCommand = Command.extend(function(){
 	this.actor = null;
 	this.targetIndicator = null;
 }).methods({
-	getOp: function(){
-		return "move";
-	},
-
 	execute: function(){
 		var x = parseInt(this.params[0]);
 		var y = parseInt(this.params[1]);

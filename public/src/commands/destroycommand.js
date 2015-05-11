@@ -1,9 +1,6 @@
 var DestroyCommand = Command.extend({
 
 }).methods({
-	getOp: function(){
-		return ["destroy", "remove"];
-	},
 	execute:function(){
 		var param = this.params[0];
 		

@@ -4,10 +4,6 @@ var OrbitCommand = Command.extend(function(){
 	this.distance = 0;
 	this.targetIndicators = [];
 }).methods({
-	getOp: function(){
-		return "orbit";
-	},
-
 	execute: function(){
 		var x = parseInt(this.params[0]);
 		var y = parseInt(this.params[1]);

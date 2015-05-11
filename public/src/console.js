@@ -3,7 +3,18 @@ Kestrel.Console = function(){
 	var displayResult = false;
 	var result = null;
 	var lastCommand = null;
-	var commands = [];
+	var commandMapping = {
+		"add": 		"AddCommand",
+		"attack": 	"AttackCommand",
+		"list": 	"ListCommand",
+		"remove": 	"DestroyCommand",
+		"move": 	"MoveCommand",
+		"orbit": 	"OrbitCommand",
+		"select": 	"SelectCommand",
+		"align": 	"AlignCommand",
+		"stop": 	"StopCommand",
+	};
+
 	var selectedEntity = null;
 
 	function onKeyDown(e){
@@ -44,19 +55,7 @@ Kestrel.Console = function(){
 	}
 
 	function getMatchingCommand(name){
-		return $.grep(commands, function(c){ 
-			var op = c.getOp();
-			if($.isArray(op)){
-				for(var i = 0; i < op.length; i++){
-					if(op[i] == name){
-						return true;
-					}
-				}
-				return false;
-			}
-
-			return c.getOp() == name; 
-		})[0];
+		return new window[commandMapping[name]]();
 	}
 
 	function processCommand(params){
@@ -96,10 +95,6 @@ Kestrel.Console = function(){
 		write: function(value){
 			input.value = value;
 			displayResult = true;
-		},
-
-		loadCommands: function(value){
-			commands = value;
 		},
 
 		run: function(command){

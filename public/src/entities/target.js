@@ -5,7 +5,6 @@ var Target = Bullet.extend(function(lifeTime){
 		this.supr();
 
 		this.getTransform().scale.set(10, 10, 10);
-		Game.nameEntity("target", this);
 	},
 
 	update: function(){

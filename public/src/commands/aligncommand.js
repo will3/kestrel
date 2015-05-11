@@ -1,10 +1,6 @@
 var AlignCommand = Command.extend(function(){
 	this.target = null;
 }).methods({
-	getOp: function(){
-		return "align";
-	},
-
 	execute: function(){
 		var x = parseInt(this.params[0]);
 		var y = parseInt(this.params[1]);
