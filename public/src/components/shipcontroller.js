@@ -20,6 +20,7 @@ var ShipController = Component.extend(function(){
 	this.yawForce = 0.018;
 
 	this.command = null;
+
 }).methods({
 	getName: function(){
 		return "ShipController";
@@ -116,7 +117,7 @@ var ShipController = Component.extend(function(){
 	},
 
 	accelerateForVelocity: function(velocity){
-		var velocityDiff = velocity - this.velocity.length();
+		var velocityDiff = velocity - this.getRigidBody().velocity.length();
 		//accelerate
 		if(velocityDiff > 0){
 			var amount = velocityDiff / this.force;

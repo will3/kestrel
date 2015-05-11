@@ -18,7 +18,7 @@ var OrbitCommand = Command.extend(function(){
 	},
 
 	update: function(){
-		Debug.addIndicator(this.target);
+		// Debug.addIndicator(this.target);
 
 		var shipController = this.actor.shipController;
 
@@ -52,7 +52,7 @@ var OrbitCommand = Command.extend(function(){
 
 		shipController.align(point);
 
-		Debug.addIndicator(point);
+		// Debug.addIndicator(point);
 
 		shipController.accelerate(1.0);
 	},

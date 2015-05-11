@@ -128,7 +128,11 @@ Kestrel.Game = function(entityRunner){
 			setInterval(onEnterFrame, 1000 / frameRate);
 		},
 
-		addEntity: function(entity){
+		addEntity: function(entity, position){
+			if(position != null){
+				entity.setPosition(position);
+			}
+			
 			entity.start();
 			entityRunner.addEntity(entity);
 		},

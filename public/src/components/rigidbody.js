@@ -12,5 +12,5 @@ var RigidBody = Component.extend(function(){
 		this.velocity.multiplyScalar(this.friction);
 		this.getTransform().position.add(this.velocity);
 		this.acceleration.set(0, 0, 0);
-	},
+	}
 });

@@ -61,7 +61,7 @@ var Entity = klass(function(){
 	},
 
 	update: function(){
-		this.frameAge ++;
+		
 	},
 
 	destroy: function(){
@@ -80,5 +80,13 @@ var Entity = klass(function(){
 		}else{
 			Game.removeEntity(this);
 		}
+	},
+
+	setPosition: function(position){
+		this.getTransform().position.copy(position);
+	},
+
+	getPosition: function(position){
+		return this.getTransform().position;
 	},
 });

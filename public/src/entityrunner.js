@@ -25,6 +25,7 @@ var EntityRunner = klass(function(){
 
 	runEntity: function(entity){
 		entity.update();
+		entity.frameAge ++;
 		entity.components.forEach(function(component){
 			component.update();
 		});
