@@ -9,7 +9,7 @@ var OrbitCommand = Command.extend(function(){
 		var y = parseInt(this.params[1]);
 		var z = parseInt(this.params[2]);
 		
-		var distanceParam = this.params[2];
+		var distanceParam = this.params[3];
 		this.distance = (distanceParam == null || distanceParam.length == 0) ? 50 : parseInt(distanceParam);
 
 		this.target = new THREE.Vector3(x, y, z);
@@ -26,12 +26,21 @@ var OrbitCommand = Command.extend(function(){
 		//a being vector from position to target
 		var a = new THREE.Vector3();
 		a.subVectors(this.target, position);
+		a.setY(0);
 
-		//b and c being points |this.distance along vectors perpendicular to a
-		var b = new THREE.Vector3(a.z, 0, -a.x);
+		var yAxis = MathUtils.yAxis;
+
+		var b = new THREE.Vector3();
+		b.copy(a);
+		b.applyAxisAngle(yAxis, 3 * Math.PI / 4);
+
+		var c = new THREE.Vector3();
+		c.copy(a);
+		c.applyAxisAngle(yAxis, - 3 * Math.PI / 4);
+
 		b.setLength(this.distance);
-		var c = new THREE.Vector3(-b.x, 0, -b.z);
 		c.setLength(this.distance);
+
 		b.addVectors(b, this.target);
 		c.addVectors(c, this.target);
 
@@ -42,6 +51,9 @@ var OrbitCommand = Command.extend(function(){
 		var point = angle1 < angle2 ? b : c;
 
 		shipController.align(point);
+
+		Debug.addIndicator(point, 5);
+
 		shipController.accelerate(1.0);
 	},
 

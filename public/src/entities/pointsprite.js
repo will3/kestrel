@@ -1,8 +1,12 @@
 var PointSprite = Entity.extend(function(){
-
+	this.texture = null;
 }).methods({
 	start: function(){
-		this.addComponent(new PointSpriteRenderComponent(texture));
+		this.addComponent(new PointSpriteRenderComponent(this.texture));
+	},
+
+	setTexture: function(value){
+		this.texture = value;
 	},
 });
 
@@ -14,7 +18,7 @@ var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 	},
 
 	initMaterial: function(){
-		var map = this.texture == null ? getDefaultTexture() : this.texture;
+		var map = this.texture == null ? TextureLoader.getDefault() : this.texture;
 		map.minFilter = THREE.NearestFilter;
 		var material = new THREE.SpriteMaterial({ map: map, color: 0xffffff, fog:true });
 		return material;
@@ -23,8 +27,4 @@ var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 	initObject: function(geometry, material){
 		return new THREE.Sprite(material);
 	},
-
-	getDefaultTexture: function(){
-		return THREE.ImageUtils.loadTexture("public/assets/textures/point16x16.png");
-	}
 });

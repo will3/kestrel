@@ -33,9 +33,9 @@ var Entity = klass(function(){
 	},
 
 	addComponent: function(component){
+		component.entity = this;
 		component.start();
 		this.components.push(component);
-		component.entity = this;
 	},
 
 	removeComponent: function(component){

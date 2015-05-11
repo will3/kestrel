@@ -10,13 +10,15 @@ var ShipController = Component.extend(function(){
 	this.maxRoll = Math.PI / 2;
 	this.desiredRoll = 0;
 	this.rollCurve = 0.1;
-	this.rollStability = 0.97;
+	this.rollMaxSpeed = 0.1;
+	this.rollFriction = 0.95;
 
 	//pitch
 	this.maxPitch = Math.PI / 2;
 	this.desiredPitch = 0;
 	this.pitchCurve = 0.1;
-	this.pitchStability = 0.97;
+	this.pitchMaxSpeed = 0.1;
+	this.pitchFriction = 0.95;
 
 	this.yawForce = 0.018;
 
@@ -73,10 +75,16 @@ var ShipController = Component.extend(function(){
 		var rotation = this.getTransform().rotation;
 
 		var roll = rotation.z;
-		roll += (this.desiredRoll - roll) * this.rollCurve;
-		if(this.desiredRoll == 0){
-			roll *= this.rollStability;
+		var rollSpeed = (this.desiredRoll - roll) * this.rollCurve;
+		if(rollSpeed > this.rollMaxSpeed){
+			rollSpeed = this.rollMaxSpeed;
+		}else if(rollSpeed < - this.rollMaxSpeed){
+			rollSpeed = - this.rollMaxSpeed;
 		}
+		roll += rollSpeed;
+
+		roll *= this.rollFriction;
+
 		rotation.setZ(roll);
 
 		this.desiredRoll = 0;
@@ -86,10 +94,16 @@ var ShipController = Component.extend(function(){
 		var rotation = this.getTransform().rotation;
 
 		var pitch = rotation.y;
-		pitch += (this.desiredPitch - pitch) * this.pitchCurve;
-		if(this.desiredPitch == 0){
-			pitch *= this.pitchStability;
+		var pitchChange = (this.desiredPitch - pitch) * this.pitchCurve;
+		if(pitchChange > this.pitchMaxSpeed){
+			pitchChange = this.pitchMaxSpeed;
+		}else if(pitchChange < - this.pitchMaxSpeed){
+			pitchChange = - this.pitchMaxSpeed;
 		}
+		pitch += pitchChange;
+
+		pitch *= this.pitchFriction;
+
 		rotation.setY(pitch);
 
 		this.desiredPitch = 0;

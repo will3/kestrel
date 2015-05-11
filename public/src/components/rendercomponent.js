@@ -10,11 +10,17 @@ var RenderComponent = Component.extend(function(){
 		var material = this.initMaterial();
 		this.innerObject = this.initObject(geometry, material);
 		Game.getScene().add(this.innerObject);
+
+		this.updateTransform();
 	},
 
 	update: function(){
 		this.supr();
 		
+		this.updateTransform();
+	},
+
+	updateTransform: function(){
 		var position = this.getTransform().position;
 		this.innerObject.position.set(position.x, position.y, position.z);
 

@@ -1,8 +1,7 @@
 var MathUtils = (function(){
-	var yAxis = new THREE.Vector3(0, 1, 0);
-
 	return{
-
+		yAxis: new THREE.Vector3(0, 1, 0),
+		
 		getRotationMatrix: function(yaw, pitch, roll){
 			var m = new THREE.Matrix4();
 			m.makeRotationFromEuler(this.getEuler(yaw, pitch, roll));
@@ -54,10 +53,6 @@ var MathUtils = (function(){
 			}
 
 			return angle;
-		},
-
-		getYAxis: function(){
-			return yAxis;
 		},
 
 		findTangentPoints: function(center, radius, point){

@@ -1,10 +1,10 @@
-var Target = Bullet.extend(function(lifeTime){
+var Target = PointSprite.extend(function(lifeTime){
 	this.lifeTime = lifeTime == null ? -1 : lifeTime;
 }).methods({
 	start: function(){
 		this.supr();
 
-		this.getTransform().scale.set(10, 10, 10);
+		this.getTransform().scale.set(2, 2, 2);
 	},
 
 	update: function(){

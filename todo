@@ -2,10 +2,15 @@
 	- make orbit and move targetable to a moving target
 	- keep distance ?
 
+
+- add engine trail
+
 - add weapons
 	- projectile
 	- laser
 	- missile
+
+- collision
 
 - procedural generate ships
 	- different orientations
@@ -36,3 +41,5 @@
 
 - add pixel shader for alpha map
 
+- unit test project
+	- browserify 
