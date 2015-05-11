@@ -10,12 +10,13 @@ var OrbitCommand = Command.extend(function(){
 
 	execute: function(){
 		var x = parseInt(this.params[0]);
-		var z = parseInt(this.params[1]);
+		var y = parseInt(this.params[1]);
+		var z = parseInt(this.params[2]);
 		
 		var distanceParam = this.params[2];
 		this.distance = (distanceParam == null || distanceParam.length == 0) ? 50 : parseInt(distanceParam);
 
-		this.target = new THREE.Vector3(x, 0, z);
+		this.target = new THREE.Vector3(x, y, z);
 
 		this.actor.shipController.setCommand(this);
 	},
@@ -37,9 +38,6 @@ var OrbitCommand = Command.extend(function(){
 		c.setLength(this.distance);
 		b.addVectors(b, this.target);
 		c.addVectors(c, this.target);
-
-		// Debug.addIndicator(b, 5);
-		// Debug.addIndicator(c, 5);
 
 		var unitFacing = shipController.getUnitFacing();
 		var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
