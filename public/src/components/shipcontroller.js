@@ -1,10 +1,6 @@
 var ShipController = Component.extend(function(){
-	this.force = 0.04;
-	this.velocity = new THREE.Vector3();
-	this.acceleration = new THREE.Vector3();
-	this.decceleration = 1.0;
-
-	this.maxDecceleration = 0.9;
+	//engine
+	this.force = 0.025;
 
 	//roll
 	this.maxRoll = Math.PI / 2;
@@ -20,14 +16,17 @@ var ShipController = Component.extend(function(){
 	this.pitchMaxSpeed = 0.1;
 	this.pitchFriction = 0.95;
 
+	//yaw
 	this.yawForce = 0.018;
-
-	this.friction = 0.96;
 
 	this.command = null;
 }).methods({
 	getName: function(){
 		return "ShipController";
+	},
+
+	getRigidBody: function(){
+		return this.entity.rigidBody;
 	},
 
 	start: function(){
@@ -52,7 +51,6 @@ var ShipController = Component.extend(function(){
 	},
 
 	update: function(){
-		this.updatePosition();
 		this.updateRoll();
 		this.updateYaw();
 		this.updatePitch();
@@ -60,15 +58,6 @@ var ShipController = Component.extend(function(){
 		if(this.command != null){
 			this.command.update();
 		}
-	},
-
-	updatePosition: function(){
-		this.velocity.add(this.acceleration);
-		this.velocity.multiplyScalar(this.decceleration);
-		this.velocity.multiplyScalar(this.friction);
-		this.getTransform().position.add(this.velocity);
-		this.acceleration.set(0, 0, 0);
-		this.decceleration = 1.0;
 	},
 
 	updateRoll: function(){
@@ -123,7 +112,7 @@ var ShipController = Component.extend(function(){
 		var rotation = this.getTransform().rotation;
 		var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 		vector.multiplyScalar(amount * this.force);
-		this.acceleration.add(vector);
+		this.getRigidBody().acceleration.add(vector);
 	},
 
 	accelerateForVelocity: function(velocity){
@@ -135,14 +124,6 @@ var ShipController = Component.extend(function(){
 				amount = 1;
 			}
 			this.accelerate(amount);
-		//deccelerate
-		}else{
-			var decceleration = velocity / this.velocity.length();
-			if(decceleration < this.maxDecceleration){
-				decceleration = this.maxDecceleration;
-			}
-
-			this.decceleration = decceleration;
 		}
 	},
 

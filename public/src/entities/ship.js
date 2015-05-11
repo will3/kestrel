@@ -1,10 +1,13 @@
 var Ship = Entity.extend(function(){
 	this.shipController = null;
+	this.rigidBody = null;
 }).methods({
 	start: function(){
 		Ship.id ++;
 
 		this.addComponent(new ShipRenderComponent());
+		this.rigidBody = new RigidBody();
+		this.addComponent(this.rigidBody);
 		this.shipController = new ShipController();
 		this.addComponent(this.shipController);
 	},
