@@ -2,13 +2,16 @@ var Projectile = Entity.extend(function(power, direction){
 	this.power = power;
 	this.velocity = new THREE.Vector3();
 	this.velocity.copy(direction);
-	this.velocity.setLength(3);
+	this.velocity.setLength(4);
 	this.life = 200;
 }).methods({
 	start: function(){
-		var num = 8;
+		var num = 4;
 		for(var i = 0; i < num; i ++){
-			this.addEntity(this.createBlock(this.power * (num - i) / num, num - i));
+			this.addEntity(this.createBlock(
+				this.power * (num - i) / num, 
+				(num - i) * 0.6
+				));
 		}
 	},
 
@@ -22,7 +25,7 @@ var Projectile = Entity.extend(function(power, direction){
 		var sizeOverTime = function(time){
 			var remainingLife = this.life - time;
 			if(remainingLife < 50){
-				return this.size *= 0.98;
+				return this.size *= 0.95;
 			}
 			return this.size;
 		}.bind({

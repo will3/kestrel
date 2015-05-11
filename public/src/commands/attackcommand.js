@@ -16,7 +16,7 @@ var AttackCommand = Command.extend(function(){
 		var shipController = this.actor.shipController;
 		shipController.align(this.target.getPosition());
 
-		if(this.cooldown % 10 == 0){
+		if(this.cooldown % 20 == 0){
 			this.shoot();
 		}
 
