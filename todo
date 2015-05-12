@@ -17,6 +17,12 @@
 - procedural generate ships
 	- different orientations
 	- different sizes
+	- different components
+		- sensor //front tip
+		- engine //back block
+		- deck //front block
+		- weapon //front tip and back block
+		- cargo	//front and back block
 	- procedural properties
 	- different classes
 	- weapons

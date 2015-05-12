@@ -4,13 +4,14 @@ function Beam(segments, sides){
 	var vertices = [];
 	var faceIndices = [];
 	var edges = 4;
+	var width = null;
 
 	var geometry;
 	var geometryNeedsUpdate = true;
 
 	var alignment = "y";
-	var scale = null;
-	var position = null;
+	var scale = new THREE.Vector3(1.0, 1.0, 1.0);
+	var position = new THREE.Vector3(0, 0, 0);
 
 	var childBeams = [];
 
@@ -121,13 +122,31 @@ function Beam(segments, sides){
 		return segmentIndex * edges + edgeIndex;
 	}
 
-	function assign(point, axis, value){
+	function assignVectorWithAxis(point, axis, value){
 		if(axis == "x"){
 			point.setX(value);
 		}else if(axis == "y"){
 			point.setY(value);
 		}else if(axis == "z"){
 			point.setZ(value);
+		}else{
+			throw "invalid axis: " + axis;
+		}
+	}
+
+	function incrementVectorWithAxis(point, axis, value){
+		if(axis == "x"){
+			point.setX(point.x + value);
+		}else if(axis == "-x"){
+			point.setX(point.x - value);
+		}else if(axis == "y"){
+			point.setY(point.y + value);
+		}else if(axis == "-y"){
+			point.setY(point.y - value);
+		}else if(axis == "z"){
+			point.setZ(point.z + value);
+		}else if(axis == "-z"){
+			point.setZ(point.z - value);
 		}else{
 			throw "invalid axis: " + axis;
 		}
@@ -143,13 +162,8 @@ function Beam(segments, sides){
 				geometry = makeGeometry();
 			}
 
-			if(scale != null){
-				geometry.applyMatrix(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
-			}
-
-			if(position != null){
-				geometry.applyMatrix(new THREE.Matrix4().makeTranslation(position.x, position.y, position.z));
-			}
+			geometry.applyMatrix(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
+			geometry.applyMatrix(new THREE.Matrix4().makeTranslation(position.x, position.y, position.z));
 
 			childBeams.forEach(function(childBeam){
 				geometry.merge(childBeam.getGeometry());
@@ -181,7 +195,21 @@ function Beam(segments, sides){
 			return position;
 		},
 
-		branch: function(beam, offset, extrusion){
+		getWidth: function(){
+			if(width == null){
+				width = _.max(sides);
+			}
+
+			return width;
+		},
+
+		getLength: function(){
+			return segments[segments.length - 1] - segments[0];
+		},
+
+		branch: function(beam, offset, direction){
+			beam.setAlignment(direction);
+
 			if(beam.getAlignment() == this.getAlignment()){
 				throw "cannot attach beam of the same orientations together";
 			}
@@ -190,10 +218,10 @@ function Beam(segments, sides){
 			var extrusionAxis = beam.getAlignment();
 
 			var position = new THREE.Vector3(0, 0, 0);
-			assign(position, offsetAxis, offset);
-			assign(position, extrusionAxis, extrusion);
-			beam.setPosition(position);
-
+			assignVectorWithAxis(position, offsetAxis, offset);
+			beam.getPosition().add(position);
+			var testGap = 0.0;
+			incrementVectorWithAxis(beam.getPosition(), direction, this.getWidth() / 2 + beam.getLength() / 2 + testGap);
 			childBeams.push(beam);
 		},
 	}
