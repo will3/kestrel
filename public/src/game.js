@@ -5,7 +5,7 @@ Kestrel.Game = function(entityRunner){
 	var control;
 	var target = new THREE.Vector3();
 	var cameraYawPitchRow = new THREE.Vector3();
-	var distance = 500.0;
+	var distance = 200.0;
 	var frameRate = 60.0;
 	var keyboard;
 	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
@@ -132,7 +132,7 @@ Kestrel.Game = function(entityRunner){
 			if(position != null){
 				entity.setPosition(position);
 			}
-			
+
 			entity.start();
 			entityRunner.addEntity(entity);
 		},

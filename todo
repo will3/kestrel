@@ -2,11 +2,13 @@
 	- make orbit and move targetable to a moving target
 	- keep distance ?
 
-
 - add engine trail
 
+- ship collision
+	- shield?
 - add weapons
 	- projectile
+		- collision
 	- laser
 	- missile
 

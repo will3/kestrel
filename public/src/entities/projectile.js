@@ -10,7 +10,7 @@ var Projectile = Entity.extend(function(power, direction){
 		for(var i = 0; i < num; i ++){
 			this.addEntity(this.createBlock(
 				this.power * (num - i) / num, 
-				(num - i) * 0.6
+				(num - i) * 0.5
 				));
 		}
 	},

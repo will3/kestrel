@@ -99,7 +99,13 @@ Kestrel.Console = function(){
 
 		run: function(command){
 			onEnterCommand(command);
-		}
+		},
+
+		runScenario: function(commands){
+			commands.forEach(function(command){
+				Console.run(command);
+			});
+		},
 	}
 };
 
