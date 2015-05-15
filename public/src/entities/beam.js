@@ -207,7 +207,7 @@ function Beam(segments, sides){
 			return segments[segments.length - 1] - segments[0];
 		},
 
-		branch: function(beam, offset, direction){
+		branch: function(beam, offset, extrusion, direction){
 			beam.setAlignment(direction);
 
 			if(beam.getAlignment() == this.getAlignment()){
@@ -219,9 +219,10 @@ function Beam(segments, sides){
 
 			var position = new THREE.Vector3(0, 0, 0);
 			assignVectorWithAxis(position, offsetAxis, offset);
+			assignVectorWithAxis(position, extrusionAxis, extrusion);
+
 			beam.getPosition().add(position);
-			var testGap = 0.0;
-			incrementVectorWithAxis(beam.getPosition(), direction, this.getWidth() / 2 + beam.getLength() / 2 + testGap);
+
 			childBeams.push(beam);
 		},
 	}

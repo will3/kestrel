@@ -6,6 +6,8 @@ Console.setInput(document.getElementById('console_text'));
 
 Console.run("add ship");
 
+Kestrel.initialize();
+
 // Console.runScenario(
 // 		[
 // 		"add ship",
