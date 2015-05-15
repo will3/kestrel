@@ -4,6 +4,8 @@ var Projectile = Entity.extend(function(power, direction){
 	this.velocity.copy(direction);
 	this.velocity.setLength(4);
 	this.life = 200;
+	this.collisionRadius = 1;
+	this.rigidBody = null;
 }).methods({
 	start: function(){
 		var num = 4;
@@ -13,6 +15,7 @@ var Projectile = Entity.extend(function(power, direction){
 				(num - i) * 0.5
 				));
 		}
+		this.rigidBody = new RigidBody();
 	},
 
 	createBlock: function(size, offset){
@@ -57,4 +60,8 @@ var Projectile = Entity.extend(function(power, direction){
 
 		return block;
 	},
+
+	onCollision: function(entity){
+		this.destroy();
+	}
 });

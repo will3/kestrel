@@ -11,6 +11,7 @@ Kestrel.Game = function(entityRunner){
 	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
 	var physics = new Physics();
 	var nameRegistry = {};
+	var collision = new Collision();
 
 	var onEnterFrame = function(){ 
 		entityRunner.run();
@@ -125,6 +126,7 @@ Kestrel.Game = function(entityRunner){
 			initScene();
 			initControl();
 			this.addEntity(physics);
+			this.addEntity(collision);
 			setInterval(onEnterFrame, 1000 / frameRate);
 		},
 
@@ -160,9 +162,13 @@ Kestrel.Game = function(entityRunner){
 		},
 
 		getEntities: function(params){
-			var name = params == null ? null : params.name;
-
 			var entities = entityRunner.entities;
+
+			if(params == null){
+				return entities;
+			}
+
+			var name = params == null ? null : params.name;
 
 			if(name != null){
 				entities = $.grep(entities, function(e){ return e.name == name });

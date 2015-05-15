@@ -4,17 +4,19 @@ Game.initialize(container);
 
 Console.setInput(document.getElementById('console_text'));
 
-Console.run("add ship");
+// Console.run("add ship");
+// Console.run("add ship");
+// Console.run("add ship");
 
 Kestrel.initialize();
 
-// Console.runScenario(
-// 		[
-// 		"add ship",
-// 		"add ship 100 0 100",
-// 		"select ship1",
-// 		"orbit 0 0 0 100",
-// 		"select ship0",
-// 		"attack ship1",
-// 		]
-// 	);
+Console.runScenario(
+		[
+		"add ship",
+		"add ship 100 0 100",
+		"select ship1",
+		"orbit 0 0 0 100",
+		"select ship0",
+		"attack ship1",
+		]
+	);

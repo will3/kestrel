@@ -1,12 +1,18 @@
 var Ship = Entity.extend(function(){
 	this.shipController = null;
 	this.rigidBody = null;
+	this.geometry = null;
+	this.collisionRadius = 0;
 }).methods({
 	start: function(){
 		Ship.id ++;
 
 		this.bluePrint = new ShipBluePrint();
-		this.addComponent(new ShipRenderComponent(this.bluePrint));
+		this.geometry = this.bluePrint.initGeometry();
+		this.geometry.computeBoundingSphere();
+		this.collisionRadius = this.geometry.boundingSphere.radius;
+
+		this.addComponent(new ShipRenderComponent(this.geometry));
 		this.rigidBody = new RigidBody();
 		this.addComponent(this.rigidBody);
 		this.shipController = new ShipController();
@@ -28,7 +34,7 @@ var ShipBluePrint = function(){
 		wing.branch(getCargo(), 2, -0.5, "z");
 		wing.branch(getCargo(), 0, -0.5, "z");
 		wing.branch(getCargo(), -2, -0.5, "z");
-		
+
 		return wing;
 	}
 
@@ -68,11 +74,11 @@ var ShipBluePrint = function(){
 	};
 };
 
-var ShipRenderComponent = RenderComponent.extend(function(bluePrint){
-	this.bluePrint = bluePrint;
+var ShipRenderComponent = RenderComponent.extend(function(geometry){
+	this.geometry = geometry;
 }).methods({
 	initGeometry: function(){
-		return this.bluePrint.initGeometry();
+		return this.geometry;
 	},
 
 	initMaterial: function(){

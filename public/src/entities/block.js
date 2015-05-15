@@ -13,7 +13,7 @@ var Block = PointSprite.extend(function(){
 		
 		//add rigid body
 		this.rigidBody = new RigidBody();
-		this.rigidBody.friction = 1;
+		this.rigidBody.defaultFriction = 1;
 		this.addComponent(this.rigidBody);
 
 		//initialize size
