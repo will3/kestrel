@@ -1,8 +1,14 @@
+var sinon = require("sinon");
+var chai = require("chai");
+var ListCommand = require("../app/commands/listcommand");
+var Command = require("../app/command");
+var expect = chai.expect;
+
 describe('Console', function(){
 	var console = null;
 
 	beforeEach(function(){
-		console = new Kestrel.Console();
+		console = require("../app/console");
 	});
 
 	describe('set Input', function(){
@@ -41,128 +47,28 @@ describe('Console', function(){
 
 	describe('run', function(){
 		it('should throw if invalid command', function(){
-			expect(function(){console.run("invalid_command");}).to.throw("invalid_command is not a valid command or entity name");
+			expect(function(){
+				console.run("invalid_command");
+			})
+			.to
+			.throw("invalid_command is not a valid command");
 		});
 
 		it('should not throw for list', function(){
-			console.loadCommands([
-				new ListCommand(),
-				]);
+			console.setCommandMapping({
+				"list": 	ListCommand,
+			});
+
 			console.run("list");
-		});
-
-		it('should pass params and execute command', function(){
-			var command = new Command();
-			command.getOp = function(){
-				return "test";
-			};
-			command.execute = function(){ };
-			var mock = sinon.mock(command);
-			console.loadCommands([command]);
-			mock.expects("execute");
-
-			console.run("test param1 param2 param3");
-
-			mock.verify();
-			expect(command.params.length).to.equal(3);
-			expect(command.params[0]).to.equal("param1");
-			expect(command.params[1]).to.equal("param2");
-			expect(command.params[2]).to.equal("param3");
 		});
 	});
 
 	function mockInput(){
-		var input = document.createElement("input");
+		var input = {
+			addEventListener: function(){},
+			focus: function(){},
+		};
 		input.type = "text";
 		return sinon.mock(input);
 	}
 });
-
-// 		setCommands: function(value){
-// 			commands = value;
-// 		},
-
-// 		run: function(command){
-// 			onEnterCommand(command);
-// 		}
-// 	}
-// })();
-
-// var Console = (function(){
-// 	var input;
-// 	var displayResult = false;
-// 	var result = null;
-// 	var lastCommand = null;
-// 	var commands = [];
-// 	var selectedEntity = null;
-
-// 	function onKeyDown(e){
-// 		if(displayResult){
-// 			input.value = "";
-// 			displayResult = false;
-// 			return;
-// 		}
-
-// 		if(e.keyIdentifier == "Enter"){
-// 			onEnterCommand(input.value);
-// 			if(displayResult){
-// 				input.value = result;
-// 			}else{
-// 				input.value = "";
-// 			}
-// 		}else if(e.keyIdentifier == "Up"){
-// 			if(lastCommand != null && lastCommand.length > 0){
-// 				input.value = lastCommand;
-// 				displayResult = false;
-// 			}
-// 		}
-// 	}
-
-// 	function showError(error){
-// 		alert(error);
-// 	}
-
-// 	function onEnterCommand(command){
-// 		if(command.length == 0){
-// 			return;
-// 		}
-
-// 		lastCommand = command;
-// 		var params = command.split(" ");
-		
-// 		processCommand(params);
-// 	}
-
-// 	function getMatchingCommand(name){
-// 		return $.grep(commands, function(c){ 
-// 			var op = c.getOp();
-// 			if($.isArray(op)){
-// 				for(var i = 0; i < op.length; i++){
-// 					if(op[i] == name){
-// 						return true;
-// 					}
-// 				}
-// 				return false;
-// 			}
-
-// 			return c.getOp() == name; 
-// 		})[0];
-// 	}
-
-// 	function processCommand(params){
-// 		var command = getMatchingCommand(params[0]);
-// 		if(command == null){
-// 			throw params + " is not a valid command or entity name";
-// 		}
-
-// 		params.splice(0, 1);
-
-// 		command.actor = selectedEntity;
-// 		command.params = params;
-// 		var resultBack = command.execute();
-		
-// 		if(resultBack != null && resultBack.length > 0){
-// 			result = resultBack;
-// 			displayResult = true;
-// 		}
-// 	}

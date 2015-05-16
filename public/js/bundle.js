@@ -774,7 +774,7 @@ var Console = function(){
 	var displayResult = false;
 	var result = null;
 	var lastCommand = null;
-	var commandMapping = null;
+	var commandMapping = {};
 	var selectedEntity = null;
 
 	function onKeyDown(e){
@@ -814,15 +814,19 @@ var Console = function(){
 		processCommand(params);
 	}
 
-	function getMatchingCommand(name){
-		return new commandMapping[name]();
+	function getCommand(name){
+		var commandClass = commandMapping[name];
+		if(commandClass == null){
+			throw params + " is not a valid command";
+		}
+
+		var command = new commandMapping[name]();
+
+		return command;
 	}
 
 	function processCommand(params){
-		var command = getMatchingCommand(params[0]);
-		if(command == null){
-			throw params + " is not a valid command or entity name";
-		}
+		var command = getCommand(params[0]);
 
 		params.splice(0, 1);
 
@@ -58597,14 +58601,14 @@ Console.setCommandMapping({
 
 Console.runScenario(
 		[
-		"add ship",
-		"add ship 100 0 100",
-		"select ship1",
-		"orbit 0 0 0 100",
-		"select ship0",
-		"attack ship1",
+			"add ship",
 		]
 	);
 
-
+		// "add ship",
+		// "add ship 100 0 100",
+		// "select ship1",
+		// "orbit 0 0 0 100",
+		// "select ship0",
+		// "attack ship1",
 },{"./commands/addcommand":4,"./commands/aligncommand":5,"./commands/attackcommand":6,"./commands/destroycommand":7,"./commands/listcommand":8,"./commands/movecommand":9,"./commands/orbitcommand":10,"./commands/selectcommand":11,"./commands/stopcommand":12,"./console":18,"./game.js":27,"jquery":32}]},{},[35]);

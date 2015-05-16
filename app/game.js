@@ -3,7 +3,7 @@ var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
 var MathUtils = require("./mathutils");
 var Control = require("./control");
-var $ = require("jquery");
+var _ = require("lodash");
 var Console = require("./console");
 
 Game = function(entityRunner){
@@ -16,7 +16,7 @@ Game = function(entityRunner){
 	var distance = 200.0;
 	var frameRate = 60.0;
 	var keyboard;
-	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
+	var entityRunner = new EntityRunner();
 	var nameRegistry = {};
 	var collision = new Collision();
 
@@ -178,7 +178,7 @@ Game = function(entityRunner){
 			var name = params == null ? null : params.name;
 
 			if(name != null){
-				entities = $.grep(entities, function(e){ return e.name == name });
+				entities = _.filter(entities, function(e) { return e.name == name; });
 			}
 
 			return entities;
@@ -192,7 +192,11 @@ Game = function(entityRunner){
 			}
 
 			entity.name = name + nameRegistry[name];
-		}
+		},
+
+		setEntityRunner: function(value){
+			entityRunner = value;
+		},
 	};
 }();
 

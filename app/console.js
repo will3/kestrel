@@ -3,7 +3,7 @@ var Console = function(){
 	var displayResult = false;
 	var result = null;
 	var lastCommand = null;
-	var commandMapping = null;
+	var commandMapping = {};
 	var selectedEntity = null;
 
 	function onKeyDown(e){
@@ -43,15 +43,19 @@ var Console = function(){
 		processCommand(params);
 	}
 
-	function getMatchingCommand(name){
-		return new commandMapping[name]();
+	function getCommand(name){
+		var commandClass = commandMapping[name];
+		if(commandClass == null){
+			throw name + " is not a valid command";
+		}
+
+		var command = new commandMapping[name]();
+
+		return command;
 	}
 
 	function processCommand(params){
-		var command = getMatchingCommand(params[0]);
-		if(command == null){
-			throw params + " is not a valid command or entity name";
-		}
+		var command = getCommand(params[0]);
 
 		params.splice(0, 1);
 

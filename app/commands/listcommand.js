@@ -1,5 +1,6 @@
 var Command = require("../command");
 var _ = require("lodash");
+var Game = require("../game");
 
 var ListCommand = Command.extend({
 }).methods({
