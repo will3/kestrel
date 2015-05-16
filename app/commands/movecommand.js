@@ -1,4 +1,5 @@
-var Command = require('../command');
+var Command = require("../command");
+var THREE = require("THREE");
 
 var MoveCommand = Command.extend(function(){
 	this.target = null;

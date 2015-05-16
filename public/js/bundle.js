@@ -283,6 +283,7 @@ module.exports = DestroyCommand;
 },{"../command":3,"jquery":32}],8:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
+var Game = require("../game");
 
 var ListCommand = Command.extend({
 }).methods({
@@ -299,8 +300,9 @@ var ListCommand = Command.extend({
 });
 
 module.exports = ListCommand;
-},{"../command":3,"lodash":34}],9:[function(require,module,exports){
-var Command = require('../command');
+},{"../command":3,"../game":27,"lodash":34}],9:[function(require,module,exports){
+var Command = require("../command");
+var THREE = require("THREE");
 
 var MoveCommand = Command.extend(function(){
 	this.target = null;
@@ -328,7 +330,7 @@ var MoveCommand = Command.extend(function(){
 });
 
 module.exports = MoveCommand;
-},{"../command":3}],10:[function(require,module,exports){
+},{"../command":3,"THREE":31}],10:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -568,14 +570,14 @@ var ShipController = Component.extend(function(){
 	this.desiredRoll = 0;
 	this.rollCurve = 0.1;
 	this.rollMaxSpeed = 0.1;
-	this.rollFriction = 0.99;
+	this.rollFriction = 0.95;
 
 	//pitch
 	this.maxPitch = Math.PI / 2;
 	this.desiredPitch = 0;
 	this.pitchCurve = 0.1;
 	this.pitchMaxSpeed = 0.1;
-	this.pitchFriction = 0.99;
+	this.pitchFriction = 0.97;
 
 	//yaw
 	this.yawForce = 0.015;
@@ -817,7 +819,7 @@ var Console = function(){
 	function getCommand(name){
 		var commandClass = commandMapping[name];
 		if(commandClass == null){
-			throw params + " is not a valid command";
+			throw name + " is not a valid command";
 		}
 
 		var command = new commandMapping[name]();
@@ -1641,7 +1643,7 @@ var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
 var MathUtils = require("./mathutils");
 var Control = require("./control");
-var $ = require("jquery");
+var _ = require("lodash");
 var Console = require("./console");
 
 Game = function(entityRunner){
@@ -1654,7 +1656,7 @@ Game = function(entityRunner){
 	var distance = 200.0;
 	var frameRate = 60.0;
 	var keyboard;
-	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
+	var entityRunner = new EntityRunner();
 	var nameRegistry = {};
 	var collision = new Collision();
 
@@ -1816,7 +1818,7 @@ Game = function(entityRunner){
 			var name = params == null ? null : params.name;
 
 			if(name != null){
-				entities = $.grep(entities, function(e){ return e.name == name });
+				entities = _.filter(entities, function(e) { return e.name == name; });
 			}
 
 			return entities;
@@ -1830,12 +1832,16 @@ Game = function(entityRunner){
 			}
 
 			entity.name = name + nameRegistry[name];
-		}
+		},
+
+		setEntityRunner: function(value){
+			entityRunner = value;
+		},
 	};
 }();
 
 module.exports = Game;
-},{"./collision":2,"./console":18,"./control":19,"./entityrunner":26,"./mathutils":29,"THREE":31,"jquery":32}],28:[function(require,module,exports){
+},{"./collision":2,"./console":18,"./control":19,"./entityrunner":26,"./mathutils":29,"THREE":31,"lodash":34}],28:[function(require,module,exports){
 var THREE = require("THREE");
 
 var ShaderCode = (function(){
@@ -58602,6 +58608,8 @@ Console.setCommandMapping({
 Console.runScenario(
 		[
 			"add ship",
+			"select ship0",
+			"orbit 0 0 0",
 		]
 	);
 

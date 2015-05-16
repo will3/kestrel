@@ -22,6 +22,8 @@ Console.setCommandMapping({
 Console.runScenario(
 		[
 			"add ship",
+			"select ship0",
+			"orbit 0 0 0",
 		]
 	);
 
