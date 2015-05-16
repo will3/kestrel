@@ -13,7 +13,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
-    "build": "browerify 'public/src/main.js' -o public/src/bundle.js'"
+    "build": "browserify app/main.js -o public/js/bundle.js"
   },
   "author": "",
   "license": "ISC"

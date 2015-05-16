@@ -1,4 +1,4 @@
-var home = require('../app/controllers/home');
+var home = require('../server/controllers/home');
 var extend = require('util')._extend;
 var path = require('path');
 
