@@ -1,3 +1,7 @@
+var Component = require("../component");
+var THREE = require("THREE");
+var MathUtils = require("../mathutils");
+
 var RenderComponent = Component.extend(function(){
 	this.innerObject = null;
 }).methods({
@@ -48,3 +52,5 @@ var RenderComponent = Component.extend(function(){
 			);
 	}
 });
+
+module.exports = RenderComponent;

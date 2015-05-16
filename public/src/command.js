@@ -1,3 +1,5 @@
+var klass = require("klass");
+
 var Command = klass(function(){
 	this.params = null;
 }).methods({
@@ -13,3 +15,5 @@ var Command = klass(function(){
 
 	},
 });
+
+module.exports = Command;

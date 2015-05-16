@@ -1,3 +1,5 @@
+var Command = require('../command');
+
 var StopCommand = Command.extend(function(){
 
 }).methods({
@@ -9,3 +11,5 @@ var StopCommand = Command.extend(function(){
 		//do nothing
 	},
 });
+
+module.exports = StopCommand;

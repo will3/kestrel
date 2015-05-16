@@ -16,19 +16,19 @@ function Control()
 
 		hookContainer: function(container){
 
-			container.mousedown(function(){
+			container.onmousedown = function(){
 				that.isDragging = true;
-			});
+			};
 
-			container.mouseup(function(){
+			container.onmouseup = function(){
 				that.isDragging = false;
-			});
+			};
 
-			container.mouseleave(function(){
+			container.onmouseleave = function(){
 				that.isDragging = false;
-			});
+			};
 
-			container.mousemove(function(event){
+			container.onmousemove = function(event){
 				if(that.isDragging){
 					var xDiff = event.clientX - that.lastX;
 					var yDiff = event.clientY - that.lastY;
@@ -38,7 +38,7 @@ function Control()
 
 				that.lastX = event.clientX;
 				that.lastY = event.clientY;
-			});
+			};
 		}
 	};
 }
@@ -50,3 +50,7 @@ var KeyMap = (function(){
 		zoomOut: "pagedown",
 	};
 })();
+
+Control.KeyMap = KeyMap;
+
+module.exports = Control;

@@ -1,5 +1,10 @@
-var AddCommand = Command.extend(function(){
+var Command = require("../command");
+var THREE = require("THREE");
 
+var AddCommand = Command.extend(function(){
+	this.objectMapping = {
+		"ship": require('../entities/ship'),
+	};
 }).methods({
 	execute: function(){
 		var param = this.params[0];
@@ -12,7 +17,7 @@ var AddCommand = Command.extend(function(){
 		var z = parseInt(this.params[3]);
 
 		className = capitalizeFirstLetter(param);
-		var constructor = window[className];
+		var constructor = this.objectMapping[className.toLowerCase()];
 
 		if(constructor == null){
 			throw "cannot add " + param;
@@ -26,4 +31,6 @@ var AddCommand = Command.extend(function(){
 		    return string.charAt(0).toUpperCase() + string.slice(1);
 		}
 	},
-})
+});
+
+module.exports = AddCommand;

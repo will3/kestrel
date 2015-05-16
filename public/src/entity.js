@@ -1,3 +1,8 @@
+var klass = require("klass");
+var TransformComponent = require("./components/transformcomponent");
+var THREE = require("THREE");
+var _ = require("lodash");
+
 var Entity = klass(function(){
 	this.name = null; //optional name
 	this.innerObject = null;
@@ -31,7 +36,7 @@ var Entity = klass(function(){
 
 	removeEntity: function(entity){
 		entity.destroy();
-		this.childEntities.remove(entity);
+		_.remove(this.childEntities, entity);
 	},
 
 	addComponent: function(component){
@@ -42,7 +47,7 @@ var Entity = klass(function(){
 
 	removeComponent: function(component){
 		component.destroy();
-		this.components.remove(component);
+		_.remove(this.components, component);
 	},
 
 	getComponent: function(name){
@@ -104,3 +109,5 @@ var Entity = klass(function(){
 		return position;
 	},
 });
+
+module.exports = Entity;

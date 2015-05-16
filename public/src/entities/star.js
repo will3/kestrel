@@ -1,3 +1,5 @@
+var Entity = require('../entity');
+
 var Star = Entity.extend({
 	start: function(){
 		this.addComponent(new StarRenderComponent());
@@ -67,3 +69,5 @@ var StarRenderComponent = RenderComponent.extend(function(){
 		return new THREE.PointCloud( geometry, material );
 	}
 });
+
+module.exports = Star;

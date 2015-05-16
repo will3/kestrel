@@ -1,3 +1,7 @@
+var Command = require("../command");
+var THREE = require("THREE");
+var Projectile = require("../entities/projectile");
+
 var AttackCommand = Command.extend(function(){
 	this.cooldown = 0;
 	this.actor = null;
@@ -31,3 +35,5 @@ var AttackCommand = Command.extend(function(){
 		Game.addEntity(projectile, this.actor.getPosition());
 	},
 });
+
+module.exports = AttackCommand;

@@ -1,3 +1,5 @@
+var THREE = require('THREE');
+
 var MathUtils = (function(){
 	return{
 		yAxis: new THREE.Vector3(0, 1, 0),
@@ -77,3 +79,5 @@ var MathUtils = (function(){
 		},
 	};
 })();
+
+module.exports = MathUtils;

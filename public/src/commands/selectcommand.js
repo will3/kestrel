@@ -1,3 +1,6 @@
+var Command = require("../command");
+var Console = require("../console");
+
 var SelectCommand = Command.extend(function(){
 	
 }).methods({
@@ -6,3 +9,5 @@ var SelectCommand = Command.extend(function(){
 		Console.setSelectedEntity(entity);
 	},
 });
+
+module.exports = SelectCommand;

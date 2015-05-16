@@ -1,3 +1,5 @@
+var THREE = require("THREE");
+
 var ShaderCode = (function(){
 	return {
 		solidColorVertexShader :
@@ -19,8 +21,8 @@ function SolidColorMaterial(color){
 	return m;
 }
 
-function Material(aFlag) {
-	var flag = aFlag;
+var Material = function(flag) {
+	var flag = flag;
 
 	var color = new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
 
@@ -46,4 +48,8 @@ function Material(aFlag) {
 			}
 		}
 	};
+};
+
+module.exports = {
+	Solid: SolidColorMaterial,
 };

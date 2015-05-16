@@ -1,3 +1,7 @@
+var PointSprite = require("./pointsprite");
+var THREE = require("THREE");
+var RigidBody = require("../components/rigidbody");
+
 var Block = PointSprite.extend(function(){
 	this.size = 4;
 	this.life = -1;
@@ -63,3 +67,5 @@ var Block = PointSprite.extend(function(){
 		this.velocityOverTimeFunc = func;
 	},
 });
+
+module.exports = Block;

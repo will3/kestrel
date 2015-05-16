@@ -1,3 +1,6 @@
+var Command = require("../command");
+var _ = require("lodash");
+
 var ListCommand = Command.extend({
 }).methods({
 	execute: function(){
@@ -10,4 +13,6 @@ var ListCommand = Command.extend({
 			
 		return names.join();
 	}
-})
+});
+
+module.exports = ListCommand;

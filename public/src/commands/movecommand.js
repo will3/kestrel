@@ -1,3 +1,5 @@
+var Command = require('../command');
+
 var MoveCommand = Command.extend(function(){
 	this.target = null;
 	this.actor = null;
@@ -22,3 +24,5 @@ var MoveCommand = Command.extend(function(){
 
 	},
 });
+
+module.exports = MoveCommand;

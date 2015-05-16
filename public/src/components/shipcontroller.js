@@ -1,3 +1,7 @@
+var Component = require("../component");
+var THREE = require("THREE");
+var MathUtils = require("../mathutils");
+
 var ShipController = Component.extend(function(){
 	//engine
 	this.force = 0.025;
@@ -190,3 +194,5 @@ var ShipController = Component.extend(function(){
 		this.accelerateForVelocity(desiredVelocity);
 	}
 });
+
+module.exports = ShipController;

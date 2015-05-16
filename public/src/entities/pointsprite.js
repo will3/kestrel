@@ -1,3 +1,8 @@
+var Entity = require('../entity');
+var RenderComponent = require('../components/rendercomponent');
+var TextureLoader = require("../textureloader");
+var THREE = require("THREE");
+
 var PointSprite = Entity.extend(function(){
 	this.texture = null;
 }).methods({
@@ -28,3 +33,5 @@ var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 		return new THREE.Sprite(material);
 	},
 });
+
+module.exports = PointSprite;

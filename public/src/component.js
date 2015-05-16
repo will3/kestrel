@@ -1,3 +1,5 @@
+var klass = require("klass");
+
 var Component = klass(function(){
 	this.entity = null;
 }).methods({
@@ -25,3 +27,5 @@ var Component = klass(function(){
 		return this.entity.getTransform();
 	}
 });
+
+module.exports = Component;

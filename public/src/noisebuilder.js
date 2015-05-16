@@ -1,5 +1,0 @@
-var Noise = function(){
-	return {
-
-	};
-}

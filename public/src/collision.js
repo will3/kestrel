@@ -1,6 +1,9 @@
+var Entity = require("./entity");
+var _ = require("lodash");
+var THREE = require("THREE");
+
 var Collision = Entity.extend(function(){
-	this.elasticity = 0.5;
-	this.friction = 0.5;
+
 }).methods({
 	start: function(){
 
@@ -39,19 +42,11 @@ var Collision = Entity.extend(function(){
 
 					if(b.onCollision != null){
 						b.onCollision(a);
-					}					
-
-					// if(a.rigidBody != null && b.rigidBody != null){
-					// 	//elasticity
-					// 	var radio = (collisionDistance - distance) / collisionDistance;
-					// 	var force = new THREE.Vector3();
-					// 	force.copy(distanceVector);
-					// 	force.setLength(this.elasticity);
-					// 	b.rigidBody.applyForce(force);
-					// 	b.rigidBody.applyFriction(this.friction);
-					// }
+					}
 				}
 			}
 		}
 	}
 });
+
+module.exports = Collision;

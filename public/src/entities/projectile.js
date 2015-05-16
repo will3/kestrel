@@ -1,3 +1,7 @@
+var Entity = require("../entity");
+var THREE = require("THREE");
+var Block = require("./block");
+var RigidBody = require("../components/rigidbody");
 var Projectile = Entity.extend(function(power, direction){
 	this.power = power;
 	this.velocity = new THREE.Vector3();
@@ -88,3 +92,5 @@ var Projectile = Entity.extend(function(power, direction){
 		this.destroy();
 	}
 });
+
+module.exports = Projectile;

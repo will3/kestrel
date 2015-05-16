@@ -1,3 +1,6 @@
+var Component = require("../component");
+var THREE = require("THREE");
+
 var RigidBody = Component.extend(function(){
 	this.velocity = new THREE.Vector3();
 	this.acceleration = new THREE.Vector3();
@@ -25,3 +28,5 @@ var RigidBody = Component.extend(function(){
 		this.friction *= friction;
 	}
 });
+
+module.exports = RigidBody;

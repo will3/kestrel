@@ -1,4 +1,12 @@
-Kestrel.Game = function(entityRunner){
+var THREE = require("THREE");
+var EntityRunner = require("./entityrunner");
+var Collision = require("./collision");
+var MathUtils = require("./mathutils");
+var Control = require("./control");
+var $ = require("jquery");
+var Console = require("./console");
+
+Game = function(entityRunner){
 	var scene;
 	var camera;
 	var renderer;
@@ -9,7 +17,6 @@ Kestrel.Game = function(entityRunner){
 	var frameRate = 60.0;
 	var keyboard;
 	var entityRunner = entityRunner == null ? new EntityRunner() : entityRunner;
-	var physics = new Physics();
 	var nameRegistry = {};
 	var collision = new Collision();
 
@@ -35,8 +42,8 @@ Kestrel.Game = function(entityRunner){
 	}
 
 	var initScene = function(){
-		var WIDTH = container.width(),
-		    	HEIGHT = container.height();
+		var WIDTH = container.clientWidth,
+		    HEIGHT = container.clientHeight;
 
 		var VIEW_ANGLE = 45,
 		    ASPECT = WIDTH / HEIGHT,
@@ -53,7 +60,7 @@ Kestrel.Game = function(entityRunner){
 
 		renderer.setSize(WIDTH, HEIGHT);
 
-		container.append(renderer.domElement);
+		container.appendChild(renderer.domElement);
 
 		render();
 
@@ -70,6 +77,7 @@ Kestrel.Game = function(entityRunner){
 		renderer.domElement.focus();
 
 		// only on keyup
+		var KeyMap = Control.KeyMap;
 		keyboard.domElement.addEventListener('keyup', function(event){
 			if(keyboard.eventMatches(event, KeyMap.console)){
 				Console.focus();
@@ -78,7 +86,7 @@ Kestrel.Game = function(entityRunner){
 			}else if(keyboard.eventMatches(event, KeyMap.zoomOut)){
 				zoomOut();
 			}
-		})
+		});
 	}
 
 	var zoomIn = function(){
@@ -125,7 +133,6 @@ Kestrel.Game = function(entityRunner){
 		initialize: function(container) {
 			initScene();
 			initControl();
-			this.addEntity(physics);
 			this.addEntity(collision);
 			setInterval(onEnterFrame, 1000 / frameRate);
 		},
@@ -162,7 +169,7 @@ Kestrel.Game = function(entityRunner){
 		},
 
 		getEntities: function(params){
-			var entities = entityRunner.entities;
+			var entities = entityRunner.getEntities();
 
 			if(params == null){
 				return entities;
@@ -177,10 +184,6 @@ Kestrel.Game = function(entityRunner){
 			return entities;
 		},
 
-		getPhysics: function(){
-			return physics;
-		},
-
 		nameEntity: function(name, entity){
 			if(nameRegistry[name] == undefined){
 				nameRegistry[name] = 0;
@@ -191,6 +194,6 @@ Kestrel.Game = function(entityRunner){
 			entity.name = name + nameRegistry[name];
 		}
 	};
-};
+}();
 
-var Game = new Kestrel.Game();
+module.exports = Game;

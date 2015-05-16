@@ -1,3 +1,6 @@
+var THREE = require("THREE");
+var MathUtils = require("../MathUtils");
+
 function Beam(segments, sides){
 	var segments = segments;
 	var sides = sides;
@@ -227,3 +230,5 @@ function Beam(segments, sides){
 		},
 	}
 }
+
+module.exports = Beam;

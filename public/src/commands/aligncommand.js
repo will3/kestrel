@@ -1,3 +1,5 @@
+var Command = require('../command');
+
 var AlignCommand = Command.extend(function(){
 	this.target = null;
 }).methods({
@@ -18,3 +20,5 @@ var AlignCommand = Command.extend(function(){
 		Debug.addIndicator(this.target, 2);
 	},
 });
+
+module.exports = AlignCommand;

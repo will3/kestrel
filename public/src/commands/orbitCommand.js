@@ -1,3 +1,7 @@
+var Command = require("../command");
+var THREE = require("THREE");
+var MathUtils = require("../mathutils");
+
 var OrbitCommand = Command.extend(function(){
 	this.target = null;
 	this.actor = null;
@@ -65,3 +69,5 @@ var OrbitCommand = Command.extend(function(){
 		});
 	}
 });
+
+module.exports = OrbitCommand;

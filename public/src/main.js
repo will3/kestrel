@@ -1,14 +1,23 @@
+var Game = require('./game.js');
+var Console = require('./console');
+var $ = require('jquery');
+
 var container = $('#container');
 
 Game.initialize(container);
-
 Console.setInput(document.getElementById('console_text'));
 
-// Console.run("add ship");
-// Console.run("add ship");
-// Console.run("add ship");
-
-Kestrel.initialize();
+Console.setCommandMapping({
+		"add": 		require('./commands/addcommand'),
+		"attack": 	require('./commands/attackcommand'),
+		"list": 	require('./commands/listcommand'),
+		"remove": 	require('./commands/destroycommand'),
+		"move": 	require('./commands/movecommand'),
+		"orbit": 	require('./commands/orbitcommand'),
+		"select": 	require('./commands/selectcommand'),
+		"align": 	require('./commands/aligncommand'),
+		"stop": 	require('./commands/stopcommand'),
+	});
 
 Console.runScenario(
 		[
@@ -20,3 +29,4 @@ Console.runScenario(
 		"attack ship1",
 		]
 	);
+

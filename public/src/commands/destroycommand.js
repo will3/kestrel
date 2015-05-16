@@ -1,3 +1,6 @@
+var Command = require("../command");
+var $ = require("jquery");
+
 var DestroyCommand = Command.extend({
 
 }).methods({
@@ -15,3 +18,5 @@ var DestroyCommand = Command.extend({
 		Game.removeEntity(entity);
 	}
 });
+
+module.exports = DestroyCommand;

@@ -1,3 +1,5 @@
+var THREE = require("THREE");
+
 var TextureLoader = function(){
 	var rootPath = "public/assets/textures";
 	return {
@@ -18,3 +20,5 @@ var TextureLoader = function(){
 		}
 	};
 }();
+
+module.exports = TextureLoader;

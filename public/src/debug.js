@@ -14,3 +14,5 @@ var Debug = function(){
 		},
 	};
 }();
+
+module.exports = Debug;

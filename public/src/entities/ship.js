@@ -1,3 +1,11 @@
+var Entity = require("../entity");
+var RenderComponent = require("../components/rendercomponent");
+var Beam = require("./beam");
+var THREE = require("THREE");
+var Material = require("../material");
+var RigidBody = require("../components/rigidbody");
+var ShipController = require("../components/shipcontroller");
+
 var Ship = Entity.extend(function(){
 	this.shipController = null;
 	this.rigidBody = null;
@@ -21,8 +29,6 @@ var Ship = Entity.extend(function(){
 
 var ShipBluePrint = function(){
 	function getShip(){
-		var random = Kestrel.random;
-
 		var wing = new Beam([0, 15], [2, 2]);
 		wing.setAlignment("x");
 		wing.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
@@ -81,6 +87,8 @@ var ShipRenderComponent = RenderComponent.extend(function(geometry){
 	},
 
 	initMaterial: function(){
-		return new SolidColorMaterial(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
+		return new Material.Solid(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
 	}
 });
+
+module.exports = Ship;
