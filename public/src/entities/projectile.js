@@ -3,19 +3,39 @@ var Projectile = Entity.extend(function(power, direction){
 	this.velocity = new THREE.Vector3();
 	this.velocity.copy(direction);
 	this.velocity.setLength(4);
+
 	this.life = 200;
+	this.hasCollision = true;
 	this.collisionRadius = 1;
 	this.rigidBody = null;
+	this.actor = null;
 }).methods({
 	start: function(){
+		var startPosition = new THREE.Vector3();
+		startPosition.copy(this.velocity);
+		startPosition.multiplyScalar(0.5);
+		this.getPosition().add(startPosition);
+
 		var num = 4;
 		for(var i = 0; i < num; i ++){
 			this.addEntity(this.createBlock(
 				this.power * (num - i) / num, 
-				(num - i) * 0.5
+				- i * 0.5
 				));
 		}
 		this.rigidBody = new RigidBody();
+		this.rigidBody.defaultFriction = 1;
+		this.addComponent(this.rigidBody);
+		this.rigidBody.velocity = this.velocity;
+	},
+
+	update: function(){
+		this.supr();
+
+		//update age
+		if(this.frameAge > this.life && this.life != -1){
+			this.removeFromParent();
+		}
 	},
 
 	createBlock: function(size, offset){
@@ -23,7 +43,6 @@ var Projectile = Entity.extend(function(power, direction){
 
 		block.size = size;
 		block.life = this.life;
-		block.velocity = this.velocity;
 
 		var sizeOverTime = function(time){
 			var remainingLife = this.life - time;
@@ -62,6 +81,10 @@ var Projectile = Entity.extend(function(power, direction){
 	},
 
 	onCollision: function(entity){
+		if(entity == this.actor){
+			return;
+		}
+
 		this.destroy();
 	}
 });

@@ -7,8 +7,7 @@ var Collision = Entity.extend(function(){
 	},
 
 	update: function(){
-		var entities = Game.getEntities();
-
+		var entities = _.filter(Game.getEntities(), function(entity){ return entity.hasCollision == true; });
 		for(var i = 0; i < entities.length; i++){
 			for(var j = 0; j < i; j ++){
 				if(i == j){
@@ -19,10 +18,6 @@ var Collision = Entity.extend(function(){
 				var b = entities[j];
 
 				if(a.collisionRadius == null || b.collisionRadius == null){
-					continue;
-				}
-
-				if(a.rigidBody == null || b.rigidBody == null){
 					continue;
 				}
 
@@ -44,15 +39,17 @@ var Collision = Entity.extend(function(){
 
 					if(b.onCollision != null){
 						b.onCollision(a);
-					}
+					}					
 
-					//elasticity
-					var radio = (collisionDistance - distance) / collisionDistance;
-					var force = new THREE.Vector3();
-					force.copy(distanceVector);
-					force.setLength(this.elasticity);
-					b.rigidBody.applyForce(force);
-					b.rigidBody.applyFriction(this.friction);
+					// if(a.rigidBody != null && b.rigidBody != null){
+					// 	//elasticity
+					// 	var radio = (collisionDistance - distance) / collisionDistance;
+					// 	var force = new THREE.Vector3();
+					// 	force.copy(distanceVector);
+					// 	force.setLength(this.elasticity);
+					// 	b.rigidBody.applyForce(force);
+					// 	b.rigidBody.applyFriction(this.friction);
+					// }
 				}
 			}
 		}

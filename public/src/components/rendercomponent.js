@@ -16,12 +16,11 @@ var RenderComponent = Component.extend(function(){
 
 	update: function(){
 		this.supr();
-		
 		this.updateTransform();
 	},
 
 	updateTransform: function(){
-		var position = this.getTransform().position;
+		var position = this.entity.getWorldPosition();
 		this.innerObject.position.set(position.x, position.y, position.z);
 
 		var rotation = this.getTransform().rotation;

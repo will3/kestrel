@@ -2,15 +2,14 @@ var Ship = Entity.extend(function(){
 	this.shipController = null;
 	this.rigidBody = null;
 	this.geometry = null;
-	this.collisionRadius = 0;
+	this.hasCollision = true
+	this.collisionRadius = 9;
 }).methods({
 	start: function(){
 		Ship.id ++;
 
 		this.bluePrint = new ShipBluePrint();
 		this.geometry = this.bluePrint.initGeometry();
-		this.geometry.computeBoundingSphere();
-		this.collisionRadius = this.geometry.boundingSphere.radius;
 
 		this.addComponent(new ShipRenderComponent(this.geometry));
 		this.rigidBody = new RigidBody();

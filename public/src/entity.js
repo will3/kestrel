@@ -6,6 +6,8 @@ var Entity = klass(function(){
 	this.childEntities = [];
 
 	this.destroyable = true;
+	this.hasCollision = false;
+
 	this.frameAge = 0;
 	this.parentEntity = null;
 }).methods({
@@ -88,5 +90,17 @@ var Entity = klass(function(){
 
 	getPosition: function(position){
 		return this.getTransform().position;
+	},
+
+	getWorldPosition: function(){
+		var entity = this;
+		var position = new THREE.Vector3();
+		
+		do{
+			position.add(entity.getPosition());
+			entity = entity.parentEntity;
+		}while(entity != null);
+
+		return position;
 	},
 });

@@ -7,17 +7,17 @@ var ShipController = Component.extend(function(){
 	this.desiredRoll = 0;
 	this.rollCurve = 0.1;
 	this.rollMaxSpeed = 0.1;
-	this.rollFriction = 0.95;
+	this.rollFriction = 0.99;
 
 	//pitch
 	this.maxPitch = Math.PI / 2;
 	this.desiredPitch = 0;
 	this.pitchCurve = 0.1;
 	this.pitchMaxSpeed = 0.1;
-	this.pitchFriction = 0.95;
+	this.pitchFriction = 0.99;
 
 	//yaw
-	this.yawForce = 0.018;
+	this.yawForce = 0.015;
 
 	this.command = null;
 
