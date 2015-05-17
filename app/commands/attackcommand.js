@@ -10,12 +10,12 @@ var AttackCommand = Command.extend(function(){
 	execute: function(){
 		var targetName = this.params[0];
 		this.target = Game.getEntity(targetName);
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 		this.shoot();
 	},
 
 	update: function(){
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 		shipController.align(this.target.getPosition());
 
 		if(this.cooldown % 50 == 0){
@@ -30,7 +30,11 @@ var AttackCommand = Command.extend(function(){
 		direction.subVectors(this.target.getPosition(), this.actor.getPosition());
 		direction.setLength(1);
 
-		var projectile = new Projectile(2, direction);
+		var projectile = new Projectile({
+			power : 2,
+			direction : direction,
+		});
+		
 		projectile.actor = this.actor;
 		Game.addEntity(projectile, this.actor.getPosition());
 	},

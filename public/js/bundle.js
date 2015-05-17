@@ -87,55 +87,60 @@ var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
 
-var Collision = Entity.extend(function(){
+var Collision = function(){
+	var collision = {
+		start: function(){
 
-}).methods({
-	start: function(){
+		},
 
-	},
-
-	update: function(){
-		var entities = _.filter(Game.getEntities(), function(entity){ return entity.hasCollision == true; });
-		for(var i = 0; i < entities.length; i++){
-			for(var j = 0; j < i; j ++){
-				if(i == j){
-					continue;
-				}
-
-				var a = entities[i];
-				var b = entities[j];
-
-				if(a.collisionRadius == null || b.collisionRadius == null){
-					continue;
-				}
-
-				var distanceVector = new THREE.Vector3();
-				distanceVector.subVectors(b.getPosition(), a.getPosition());
-				var distance = distanceVector.length();
-				if(distance == 0){
-					distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-					distanceVector.setLength(1);
-					distance = 1;
-				}
-
-				var collisionDistance = a.collisionRadius + b.collisionRadius;
-				if(distance < collisionDistance){
-					//notify collision
-					if(a.onCollision != null){
-						a.onCollision(b);
+		update: function(){
+			var entities = _.filter(Game.getEntities(), function(entity){ return entity.hasCollision == true; });
+			for(var i = 0; i < entities.length; i++){
+				for(var j = 0; j < i; j ++){
+					if(i == j){
+						continue;
 					}
 
-					if(b.onCollision != null){
-						b.onCollision(a);
+					var a = entities[i];
+					var b = entities[j];
+
+					if(a.collisionRadius == null || b.collisionRadius == null){
+						continue;
+					}
+
+					var distanceVector = new THREE.Vector3();
+					distanceVector.subVectors(b.getPosition(), a.getPosition());
+					var distance = distanceVector.length();
+					if(distance == 0){
+						distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+						distanceVector.setLength(1);
+						distance = 1;
+					}
+
+					var collisionDistance = a.collisionRadius + b.collisionRadius;
+					if(distance < collisionDistance){
+						//notify collision
+						if(a.onCollision != null){
+							a.onCollision(b);
+						}
+
+						if(b.onCollision != null){
+							b.onCollision(a);
+						}
 					}
 				}
 			}
 		}
-	}
-});
+	};
+
+	collision.__proto__ = Entity();
+
+	return collision;
+}
 
 module.exports = Collision;
-},{"./entity":25,"THREE":31,"lodash":34}],3:[function(require,module,exports){
+
+},{"./entity":25,"THREE":31,"lodash":35}],3:[function(require,module,exports){
 var klass = require("klass");
 
 var Command = klass(function(){
@@ -155,7 +160,7 @@ var Command = klass(function(){
 });
 
 module.exports = Command;
-},{"klass":33}],4:[function(require,module,exports){
+},{"klass":34}],4:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -205,11 +210,11 @@ var AlignCommand = Command.extend(function(){
 
 		this.target = new THREE.Vector3(x, y, z);
 
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){		
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 		shipController.align(this.target);
 
 		Debug.addIndicator(this.target, 2);
@@ -230,12 +235,12 @@ var AttackCommand = Command.extend(function(){
 	execute: function(){
 		var targetName = this.params[0];
 		this.target = Game.getEntity(targetName);
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 		this.shoot();
 	},
 
 	update: function(){
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 		shipController.align(this.target.getPosition());
 
 		if(this.cooldown % 50 == 0){
@@ -250,7 +255,11 @@ var AttackCommand = Command.extend(function(){
 		direction.subVectors(this.target.getPosition(), this.actor.getPosition());
 		direction.setLength(1);
 
-		var projectile = new Projectile(2, direction);
+		var projectile = new Projectile({
+			power : 2,
+			direction : direction,
+		});
+		
 		projectile.actor = this.actor;
 		Game.addEntity(projectile, this.actor.getPosition());
 	},
@@ -280,7 +289,7 @@ var DestroyCommand = Command.extend({
 });
 
 module.exports = DestroyCommand;
-},{"../command":3,"jquery":32}],8:[function(require,module,exports){
+},{"../command":3,"jquery":33}],8:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -300,7 +309,7 @@ var ListCommand = Command.extend({
 });
 
 module.exports = ListCommand;
-},{"../command":3,"../game":27,"lodash":34}],9:[function(require,module,exports){
+},{"../command":3,"../game":27,"lodash":35}],9:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -315,11 +324,11 @@ var MoveCommand = Command.extend(function(){
 
 		this.target = new THREE.Vector3(x, y, z);
 
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 
 		shipController.move(this.target);
 	},
@@ -351,13 +360,13 @@ var OrbitCommand = Command.extend(function(){
 
 		this.target = new THREE.Vector3(x, y, z);
 
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){
 		// Debug.addIndicator(this.target);
 
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 
 		var position = this.actor.getTransform().position;
 		//a being vector from position to target
@@ -425,7 +434,7 @@ var StopCommand = Command.extend(function(){
 
 }).methods({
 	execute: function(){
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){
@@ -466,7 +475,7 @@ var Component = klass(function(){
 });
 
 module.exports = Component;
-},{"klass":33}],14:[function(require,module,exports){
+},{"klass":34}],14:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -590,7 +599,7 @@ var ShipController = Component.extend(function(){
 	},
 
 	getRigidBody: function(){
-		return this.entity.rigidBody;
+		return this.entity.getRigidBody();
 	},
 
 	start: function(){
@@ -1177,71 +1186,86 @@ var PointSprite = require("./pointsprite");
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
 
-var Block = PointSprite.extend(function(){
-	this.size = 4;
-	this.life = -1;
-	this.sizeOverTimeFunc = null;
-	this.velocity = new THREE.Vector3(0, 0, 0);
-	this.velocityOverTimeFunc = null;
+var Block = function(){
+	var size = 4;
+	var life = -1;
+	var sizeOverTimeFunc = null;
+	var velocity = new THREE.Vector3(0, 0, 0);
+	var velocityOverTimeFunc = null;
 
 	//component
-	this.rigidBody = null;
-}).methods({
-	start: function(){
-		this.supr();
+	var transform = null;
+	var rigidBody = null;
+
+	var updateSize = function(){
+		transform.scale.set(size, size, size);
+	}
+
+	var updateVelocity = function(){
+		rigidBody.velocity.copy(velocity);
+	}
+
+	var block = {
+		setSize: function(value){ size = value; },
+		getSize: function(){ return size; },
+		setVelocity: function(value){ velocity = value; },
+		getVelocity: function(){ return velocity; },
+		setLife: function(value){ life = value },
+		getLife: function(){ return	life; },
 		
-		//add rigid body
-		this.rigidBody = new RigidBody();
-		this.rigidBody.defaultFriction = 1;
-		this.addComponent(this.rigidBody);
+		getRigidBody: function(){
+			return rigidBody;
+		},
 
-		//initialize size
-		this.updateSize();
+		start: function(){
+			//add rigid body
+			transform = this.getTransform();
+			rigidBody = new RigidBody();
+			rigidBody.defaultFriction = 1;
+			this.addComponent(rigidBody);
 
-		//initialize velocity
-		this.updateVelocity();
-	},
+			//initialize size
+			updateSize();
 
-	update: function(){
-		this.supr();
+			//initialize velocity
+			updateVelocity();
+		},
 
-		//update age
-		if(this.frameAge > this.life && this.life != -1){
-			this.removeFromParent();
-		}
-
-		//update size over time
-		if(this.sizeOverTimeFunc != null){
-			var size = this.sizeOverTimeFunc(this.frameAge);
-			if(this.size != size){
-				this.size = size;
-				this.updateSize();
+		update: function(){
+			//update age
+			if(this.getFrameAge() > life && life != -1){
+				this.removeFromParent();
 			}
-		}
 
-		if(this.velocityOverTimeFunc != null){
-			var velocity = this.velocityOverTimeFunc(this.frameAge);
-			this.velocity = velocity;
-			this.updateVelocity();
-		}
-	},
+			//update size over time
+			if(sizeOverTimeFunc != null){
+				var newSize = sizeOverTimeFunc(this.getFrameAge());
+				if(size != newSize){
+					size = newSize;
+					updateSize();
+				}
+			}
 
-	updateSize: function(){
-		this.getTransform().scale.set(this.size, this.size, this.size);
-	},
+			if(velocityOverTimeFunc != null){
+				var newVelocity = velocityOverTimeFunc(this.getFrameAge());
+				velocity = newVelocity;
+				updateVelocity();
+			}
+		},
 
-	updateVelocity: function(){
-		this.rigidBody.velocity.copy(this.velocity);
-	},
+		sizeOverTime: function(func){
+			sizeOverTimeFunc = func;
+		},
 
-	sizeOverTime: function(func){
-		this.sizeOverTimeFunc = func;
-	},
+		velocityOverTime: function(func){
+			velocityOverTimeFunc = func;
+		},
+	};
 
-	velocityOverTime: function(func){
-		this.velocityOverTimeFunc = func;
-	},
-});
+	block.__proto__ = PointSprite();
+
+	return block;
+};
 
 module.exports = Block;
 },{"../components/rigidbody":15,"./pointsprite":22,"THREE":31}],22:[function(require,module,exports){
@@ -1249,18 +1273,42 @@ var Entity = require('../entity');
 var RenderComponent = require('../components/rendercomponent');
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
+var extend = require("extend");
 
-var PointSprite = Entity.extend(function(){
-	this.texture = null;
-}).methods({
-	start: function(){
-		this.addComponent(new PointSpriteRenderComponent(this.texture));
-	},
+var PointSprite = function(){
+	var texture = null;
+	var renderComponent = null;
 
-	setTexture: function(value){
-		this.texture = value;
-	},
-});
+	var pointSprite = {
+		start: function(){
+			if(renderComponent == null){
+				renderComponent = new PointSpriteRenderComponent(texture);
+			}
+			this.addComponent(renderComponent);
+		},
+
+		setTexture: function(value){
+			texture = value;
+		},
+
+		getTexture: function(){
+			return texture;
+		},
+
+		setRenderComponent: function(value){
+			renderComponent = value;
+		},
+
+		getRenderComponent: function(value){
+			return renderComponent;
+		}
+	};
+
+	pointSprite.__proto__ = Entity();
+
+
+	return pointSprite;
+}
 
 var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 	this.texture = texture;
@@ -1282,56 +1330,48 @@ var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 });
 
 module.exports = PointSprite;
-},{"../components/rendercomponent":14,"../entity":25,"../textureloader":30,"THREE":31}],23:[function(require,module,exports){
+},{"../components/rendercomponent":14,"../entity":25,"../textureloader":30,"THREE":31,"extend":32}],23:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var Block = require("./block");
 var RigidBody = require("../components/rigidbody");
-var Projectile = Entity.extend(function(power, direction){
-	this.power = power;
-	this.velocity = new THREE.Vector3();
-	this.velocity.copy(direction);
-	this.velocity.setLength(4);
 
-	this.life = 200;
-	this.hasCollision = true;
-	this.collisionRadius = 1;
-	this.rigidBody = null;
-	this.actor = null;
-}).methods({
-	start: function(){
-		var startPosition = new THREE.Vector3();
-		startPosition.copy(this.velocity);
-		startPosition.multiplyScalar(0.5);
-		this.getPosition().add(startPosition);
+var Projectile = function(params) {
+	var params = params	== null ? {} : params;
+	var power = params.power != null ? params.power : 4;
+	var direction = params.direction;
 
-		var num = 4;
-		for(var i = 0; i < num; i ++){
-			this.addEntity(this.createBlock(
-				this.power * (num - i) / num, 
-				- i * 0.5
-				));
+	if(direction == null) {
+		throw "direction cannot be empty";
+	}
+
+	var life = params.life != null ? params.life : 200;
+	var num = params.num != null ? params.num : 4;
+	var speed = params.speed != null ? params.speed : 4;
+
+	var collisionRadius = 1;
+	var actor = null;
+
+	//components
+	var rigidBody = null;
+	var transform = null;
+
+	var velocity = null;
+	function getVelocity(){
+		if(velocity == null){
+			velocity = new THREE.Vector3();
+			velocity.copy(direction);
+			velocity.setLength(speed);
 		}
-		this.rigidBody = new RigidBody();
-		this.rigidBody.defaultFriction = 1;
-		this.addComponent(this.rigidBody);
-		this.rigidBody.velocity = this.velocity;
-	},
 
-	update: function(){
-		this.supr();
+		return velocity;
+	}
 
-		//update age
-		if(this.frameAge > this.life && this.life != -1){
-			this.removeFromParent();
-		}
-	},
-
-	createBlock: function(size, offset){
+	function createBlock(size, offset){
 		var block = new Block();
 
-		block.size = size;
-		block.life = this.life;
+		block.setSize(size);
+		block.setLife(life);
 
 		var sizeOverTime = function(time){
 			var remainingLife = this.life - time;
@@ -1341,42 +1381,70 @@ var Projectile = Entity.extend(function(power, direction){
 			return this.size;
 		}.bind({
 			size: size,
-			life: this.life
+			life: life
 		});
 
-		// var velocityOverTime = function(time){
-		// 	var remainingLife = this.life - time;
-		// 	if(remainingLife < 40){
-		// 		this.velocity.multiplyScalar(0.99);
-		// 		return this.velocity;
-		// 	}
-
-		// 	return this.velocity;
-		// }.bind({
-		// 	velocity: this.velocity,
-		// 	life: this.life,
-		// });
-
 		block.sizeOverTime(sizeOverTime);
-		// block.velocityOverTime(velocityOverTime);
 
 		var position = new THREE.Vector3();
-		position.copy(this.velocity);
+
+		var velocity = getVelocity();
+		position.copy(velocity);
 		position.multiplyScalar(offset);
-		position.add(this.getPosition());
+		position.add(transform.position);
 		block.setPosition(position);
 
 		return block;
-	},
-
-	onCollision: function(entity){
-		if(entity == this.actor){
-			return;
-		}
-
-		this.destroy();
 	}
-});
+
+	var projectile = {
+		hasCollision : true,
+		setActor: function(value){ actor = value; },
+		getActor: function(){ return actor; },
+		getRigidBody: function(){ return rigidBody; },
+
+		start: function(){
+			var velocity = getVelocity();
+			var startPosition = new THREE.Vector3();
+			startPosition.copy(velocity);
+			startPosition.multiplyScalar(0.5);
+			this.getPosition().add(startPosition);
+
+			var num = 4;
+			for(var i = 0; i < num; i ++){
+				this.addEntity(this.createBlock(
+					power * (num - i) / num, 
+					- i * 0.5
+					));
+			}
+
+			transform = getTransform();
+			rigidBody = new RigidBody();
+			rigidBody.defaultFriction = 1;
+			this.addComponent(rigidBody);
+			rigidBody.velocity = velocity;
+		},
+
+		update: function(){
+			//update age
+			if(this.getFrameAge() > life && life != -1){
+				this.removeFromParent();
+			}
+		},
+
+		onCollision: function(entity){
+			if(entity == actor){
+				return;
+			}
+
+			this.destroy();
+		}
+	};
+
+	projectile.__proto__ = Entity();
+
+	return projectile;
+}
 
 module.exports = Projectile;
 },{"../components/rigidbody":15,"../entity":25,"./block":21,"THREE":31}],24:[function(require,module,exports){
@@ -1388,26 +1456,63 @@ var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 
-var Ship = Entity.extend(function(){
-	this.shipController = null;
-	this.rigidBody = null;
-	this.geometry = null;
-	this.hasCollision = true
-	this.collisionRadius = 9;
-}).methods({
-	start: function(){
-		Ship.id ++;
+var Ship = function(){
+	var shipController = null;
+	var rigidBody = null;
+	var renderComponent = null;
 
-		this.bluePrint = new ShipBluePrint();
-		this.geometry = this.bluePrint.initGeometry();
+	var ship = {
+		hasCollision: true,
+		collisionRadius: 9,
 
-		this.addComponent(new ShipRenderComponent(this.geometry));
-		this.rigidBody = new RigidBody();
-		this.addComponent(this.rigidBody);
-		this.shipController = new ShipController();
-		this.addComponent(this.shipController);
-	},
-});
+		getShipController: function(){ 
+			if(shipController == null){
+				shipController = new ShipController();
+			}
+			return shipController; 
+		},
+
+		setShipController: function(value){
+			shipController = value;
+		},
+
+		getRigidBody: function(){ 
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+			}
+			return rigidBody; 
+		},
+
+		setRigidBody: function(value){
+			rigidBody = value;
+		},
+
+		getRenderComponent: function(){ 
+			if(renderComponent == null){
+				var bluePrint = new ShipBluePrint();
+				var geometry = bluePrint.initGeometry();
+				renderComponent = new ShipRenderComponent(geometry);
+			}
+			return renderComponent;
+		},
+
+		setRenderComponent: function(value){
+			renderComponent = value;
+		},
+		
+		start: function(){
+			Ship.id ++;
+
+			this.addComponent(this.getRenderComponent());
+			this.addComponent(this.getRigidBody());
+			this.addComponent(this.getShipController());
+		},
+	};
+
+	ship.__proto__ = Entity();
+
+	return ship;
+}
 
 var ShipBluePrint = function(){
 	function getShip(){
@@ -1475,120 +1580,127 @@ var ShipRenderComponent = RenderComponent.extend(function(geometry){
 
 module.exports = Ship;
 },{"../components/rendercomponent":14,"../components/rigidbody":15,"../components/shipcontroller":16,"../entity":25,"../material":28,"./beam":20,"THREE":31}],25:[function(require,module,exports){
-var klass = require("klass");
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
 
-var Entity = klass(function(){
-	this.name = null; //optional name
-	this.innerObject = null;
-	this.transform = null;
-	this.components = [];
-	this.childEntities = [];
+var Entity = function(){
+	var name = null; //optional name
+	var innerObject = null;
+	var transform = null;
+	var components = [];
+	var childEntities = [];
 
-	this.destroyable = true;
-	this.hasCollision = false;
+	var destroyable = true;
+	var hasCollision = false;
 
-	this.frameAge = 0;
-	this.parentEntity = null;
-}).methods({
-	getTransform: function(){
-		if(this.transform == null){
-			this.transform = new TransformComponent();
-		}
+	var frameAge = 0;
+	var parentEntity = null;
 
-		return this.transform;
-	},
+	return {
+		getFrameAge: function(){ return frameAge; },
+		setFrameAge: function(value){ frameAge = value; },
 
-	addEntity: function(entity){
-		if(entity.parentEntity != null){
-			throw "entity " + this.name + " already has a parent entity named: " + entity.parentEntity.name;
-		}
+		getTransform: function(){
+			if(transform == null){
+				transform = new TransformComponent();
+			}
 
-		entity.parentEntity = this;
-		entity.start();
-		this.childEntities.push(entity);
-	},
+			return transform;
+		},
 
-	removeEntity: function(entity){
-		entity.destroy();
-		_.remove(this.childEntities, entity);
-	},
+		getParentEntity: function(){
+			return parentEntity;
+		},
 
-	addComponent: function(component){
-		component.entity = this;
-		component.start();
-		this.components.push(component);
-	},
+		setParentEntity: function(value){
+			if(parentEntity != null){
+				throw "entity already has a parent entity";
+			}
 
-	removeComponent: function(component){
-		component.destroy();
-		_.remove(this.components, component);
-	},
+			parentEntity = value;
+		},
 
-	getComponent: function(name){
-		var components = $.grep(this.components, function(e){ return e.getName() == name });
-		if(components == null || components.length == 0){
-			throw "cannot find entity with name: " + name;
-		}
+		getChildEntities: function(){
+			return childEntities;
+		},
 
-		if(components.length > 1){
-			throw "more than one component of name: " + name + " found";
-		}
+		getComponents: function(){
+			return components;
+		},
 
-		return components[0];
-	},
+		addEntity: function(entity){
+			entity.setParentEntity(this);
+			entity.start();
+			childEntities.push(entity);
+		},
 
-	start: function(){
+		removeEntity: function(entity){
+			entity.destroy();
+			_.pull(childEntities, entity);
+		},
 
-	},
+		addComponent: function(component){
+			component.entity = this;
+			component.start();
+			components.push(component);
+		},
 
-	update: function(){
-		
-	},
-
-	destroy: function(){
-		this.components.forEach(function(component){
+		removeComponent: function(component){
 			component.destroy();
-		});
+			_.pull(components, component);
+		},
 
-		this.childEntities.forEach(function(childEntity){
-			childEntity.destroy();
-		});
-	},
+		start: function(){
 
-	removeFromParent: function(){
-		if(this.parentEntity != null){
-			this.parentEntity.removeEntity(this);
-		}else{
-			Game.removeEntity(this);
-		}
-	},
+		},
 
-	setPosition: function(position){
-		this.getTransform().position.copy(position);
-	},
+		update: function(){
+			
+		},
 
-	getPosition: function(position){
-		return this.getTransform().position;
-	},
+		destroy: function(){
+			components.forEach(function(component){
+				component.destroy();
+			});
 
-	getWorldPosition: function(){
-		var entity = this;
-		var position = new THREE.Vector3();
-		
-		do{
-			position.add(entity.getPosition());
-			entity = entity.parentEntity;
-		}while(entity != null);
+			childEntities.forEach(function(childEntity){
+				childEntity.destroy();
+			});
+		},
 
-		return position;
-	},
-});
+		removeFromParent: function(){
+			if(parentEntity != null){
+				parentEntity.removeEntity(this);
+			}else{
+				Game.removeEntity(this);
+			}
+		},
+
+		setPosition: function(position){
+			this.getTransform().position.copy(position);
+		},
+
+		getPosition: function(position){
+			return this.getTransform().position;
+		},
+
+		getWorldPosition: function(){
+			var entity = this;
+			var position = new THREE.Vector3();
+			
+			do{
+				position.add(entity.getPosition());
+				entity = entity.parentEntity;
+			}while(entity != null);
+
+			return position;
+		},
+	};
+}
 
 module.exports = Entity;
-},{"./components/transformcomponent":17,"THREE":31,"klass":33,"lodash":34}],26:[function(require,module,exports){
+},{"./components/transformcomponent":17,"THREE":31,"lodash":35}],26:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function(){
@@ -1605,12 +1717,12 @@ var EntityRunner = function(){
 
 		removeEntity: function(entity){
 			var that = this;
-			entity.childEntities.forEach(function(childEntity){
+			entity.getChildEntities().forEach(function(childEntity){
 				that.removeEntity(childEntity);
 			});
 
 			_.remove(entities, entity);
-			entity.components.forEach(function(c){ c.destroy(); });
+			entity.getComponents().forEach(function(c){ c.destroy(); });
 			entity.destroy();
 		},
 
@@ -1624,12 +1736,12 @@ var EntityRunner = function(){
 		runEntity: function(entity){
 			entity.update();
 			entity.frameAge ++;
-			entity.components.forEach(function(component){
+			entity.getComponents().forEach(function(component){
 				component.update();
 			});
 
 			var that = this;
-			entity.childEntities.forEach(function(childEntity){
+			entity.getChildEntities().forEach(function(childEntity){
 				that.runEntity(childEntity);
 			});
 		}
@@ -1637,7 +1749,7 @@ var EntityRunner = function(){
 }
 
 module.exports = EntityRunner;
-},{"lodash":34}],27:[function(require,module,exports){
+},{"lodash":35}],27:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -1841,7 +1953,7 @@ Game = function(entityRunner){
 }();
 
 module.exports = Game;
-},{"./collision":2,"./console":18,"./control":19,"./entityrunner":26,"./mathutils":29,"THREE":31,"lodash":34}],28:[function(require,module,exports){
+},{"./collision":2,"./console":18,"./control":19,"./entityrunner":26,"./mathutils":29,"THREE":31,"lodash":35}],28:[function(require,module,exports){
 var THREE = require("THREE");
 
 var ShaderCode = (function(){
@@ -37073,6 +37185,97 @@ if (typeof exports !== 'undefined') {
 }
 
 },{}],32:[function(require,module,exports){
+var hasOwn = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+var undefined;
+
+var isArray = function isArray(arr) {
+	if (typeof Array.isArray === 'function') {
+		return Array.isArray(arr);
+	}
+
+	return toStr.call(arr) === '[object Array]';
+};
+
+var isPlainObject = function isPlainObject(obj) {
+	'use strict';
+	if (!obj || toStr.call(obj) !== '[object Object]') {
+		return false;
+	}
+
+	var has_own_constructor = hasOwn.call(obj, 'constructor');
+	var has_is_property_of_method = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+	// Not own constructor property must be Object
+	if (obj.constructor && !has_own_constructor && !has_is_property_of_method) {
+		return false;
+	}
+
+	// Own properties are enumerated firstly, so to speed up,
+	// if last one is own, then all properties are own.
+	var key;
+	for (key in obj) {}
+
+	return key === undefined || hasOwn.call(obj, key);
+};
+
+module.exports = function extend() {
+	'use strict';
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0],
+		i = 1,
+		length = arguments.length,
+		deep = false;
+
+	// Handle a deep copy situation
+	if (typeof target === 'boolean') {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
+		target = {};
+	}
+
+	for (; i < length; ++i) {
+		options = arguments[i];
+		// Only deal with non-null/undefined values
+		if (options != null) {
+			// Extend the base object
+			for (name in options) {
+				src = target[name];
+				copy = options[name];
+
+				// Prevent never-ending loop
+				if (target === copy) {
+					continue;
+				}
+
+				// Recurse if we're merging plain objects or arrays
+				if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+					if (copyIsArray) {
+						copyIsArray = false;
+						clone = src && isArray(src) ? src : [];
+					} else {
+						clone = src && isPlainObject(src) ? src : {};
+					}
+
+					// Never move original objects, clone them
+					target[name] = extend(deep, clone, copy);
+
+				// Don't bring in undefined values
+				} else if (copy !== undefined) {
+					target[name] = copy;
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+
+
+},{}],33:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -46284,7 +46487,7 @@ return jQuery;
 
 }));
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -46377,7 +46580,7 @@ return jQuery;
   return klass
 });
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -58583,7 +58786,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
@@ -58613,10 +58816,10 @@ Console.runScenario(
 		]
 	);
 
-		// "add ship",
-		// "add ship 100 0 100",
-		// "select ship1",
-		// "orbit 0 0 0 100",
-		// "select ship0",
-		// "attack ship1",
-},{"./commands/addcommand":4,"./commands/aligncommand":5,"./commands/attackcommand":6,"./commands/destroycommand":7,"./commands/listcommand":8,"./commands/movecommand":9,"./commands/orbitcommand":10,"./commands/selectcommand":11,"./commands/stopcommand":12,"./console":18,"./game.js":27,"jquery":32}]},{},[35]);
+// 		// "add ship",
+// 		// "add ship 100 0 100",
+// 		// "select ship1",
+// 		// "orbit 0 0 0 100",
+// 		// "select ship0",
+// 		// "attack ship1",
+},{"./commands/addcommand":4,"./commands/aligncommand":5,"./commands/attackcommand":6,"./commands/destroycommand":7,"./commands/listcommand":8,"./commands/movecommand":9,"./commands/orbitcommand":10,"./commands/selectcommand":11,"./commands/stopcommand":12,"./console":18,"./game.js":27,"jquery":33}]},{},[36]);

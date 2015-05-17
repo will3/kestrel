@@ -14,12 +14,12 @@ var EntityRunner = function(){
 
 		removeEntity: function(entity){
 			var that = this;
-			entity.childEntities.forEach(function(childEntity){
+			entity.getChildEntities().forEach(function(childEntity){
 				that.removeEntity(childEntity);
 			});
 
 			_.remove(entities, entity);
-			entity.components.forEach(function(c){ c.destroy(); });
+			entity.getComponents().forEach(function(c){ c.destroy(); });
 			entity.destroy();
 		},
 
@@ -33,12 +33,12 @@ var EntityRunner = function(){
 		runEntity: function(entity){
 			entity.update();
 			entity.frameAge ++;
-			entity.components.forEach(function(component){
+			entity.getComponents().forEach(function(component){
 				component.update();
 			});
 
 			var that = this;
-			entity.childEntities.forEach(function(childEntity){
+			entity.getChildEntities().forEach(function(childEntity){
 				that.runEntity(childEntity);
 			});
 		}

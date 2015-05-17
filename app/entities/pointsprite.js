@@ -2,18 +2,42 @@ var Entity = require('../entity');
 var RenderComponent = require('../components/rendercomponent');
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
+var extend = require("extend");
 
-var PointSprite = Entity.extend(function(){
-	this.texture = null;
-}).methods({
-	start: function(){
-		this.addComponent(new PointSpriteRenderComponent(this.texture));
-	},
+var PointSprite = function(){
+	var texture = null;
+	var renderComponent = null;
 
-	setTexture: function(value){
-		this.texture = value;
-	},
-});
+	var pointSprite = {
+		start: function(){
+			if(renderComponent == null){
+				renderComponent = new PointSpriteRenderComponent(texture);
+			}
+			this.addComponent(renderComponent);
+		},
+
+		setTexture: function(value){
+			texture = value;
+		},
+
+		getTexture: function(){
+			return texture;
+		},
+
+		setRenderComponent: function(value){
+			renderComponent = value;
+		},
+
+		getRenderComponent: function(value){
+			return renderComponent;
+		}
+	};
+
+	pointSprite.__proto__ = Entity();
+
+
+	return pointSprite;
+}
 
 var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
 	this.texture = texture;

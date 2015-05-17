@@ -6,26 +6,63 @@ var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 
-var Ship = Entity.extend(function(){
-	this.shipController = null;
-	this.rigidBody = null;
-	this.geometry = null;
-	this.hasCollision = true
-	this.collisionRadius = 9;
-}).methods({
-	start: function(){
-		Ship.id ++;
+var Ship = function(){
+	var shipController = null;
+	var rigidBody = null;
+	var renderComponent = null;
 
-		this.bluePrint = new ShipBluePrint();
-		this.geometry = this.bluePrint.initGeometry();
+	var ship = {
+		hasCollision: true,
+		collisionRadius: 9,
 
-		this.addComponent(new ShipRenderComponent(this.geometry));
-		this.rigidBody = new RigidBody();
-		this.addComponent(this.rigidBody);
-		this.shipController = new ShipController();
-		this.addComponent(this.shipController);
-	},
-});
+		getShipController: function(){ 
+			if(shipController == null){
+				shipController = new ShipController();
+			}
+			return shipController; 
+		},
+
+		setShipController: function(value){
+			shipController = value;
+		},
+
+		getRigidBody: function(){ 
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+			}
+			return rigidBody; 
+		},
+
+		setRigidBody: function(value){
+			rigidBody = value;
+		},
+
+		getRenderComponent: function(){ 
+			if(renderComponent == null){
+				var bluePrint = new ShipBluePrint();
+				var geometry = bluePrint.initGeometry();
+				renderComponent = new ShipRenderComponent(geometry);
+			}
+			return renderComponent;
+		},
+
+		setRenderComponent: function(value){
+			renderComponent = value;
+		},
+		
+		start: function(){
+			Ship.id ++;
+
+			this.addComponent(this.getRenderComponent());
+			this.addComponent(this.getRigidBody());
+			this.addComponent(this.getShipController());
+		},
+	};
+
+	ship.__proto__ = Entity();
+
+	return ship;
+}
 
 var ShipBluePrint = function(){
 	function getShip(){

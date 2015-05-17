@@ -18,13 +18,13 @@ var OrbitCommand = Command.extend(function(){
 
 		this.target = new THREE.Vector3(x, y, z);
 
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){
 		// Debug.addIndicator(this.target);
 
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 
 		var position = this.actor.getTransform().position;
 		//a being vector from position to target

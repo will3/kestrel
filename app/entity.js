@@ -1,113 +1,120 @@
-var klass = require("klass");
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
 
-var Entity = klass(function(){
-	this.name = null; //optional name
-	this.innerObject = null;
-	this.transform = null;
-	this.components = [];
-	this.childEntities = [];
+var Entity = function(){
+	var name = null; //optional name
+	var innerObject = null;
+	var transform = null;
+	var components = [];
+	var childEntities = [];
 
-	this.destroyable = true;
-	this.hasCollision = false;
+	var destroyable = true;
+	var hasCollision = false;
 
-	this.frameAge = 0;
-	this.parentEntity = null;
-}).methods({
-	getTransform: function(){
-		if(this.transform == null){
-			this.transform = new TransformComponent();
-		}
+	var frameAge = 0;
+	var parentEntity = null;
 
-		return this.transform;
-	},
+	return {
+		getFrameAge: function(){ return frameAge; },
+		setFrameAge: function(value){ frameAge = value; },
 
-	addEntity: function(entity){
-		if(entity.parentEntity != null){
-			throw "entity " + this.name + " already has a parent entity named: " + entity.parentEntity.name;
-		}
+		getTransform: function(){
+			if(transform == null){
+				transform = new TransformComponent();
+			}
 
-		entity.parentEntity = this;
-		entity.start();
-		this.childEntities.push(entity);
-	},
+			return transform;
+		},
 
-	removeEntity: function(entity){
-		entity.destroy();
-		_.remove(this.childEntities, entity);
-	},
+		getParentEntity: function(){
+			return parentEntity;
+		},
 
-	addComponent: function(component){
-		component.entity = this;
-		component.start();
-		this.components.push(component);
-	},
+		setParentEntity: function(value){
+			if(parentEntity != null){
+				throw "entity already has a parent entity";
+			}
 
-	removeComponent: function(component){
-		component.destroy();
-		_.remove(this.components, component);
-	},
+			parentEntity = value;
+		},
 
-	getComponent: function(name){
-		var components = $.grep(this.components, function(e){ return e.getName() == name });
-		if(components == null || components.length == 0){
-			throw "cannot find entity with name: " + name;
-		}
+		getChildEntities: function(){
+			return childEntities;
+		},
 
-		if(components.length > 1){
-			throw "more than one component of name: " + name + " found";
-		}
+		getComponents: function(){
+			return components;
+		},
 
-		return components[0];
-	},
+		addEntity: function(entity){
+			entity.setParentEntity(this);
+			entity.start();
+			childEntities.push(entity);
+		},
 
-	start: function(){
+		removeEntity: function(entity){
+			entity.destroy();
+			_.pull(childEntities, entity);
+		},
 
-	},
+		addComponent: function(component){
+			component.entity = this;
+			component.start();
+			components.push(component);
+		},
 
-	update: function(){
-		
-	},
-
-	destroy: function(){
-		this.components.forEach(function(component){
+		removeComponent: function(component){
 			component.destroy();
-		});
+			_.pull(components, component);
+		},
 
-		this.childEntities.forEach(function(childEntity){
-			childEntity.destroy();
-		});
-	},
+		start: function(){
 
-	removeFromParent: function(){
-		if(this.parentEntity != null){
-			this.parentEntity.removeEntity(this);
-		}else{
-			Game.removeEntity(this);
-		}
-	},
+		},
 
-	setPosition: function(position){
-		this.getTransform().position.copy(position);
-	},
+		update: function(){
+			
+		},
 
-	getPosition: function(position){
-		return this.getTransform().position;
-	},
+		destroy: function(){
+			components.forEach(function(component){
+				component.destroy();
+			});
 
-	getWorldPosition: function(){
-		var entity = this;
-		var position = new THREE.Vector3();
-		
-		do{
-			position.add(entity.getPosition());
-			entity = entity.parentEntity;
-		}while(entity != null);
+			childEntities.forEach(function(childEntity){
+				childEntity.destroy();
+			});
+		},
 
-		return position;
-	},
-});
+		removeFromParent: function(){
+			if(parentEntity != null){
+				parentEntity.removeEntity(this);
+			}else{
+				Game.removeEntity(this);
+			}
+		},
+
+		setPosition: function(position){
+			this.getTransform().position.copy(position);
+		},
+
+		getPosition: function(position){
+			return this.getTransform().position;
+		},
+
+		getWorldPosition: function(){
+			var entity = this;
+			var position = new THREE.Vector3();
+			
+			do{
+				position.add(entity.getPosition());
+				entity = entity.parentEntity;
+			}while(entity != null);
+
+			return position;
+		},
+	};
+}
 
 module.exports = Entity;
