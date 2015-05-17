@@ -13,12 +13,12 @@ var WeaponController = Component.extend(function(){
 		direction.subVectors(target.getPosition(), this.entity.getPosition());
 		direction.setLength(1);
 
-		var projectile = new Projectile({
-			power : 2,
-			direction : direction,
-		});
+		var projectile = new Projectile();
+		projectile.setDirection(direction);
+		projectile.setPower(2);
+		projectile.setSpeed(4);
+		projectile.setActor(this.entity);
 		
-		projectile.actor = this.entity;
 		projectile.getPosition().copy(this.entity.getPosition());
 
 		Game.addEntity(projectile);
