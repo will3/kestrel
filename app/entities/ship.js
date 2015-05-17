@@ -5,15 +5,24 @@ var THREE = require("THREE");
 var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
+var WeaponController = require("../components/weaponController");
 
 var Ship = function(){
 	var shipController = null;
 	var rigidBody = null;
 	var renderComponent = null;
-
+	var weaponController = null;
+	
 	var ship = {
 		hasCollision: true,
 		collisionRadius: 9,
+
+		getWeaponController: function(){
+			if(weaponController == null){
+				weaponController = new WeaponController();
+			}
+			return weaponController;
+		},
 
 		getShipController: function(){ 
 			if(shipController == null){
@@ -56,6 +65,7 @@ var Ship = function(){
 			this.addComponent(this.getRenderComponent());
 			this.addComponent(this.getRigidBody());
 			this.addComponent(this.getShipController());
+			this.addComponent(this.getWeaponController());
 		},
 	};
 

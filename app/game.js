@@ -13,7 +13,7 @@ Game = function(entityRunner){
 	var control;
 	var target = new THREE.Vector3();
 	var cameraYawPitchRow = new THREE.Vector3();
-	var distance = 200.0;
+	var distance = 400.0;
 	var frameRate = 60.0;
 	var keyboard;
 	var entityRunner = new EntityRunner();

@@ -58,7 +58,6 @@ var Projectile = function(params) {
 		var velocity = getVelocity();
 		position.copy(velocity);
 		position.multiplyScalar(offset);
-		position.add(transform.position);
 		block.setPosition(position);
 
 		return block;

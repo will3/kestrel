@@ -1,4 +1,4 @@
-var OrbitCommand = require("../../app/commands/orbitCommand");
+	var OrbitCommand = require("../../app/commands/orbitCommand");
 var THREE = require("THREE");
 var expect = require("chai").expect;
 var Ship = require("../../app/entities/ship");
@@ -19,7 +19,7 @@ describe("OribtCommand", function(){
 		it("parses target correctly", function(){
 			orbitCommand.setParams([1, 2, 3]);
 			orbitCommand.execute();
-			expect(orbitCommand.getTarget().equals(new THREE.Vector3(1, 2, 3))).to.equal(true);
+			expect(orbitCommand.getTarget().getPosition().equals(new THREE.Vector3(1, 2, 3))).to.equal(true);
 		})
 
 		it("parses distance correctly", function(){
