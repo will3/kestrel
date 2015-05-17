@@ -3,6 +3,7 @@ var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
 var _ = require("lodash");
+var Entity = require("../../app/entity");
 
 describe("Projectile", function(){
 	var projectile = null;
@@ -14,9 +15,13 @@ describe("Projectile", function(){
 			num : 4,
 			speed : 5,
 		});
+
+		projectile.createBlock = function(){
+			return new Entity();
+		};
 	})
 
-	describe("start", function(){
+	describe("When Created", function(){
 		it("should create blocks", function(){
 			projectile.start();
 			expect(projectile.getChildEntities().length).to.equal(4);

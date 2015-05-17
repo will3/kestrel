@@ -68,10 +68,21 @@ var Projectile = function(params) {
 		hasCollision : true,
 		setActor: function(value){ actor = value; },
 		getActor: function(){ return actor; },
-		getRigidBody: function(){ return rigidBody; },
+		getRigidBody: function(){ 
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.defaultFriction = 1;
+			}
+			return rigidBody;
+		},
 
 		start: function(){
+			transform = this.getTransform();
 			var velocity = getVelocity();
+
+			this.addComponent(this.getRigidBody());
+			rigidBody.velocity = velocity;
+
 			var startPosition = new THREE.Vector3();
 			startPosition.copy(velocity);
 			startPosition.multiplyScalar(0.5);
@@ -84,13 +95,9 @@ var Projectile = function(params) {
 					- i * 0.5
 					));
 			}
-
-			transform = getTransform();
-			rigidBody = new RigidBody();
-			rigidBody.defaultFriction = 1;
-			this.addComponent(rigidBody);
-			rigidBody.velocity = velocity;
 		},
+
+		createBlock: createBlock,
 
 		update: function(){
 			//update age

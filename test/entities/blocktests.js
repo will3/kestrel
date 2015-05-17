@@ -1,20 +1,26 @@
 var Block = require("../../app/entities/block");
+var Component = require("../../app/component");
 var expect = require("chai").expect;
 var THREE = require("THREE");
 var sinon = require("sinon");
+var _ = require("lodash");
 
 describe('Block', function(){
 	var block;
+	var renderComponent;
 
 	beforeEach(function(){
 		block = new Block();
+		renderComponent = new Component();
+		block.setRenderComponent(renderComponent);
 	});
 
 	describe('start', function(){
-		it('should initialize rigidBody component', function(){
+		it('should initialize components', function(){
 			block.start();
-			expect(block.getRigidBody()).to.not.equal(null);
 			expect(block.getRigidBody().defaultFriction).to.equal(1);
+			expect(_.includes(block.getComponents(), block.getRigidBody())).to.equal(true);
+			expect(_.includes(block.getComponents(), block.getRenderComponent())).to.equal(true);
 		});
 
 		it('should initialize size', function(){

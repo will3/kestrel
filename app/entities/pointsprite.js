@@ -9,28 +9,23 @@ var PointSprite = function(){
 	var renderComponent = null;
 
 	var pointSprite = {
-		start: function(){
-			if(renderComponent == null){
-				renderComponent = new PointSpriteRenderComponent(texture);
-			}
-			this.addComponent(renderComponent);
-		},
-
-		setTexture: function(value){
-			texture = value;
-		},
-
-		getTexture: function(){
-			return texture;
-		},
+		setTexture: function(value){ texture = value; },
+		getTexture: function(){ return texture; },
 
 		setRenderComponent: function(value){
 			renderComponent = value;
 		},
 
 		getRenderComponent: function(value){
+			if(renderComponent == null){
+				renderComponent = new PointSpriteRenderComponent(texture);
+			}
 			return renderComponent;
-		}
+		},
+
+		start: function(){
+			this.addComponent(this.getRenderComponent());
+		},
 	};
 
 	pointSprite.__proto__ = Entity();

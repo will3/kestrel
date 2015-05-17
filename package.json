@@ -11,7 +11,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "mocha test",
+    "test": "mocha test --recursive",
     "start": "nodemon server.js",
     "build": "browserify app/main.js -o public/js/bundle.js"
   },

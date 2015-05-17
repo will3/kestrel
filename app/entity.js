@@ -109,7 +109,7 @@ var Entity = function(){
 			
 			do{
 				position.add(entity.getPosition());
-				entity = entity.parentEntity;
+				entity = entity.getParentEntity();
 			}while(entity != null);
 
 			return position;

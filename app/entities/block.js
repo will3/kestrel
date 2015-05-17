@@ -30,15 +30,18 @@ var Block = function(){
 		getLife: function(){ return	life; },
 		
 		getRigidBody: function(){
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.defaultFriction = 1;
+			}
 			return rigidBody;
 		},
 
 		start: function(){
 			//add rigid body
 			transform = this.getTransform();
-			rigidBody = new RigidBody();
-			rigidBody.defaultFriction = 1;
-			this.addComponent(rigidBody);
+			this.addComponent(this.getRigidBody());
+			this.addComponent(this.getRenderComponent());
 
 			//initialize size
 			updateSize();

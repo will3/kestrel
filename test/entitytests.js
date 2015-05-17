@@ -208,7 +208,7 @@ describe('Entity', function(){
 
 			var worldPosition = entity.getWorldPosition();
 
-			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321)));
+			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321))).to.equal(true);
 		});
 	});
 
