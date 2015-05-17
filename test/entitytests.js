@@ -3,12 +3,15 @@ var Component = require("../app/component");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
+var Game = require("../app/game");
 
 describe('Entity', function(){
 	var entity = null;
-
+	var game = null;
+	
 	beforeEach(function(){
 		entity = new Entity();
+		game = Game;
 	});
 
 	describe('get transform', function(){
@@ -182,9 +185,12 @@ describe('Entity', function(){
 		context("doesn't have parent entity", function(){
 			it('removes from Game', function(){
 				var entity = new Entity();
+				var mockGame = sinon.mock(game);
+				mockGame.expects("removeEntity").withArgs(entity);
+
 				entity.removeFromParent();
 
-				//todo
+				mockGame.verify();
 			});
 		});
 	});
