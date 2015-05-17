@@ -3,7 +3,7 @@ var THREE = require("THREE");
 var Block = require("./block");
 var RigidBody = require("../components/rigidbody");
 
-var Projectile = function(params){
+var Projectile = function(params) {
 	var params = params	== null ? {} : params;
 	var power = params.power != null ? params.power : 4;
 	var direction = params.direction;
@@ -62,7 +62,7 @@ var Projectile = function(params){
 		block.setPosition(position);
 
 		return block;
-	},
+	}
 
 	var projectile = {
 		hasCollision : true,

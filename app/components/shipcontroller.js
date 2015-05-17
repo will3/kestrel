@@ -31,7 +31,7 @@ var ShipController = Component.extend(function(){
 	},
 
 	getRigidBody: function(){
-		return this.entity.rigidBody;
+		return this.entity.getRigidBody();
 	},
 
 	start: function(){

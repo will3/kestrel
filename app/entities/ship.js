@@ -27,14 +27,14 @@ var Ship = function(){
 		},
 
 		getRigidBody: function(){ 
-			if(rigidbody == null){
-				rigidbody = new RigidBody();
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
 			}
-			return rigidbody; 
+			return rigidBody; 
 		},
 
 		setRigidBody: function(value){
-			rigidbody = value;
+			rigidBody = value;
 		},
 
 		getRenderComponent: function(){ 

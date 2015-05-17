@@ -12,11 +12,11 @@ var MoveCommand = Command.extend(function(){
 
 		this.target = new THREE.Vector3(x, y, z);
 
-		this.actor.shipController.setCommand(this);
+		this.actor.getShipController().setCommand(this);
 	},
 
 	update: function(){
-		var shipController = this.actor.shipController;
+		var shipController = this.actor.getShipController();
 
 		shipController.move(this.target);
 	},
