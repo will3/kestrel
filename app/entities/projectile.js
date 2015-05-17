@@ -17,8 +17,11 @@ var Projectile = function(params){
 	var speed = params.speed != null ? params.speed : 4;
 
 	var collisionRadius = 1;
-	var rigidBody = null;
 	var actor = null;
+
+	//components
+	var rigidBody = null;
+	var transform = null;
 
 	var velocity = null;
 	function getVelocity(){
@@ -30,6 +33,36 @@ var Projectile = function(params){
 
 		return velocity;
 	}
+
+	function createBlock(size, offset){
+		var block = new Block();
+
+		block.setSize(size);
+		block.setLife(life);
+
+		var sizeOverTime = function(time){
+			var remainingLife = this.life - time;
+			if(remainingLife < 50){
+				return this.size *= 0.95;
+			}
+			return this.size;
+		}.bind({
+			size: size,
+			life: life
+		});
+
+		block.sizeOverTime(sizeOverTime);
+
+		var position = new THREE.Vector3();
+
+		var velocity = getVelocity();
+		position.copy(velocity);
+		position.multiplyScalar(offset);
+		position.add(transform.position);
+		block.setPosition(position);
+
+		return block;
+	},
 
 	var projectile = {
 		hasCollision : true,
@@ -51,6 +84,8 @@ var Projectile = function(params){
 					- i * 0.5
 					));
 			}
+
+			transform = getTransform();
 			rigidBody = new RigidBody();
 			rigidBody.defaultFriction = 1;
 			this.addComponent(rigidBody);
@@ -62,36 +97,6 @@ var Projectile = function(params){
 			if(this.getFrameAge() > life && life != -1){
 				this.removeFromParent();
 			}
-		},
-
-		createBlock: function(size, offset){
-			var block = new Block();
-
-			block.setSize(size);
-			block.setLife(life);
-
-			var sizeOverTime = function(time){
-				var remainingLife = this.life - time;
-				if(remainingLife < 50){
-					return this.size *= 0.95;
-				}
-				return this.size;
-			}.bind({
-				size: size,
-				life: life
-			});
-
-			block.sizeOverTime(sizeOverTime);
-
-			var position = new THREE.Vector3();
-
-			var velocity = getVelocity();
-			position.copy(velocity);
-			position.multiplyScalar(offset);
-			position.add(this.getPosition());
-			block.setPosition(position);
-
-			return block;
 		},
 
 		onCollision: function(entity){
