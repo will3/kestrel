@@ -59,8 +59,8 @@ var Console = function(){
 
 		params.splice(0, 1);
 
-		command.actor = selectedEntity;
-		command.params = params;
+		command.setActor(selectedEntity);
+		command.setParams(params);
 		var resultBack = command.execute();
 		
 		if(resultBack != null && resultBack.length > 0){

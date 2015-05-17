@@ -1,29 +1,34 @@
 var Command = require("../command");
 var THREE = require("THREE");
 
-var MoveCommand = Command.extend(function(){
-	this.target = null;
-	this.actor = null;
-}).methods({
-	execute: function(){
-		var x = parseInt(this.params[0]);
-		var y = parseInt(this.params[1]);
-		var z = parseInt(this.params[2]);
+var MoveCommand = function(){
+	var target = null;
 
-		this.target = new THREE.Vector3(x, y, z);
+	var moveCommand = {
+		getTarget: function(){
+			return target;
+		},
 
-		this.actor.getShipController().setCommand(this);
-	},
+		execute: function(){
+			var params = this.getParams();
+			var x = parseInt(params[0]);
+			var y = parseInt(params[1]);
+			var z = parseInt(params[2]);
 
-	update: function(){
-		var shipController = this.actor.getShipController();
+			target = new THREE.Vector3(x, y, z);
 
-		shipController.move(this.target);
-	},
+			this.getActor.getShipController().setCommand(this);
+		},
 
-	destroy: function(){
+		update: function(){
+			var shipController = this.getActor().getShipController();
+			shipController.move(target);
+		},
+	};
 
-	},
-});
+	moveCommand.__proto__ = Command();
+
+	return moveCommand;
+}
 
 module.exports = MoveCommand;

@@ -1,36 +1,46 @@
 var Command = require("../command");
 var THREE = require("THREE");
 
-var AddCommand = Command.extend(function(){
-	this.objectMapping = {
+var AddCommand = function(){
+	var objectMapping = {
 		"ship": require('../entities/ship'),
 	};
-}).methods({
-	execute: function(){
-		var param = this.params[0];
-		if(param == null || param.length == 0){
-			throw "must add something";
-		}
 
-		var x = parseInt(this.params[1]);
-		var y = parseInt(this.params[2]);
-		var z = parseInt(this.params[3]);
+	var addCommand = {
+		setObjectMapping: function(value){ objectMapping = value; },
+		getObjectMapping: function(){ return objectMapping; },
+		execute: function(){
+			var params = this.getParams();
+			if(params == null || params.length == 0 || params[0].length == 0){
+				throw "must add something";
+			}
 
-		className = capitalizeFirstLetter(param);
-		var constructor = this.objectMapping[className.toLowerCase()];
+			var param = params[0];
 
-		if(constructor == null){
-			throw "cannot add " + param;
-		}
+			var x = parseInt(params[1]);
+			var y = parseInt(params[2]);
+			var z = parseInt(params[3]);
 
-		var entity = new constructor();
-		Game.nameEntity(className.toLowerCase(), entity);
-		Game.addEntity(entity, new THREE.Vector3(x, y, z));
+			className = capitalizeFirstLetter(param);
+			var constructor = objectMapping == null ? null : objectMapping[className.toLowerCase()];
 
-		function capitalizeFirstLetter(string) {
-		    return string.charAt(0).toUpperCase() + string.slice(1);
-		}
-	},
-});
+			if(constructor == null){
+				throw "cannot add " + param;
+			}
+
+			var entity = new constructor();
+			Game.nameEntity(className.toLowerCase(), entity);
+			Game.addEntity(entity, new THREE.Vector3(x, y, z));
+
+			function capitalizeFirstLetter(string) {
+			    return string.charAt(0).toUpperCase() + string.slice(1);
+			}
+		},
+	}
+
+	addCommand.__proto__ = Command();
+
+	return addCommand;
+}
 
 module.exports = AddCommand;
