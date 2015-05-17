@@ -4,10 +4,14 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "chai": "^2.3.0",
     "express": "^4.12.3",
     "express-handlebars": "^2.0.1",
     "handlebars": "^3.0.3",
-    "nodemon": "^1.3.7"
+    "klass": "^1.4.0",
+    "nodemon": "^1.3.7",
+    "sinon": "^1.14.1",
+    "three": "^0.71.0"
   },
   "devDependencies": {},
   "scripts": {
