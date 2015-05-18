@@ -26,13 +26,13 @@ describe('Block', function(){
 		it('should initialize size', function(){
 			block.setSize(99);
 			block.start();
-			expect(block.getTransform().scale.equals(new THREE.Vector3(99, 99, 99))).to.equal(true);
+			expect(block.getTransform().getScale().equals(new THREE.Vector3(99, 99, 99))).to.equal(true);
 		});
 
 		it('should initialize velocity', function(){
 			block.setVelocity(new THREE.Vector3(1, 2, 3));
 			block.start();
-			expect(block.getRigidBody().velocity.equals(new THREE.Vector3(1, 2, 3))).to.equal(true);
+			expect(block.getRigidBody().getVelocity().equals(new THREE.Vector3(1, 2, 3))).to.equal(true);
 		});
 	});
 
@@ -78,7 +78,7 @@ describe('Block', function(){
 			block.sizeOverTime(sizeOverTime);
 			block.start();
 			block.update();
-			expect(block.getTransform().scale.equals(new THREE.Vector3(42, 42, 42))).to.equal(true);
+			expect(block.getTransform().getScale().equals(new THREE.Vector3(42, 42, 42))).to.equal(true);
 		})
 
 		it('should update velocity over time', function(){
@@ -87,7 +87,7 @@ describe('Block', function(){
 			block.velocityOverTime(velocityOverTime);
 			block.start();
 			block.update();
-			expect(block.getRigidBody().velocity.equals(new THREE.Vector3(42, 42, 42))).to.equal(true);
+			expect(block.getRigidBody().getVelocity().equals(new THREE.Vector3(42, 42, 42))).to.equal(true);
 		})
 	});
 });

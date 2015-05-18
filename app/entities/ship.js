@@ -116,16 +116,22 @@ var ShipBluePrint = function(){
 	};
 };
 
-var ShipRenderComponent = RenderComponent.extend(function(geometry){
-	this.geometry = geometry;
-}).methods({
-	initGeometry: function(){
-		return this.geometry;
-	},
+var ShipRenderComponent = function(geometry){
+	var geometry = geometry;
 
-	initMaterial: function(){
-		return new Material.Solid(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
+	var shipRenderComponent = {
+		initGeometry: function(){
+			return geometry;
+		},
+
+		initMaterial: function(){
+			return new Material.Solid(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
+		}
 	}
-});
+
+	shipRenderComponent.__proto__ = RenderComponent();
+
+	return shipRenderComponent;
+}
 
 module.exports = Ship;

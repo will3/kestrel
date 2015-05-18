@@ -34,23 +34,29 @@ var PointSprite = function(){
 	return pointSprite;
 }
 
-var PointSpriteRenderComponent = RenderComponent.extend(function(texture){
-	this.texture = texture;
-}).methods({
-	initGeometry: function(){
-		return null;
-	},
+var PointSpriteRenderComponent = function(texture){
+	var texture = texture;
 
-	initMaterial: function(){
-		var map = this.texture == null ? TextureLoader.getDefault() : this.texture;
-		map.minFilter = THREE.NearestFilter;
-		var material = new THREE.SpriteMaterial({ map: map, color: 0xffffff, fog:true });
-		return material;
-	},
+	var pointSpriteRenderComponent = {
+		initGeometry: function(){
+			return null;
+		},
 
-	initObject: function(geometry, material){
-		return new THREE.Sprite(material);
-	},
-});
+		initMaterial: function(){
+			var map = texture == null ? TextureLoader.getDefault() : texture;
+			map.minFilter = THREE.NearestFilter;
+			var material = new THREE.SpriteMaterial({ map: map, color: 0xffffff, fog:true });
+			return material;
+		},
+
+		initObject: function(geometry, material){
+			return new THREE.Sprite(material);
+		},
+	};
+
+	pointSpriteRenderComponent.__proto__ = RenderComponent();
+
+	return pointSpriteRenderComponent;
+}
 
 module.exports = PointSprite;

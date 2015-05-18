@@ -14,11 +14,11 @@ var Block = function(){
 	var rigidBody = null;
 
 	var updateSize = function(){
-		transform.scale.set(size, size, size);
+		transform.getScale().set(size, size, size);
 	}
 
 	var updateVelocity = function(){
-		rigidBody.velocity.copy(velocity);
+		rigidBody.getVelocity().copy(velocity);
 	}
 
 	var block = {

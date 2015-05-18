@@ -1,32 +1,49 @@
 var Component = require("../component");
 var THREE = require("THREE");
 
-var RigidBody = Component.extend(function(){
-	this.velocity = new THREE.Vector3();
-	this.acceleration = new THREE.Vector3();
-	this.friction = 0.98;
-	this.defaultFriction = 0.98;
-}).methods({
-	update: function(){
-		this.updatePosition();
-	},
+var RigidBody = function(){
+	var velocity = new THREE.Vector3();
+	var acceleration = new THREE.Vector3();
+	var friction = 0.98;
+	var defaultFriction = 0.98;
 
-	updatePosition: function(){
-		this.velocity.add(this.acceleration);
-		this.velocity.multiplyScalar(this.friction);
-		this.getTransform().position.add(this.velocity);
+	var rigidBody = {
+		setVelocity: function(value){ velocity = value; },
+		getVelocity: function(){ return velocity; },
+		setAcceleration: function(value){ acceleration = value; },
+		getAcceleration: function(){ return acceleration; },
+		setDefaultFriction: function(value){ 
+			friction = value;
+			defaultFriction = value; 
+		},
+		getDefaultFriction: function(){ return defaultFriction; },
+		getFriction: function(){ return friction; },
 
-		this.acceleration.set(0, 0, 0);
-		this.friction = this.defaultFriction;
-	},
+		update: function(){
+			this.updatePosition();
+		},
 
-	applyForce: function(force){
-		this.acceleration.add(force);
-	},
+		updatePosition: function(){
+			velocity.add(acceleration);
+			velocity.multiplyScalar(friction);
+			this.getTransform().getPosition().add(velocity);
 
-	applyFriction: function(friction){
-		this.friction *= friction;
-	}
-});
+			acceleration.set(0, 0, 0);
+			friction = defaultFriction;
+		},
+
+		applyForce: function(force){
+			acceleration.add(force);
+		},
+
+		applyFriction: function(frictionToApply){
+			friction *= frictionToApply;
+		}
+	};
+
+	rigidBody.__proto__ = Component();
+
+	return rigidBody;
+}
 
 module.exports = RigidBody;

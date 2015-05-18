@@ -96,11 +96,11 @@ var Entity = function(){
 		},
 
 		setPosition: function(position){
-			this.getTransform().position.copy(position);
+			this.getTransform().setPosition(position);
 		},
 
 		getPosition: function(position){
-			return this.getTransform().position;
+			return this.getTransform().getPosition();
 		},
 
 		getWorldPosition: function(){
