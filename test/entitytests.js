@@ -3,7 +3,6 @@ var Component = require("../app/component");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
-var Game = require("../app/game");
 
 describe('Entity', function(){
 	var entity = null;
@@ -11,7 +10,9 @@ describe('Entity', function(){
 	
 	beforeEach(function(){
 		entity = new Entity();
-		game = Game;
+		game = {
+			removeEntity: function(entity){ }
+		};
 	});
 
 	describe('get transform', function(){
@@ -92,7 +93,7 @@ describe('Entity', function(){
 
 			entity.addComponent(component.object);
 
-			expect(component.object.entity).to.equal(entity);
+			expect(component.object.getEntity()).to.equal(entity);
 		});
 
 		it('should start component', function(){
@@ -185,8 +186,9 @@ describe('Entity', function(){
 		context("doesn't have parent entity", function(){
 			it('removes from Game', function(){
 				var entity = new Entity();
+				entity.setGame(game);
 				var mockGame = sinon.mock(game);
-				mockGame.expects("removeEntity").withArgs(entity);
+				mockGame.expects("removeEntity");
 
 				entity.removeFromParent();
 

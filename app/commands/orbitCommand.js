@@ -25,7 +25,7 @@ var OrbitCommand = function(){
 		update: function(){
 			var shipController = this.getActor().getShipController();
 
-			var position = this.getActor().getTransform().position;
+			var position = this.getActor().getTransform().getPosition();
 			//a being vector from position to target
 			var a = new THREE.Vector3();
 			a.subVectors(target, position);

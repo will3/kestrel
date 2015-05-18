@@ -2,47 +2,34 @@ var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 
-// //pitch
-// var maxPitch = Math.PI / 2;
-// var desiredPitch = 0;
-// var pitchCurve = 0.1;
-// var pitchMaxSpeed = 0.1;
-// var pitchFriction = 0.97;
-
 var RotationState = function(params){
-	var params = params;
-	var max = Math.PI / 2;
-	var desired = 0;
-	var curve = 0.1;
-	var maxSpeed = 0.1;
-	var friction = 0.95;
-	var orientation = "";
+	var desired = null;
 
-	var getVectorValue = function(vector){
-		if(orientation == "x"){
-			return vector.x;
-		}else if(orientation == "y"){
-			return vector.y;
-		}else if(orientation == "z"){
-			return vector.z;
-		}
+	var params = params != null ? params : {};
+	var resting = params.resting != null ? params.resting : null;
+	var max = params.max != null ? params.max : Math.PI / 2;
+	var curve = params.curve != null ? params.curve : 0.1;
+	var maxSpeed = params.maxSpeed != null ? params.maxSpeed : 0.1;
+	var friction = params.friction != null ? params.friction : 0.95;
+	var axis = params.axis != null ? params.axis : "";
 
-		throw "invalid orientation";
-	}
-
-	var setVectorValue = function(vector, value){
-		if(orientation == "x"){
-			vector.setX(value);
-		}else if(orientation == "y"){
-			vector.setY(value);
-		}else if(orientation == "z"){
-			vector.setZ(value);
-		}else{
-			throw "invalid orientation";
-		}
+	var getVectorValue = null;
+	var setVectorValue = null;
+	if(axis == "x"){
+		getVectorValue = function(vector){ return vector.x; }
+		setVectorValue = function(vector, value){ vector.setX(value); }
+	}else if(axis == "y"){
+		getVectorValue = function(vector){ return vector.y; }
+		setVectorValue = function(vector, value){ vector.setY(value); }
+	}else if(axis == "z"){
+		getVectorValue = function(vector){ return vector.z; }
+		setVectorValue = function(vector, value){ vector.setZ(value); }
+	}else{
+		throw "invalid axis " + axis;
 	}
 
 	return {
+		getAxis: function(){ return axis; },
 		setAmount : function(amount){
 			desired = max * amount;
 		},
@@ -51,33 +38,76 @@ var RotationState = function(params){
 			desired = amount;
 		},
 
-		update : function(transform){
-			var rotation = transform.getRotation();
-
-			var value = getVectorValue(rotation);
-			
-			var speed = (desired - value) * curve;
-			if(speed > maxSpeed){
-				speed = maxSpeed;
-			}else if(speed < - maxSpeed){
-				speed = - maxSpeed;
+		update : function(entity){
+			if(desired == null){
+				desired = resting;
 			}
-			value += speed;
-			value *= friction;
 
-			setVectorValue(rotation, value);
+			if(desired != null){
+				var transform = entity.getTransform();
+				var rotation = transform.getRotation();
 
-			desired = 0;
+				var value = getVectorValue(rotation);
+
+				var speed = (desired - value) * curve;
+				if(speed > maxSpeed){
+					speed = maxSpeed;
+				}else if(speed < - maxSpeed){
+					speed = - maxSpeed;
+				}
+				value += speed;
+				value *= friction;
+
+				setVectorValue(rotation, value);
+			}
+
+			desired = resting;
 		}
 	}
 }
 
-var ShipController = function(roll, pitch){
+var Roll = function(){
+	return new RotationState({
+		axis: "z",
+		resting: 0,
+	});
+}
+
+var Pitch = function(){
+	return new RotationState({
+		axis: "x",
+		resting: 0,
+	});
+}
+
+var Yaw = function(roll){
+	var roll = roll;
+	var yawForce = 0.015;
+
+	return {
+		setYawForce: function(value){ yawForce = value; },
+		getYawForce: function(){ return yawForce; },
+		
+		update: function(entity){
+			var transform = entity.getTransform();
+			var rotation = transform.getRotation();
+			var bankFactor = Math.sin(rotation.z);
+			var yawVelocity =  bankFactor * - yawForce;
+
+			var yaw = rotation.x;
+			yaw += yawVelocity;
+			rotation.setY(yaw);
+		}
+	};
+}
+
+var ShipController = function(yaw, pitch, roll){
 	//engine
 	var force = 0.025;
 
 	var roll = roll != null ? roll : new Roll();
 	var pitch = pitch != null ? pitch : new Pitch();
+	var yaw = yaw != null ? yaw : new Yaw(roll);
 
 	//yaw
 	var yawForce = 0.015;
@@ -102,24 +132,6 @@ var ShipController = function(roll, pitch){
 		roll.setDesired(desiredRoll);
 	};
 
-	var updatePitch = function(transform){
-		var rotation = transform.getRotation();
-		var pitch = rotation.y;
-		var pitchChange = (desiredPitch - pitch) * pitchCurve;
-		if(pitchChange > pitchMaxSpeed){
-			pitchChange = pitchMaxSpeed;
-		}else if(pitchChange < - pitchMaxSpeed){
-			pitchChange = - pitchMaxSpeed;
-		}
-		pitch += pitchChange;
-
-		pitch *= pitchFriction;
-
-		rotation.setY(pitch);
-
-		desiredPitch = 0;
-	};
-
 	var updateYaw = function(transform){
 		var rotation = transform.getRotation();
 		var bankFactor = Math.sin(rotation.z);
@@ -135,9 +147,8 @@ var ShipController = function(roll, pitch){
 		getRigidBody: function(){
 			return this.getEntity().getRigidBody();
 		},
-
-		getPosition: function(){
-			return this.getTransform().position;
+		setForce: function(value){
+			force = value;
 		},
 
 		start: function(){
@@ -153,15 +164,12 @@ var ShipController = function(roll, pitch){
 			command = value;
 		},
 
-		getMaxVelocity: function(){
-			return this.force / (1 - this.friction);
-		},
-
 		update: function(){
 			var transform = this.getTransform();
-			roll.update(transform);
-			updateYaw(transform);
-			updatePitch(transform);
+			var entity = this.getEntity();
+			roll.update(entity);
+			pitch.update(entity);
+			yaw.update(entity);
 
 			if(command != null){
 				command.update();
@@ -169,65 +177,47 @@ var ShipController = function(roll, pitch){
 		},
 
 		accelerate: function(amount){
-			var rotation = this.getTransform().rotation;
+			var rotation = this.getTransform().getRotation();
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
-			vector.multiplyScalar(amount * this.force);
-			this.getRigidBody().acceleration.add(vector);
-		},
-
-		accelerateForVelocity: function(velocity){
-			var velocityDiff = velocity - this.getRigidBody().velocity.length();
-			//accelerate
-			if(velocityDiff > 0){
-				var amount = velocityDiff / this.force;
-				if(amount > 1){
-					amount = 1;
-				}
-				this.accelerate(amount);
-			}
+			vector.multiplyScalar(amount * force);
+			this.getRigidBody().applyForce(vector);
 		},
 
 		align: function(point){
-			var position = this.getTransform().position;
+			bank(1);
+			// var position = this.getTransform().getPosition();
 
-			var a = new THREE.Vector3();
-			a.copy(point);
-			var b = new THREE.Vector3();
-			b.copy(position)
-			var c = this.getUnitFacing();
+			// var a = new THREE.Vector3();
+			// a.copy(point);
+			// var b = new THREE.Vector3();
+			// b.copy(position)
+			// var c = this.getUnitFacing();
 
-			var angleBetween = MathUtils.angleBetween(a, b, c);
+			// var angleBetween = MathUtils.angleBetween(a, b, c);
 
-			var desiredYawSpeed = angleBetween * 0.1;
+			// var desiredYawSpeed = angleBetween * 0.1;
 
-			bankForYawVelocity(desiredYawSpeed);
-			var xDiff = point.x - position.x;
-			var yDiff = point.y - position.y;
-			var zDiff = point.z - position.z;
+			// bankForYawVelocity(desiredYawSpeed);
+			// var xDiff = point.x - position.x;
+			// var yDiff = point.y - position.y;
+			// var zDiff = point.z - position.z;
 
-			desiredPitch = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
+			// pitch.setDesired(Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff)));
+		},
+
+		move: function(point){
+			this.align(point);
+			this.acceleration(1.0);
 		},
 
 		getUnitFacing: function(){
-			var position = this.getTransform().position;
-			var rotation = this.getTransform().rotation;
+			var position = this.getTransform().getPosition();
+			var rotation = this.getTransform().getRotation();
 			var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			var c = new THREE.Vector3();
 			c.addVectors(position, unitFacing);
 
 			return c;
-		},
-
-		move: function(point){
-			this.align(point);
-
-			var position = this.getTransform().position;
-			
-			var distanceVector = new THREE.Vector3();
-			distanceVector.subVectors(point, position);
-			var distance = distanceVector.length();
-			var desiredVelocity = (distance - 10.0) * 0.05;
-			this.accelerateForVelocity(desiredVelocity);
 		}
 	};
 
@@ -236,6 +226,9 @@ var ShipController = function(roll, pitch){
 	return shipController;
 }
 
+ShipController.RotationState = RotationState;
 ShipController.Roll = Roll;
+ShipController.Pitch = Pitch;
+ShipController.Yaw = Yaw;
 
 module.exports = ShipController;

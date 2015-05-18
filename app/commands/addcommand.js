@@ -6,9 +6,13 @@ var AddCommand = function(){
 		"ship": require('../entities/ship'),
 	};
 
+	var game = null;
+
 	var addCommand = {
 		setObjectMapping: function(value){ objectMapping = value; },
 		getObjectMapping: function(){ return objectMapping; },
+		getGame: function(){ if(game == null){ game = Game; } return game; },
+		setGame: function(value){ game = value; },
 		execute: function(){
 			var params = this.getParams();
 			if(params == null || params.length == 0 || params[0].length == 0){
@@ -29,8 +33,8 @@ var AddCommand = function(){
 			}
 
 			var entity = new constructor();
-			Game.nameEntity(className.toLowerCase(), entity);
-			Game.addEntity(entity, new THREE.Vector3(x, y, z));
+			this.getGame().nameEntity(className.toLowerCase(), entity);
+			this.getGame().addEntity(entity, new THREE.Vector3(x, y, z));
 
 			function capitalizeFirstLetter(string) {
 			    return string.charAt(0).toUpperCase() + string.slice(1);

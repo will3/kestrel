@@ -1,7 +1,6 @@
 var AddCommand = require("../../app/commands/AddCommand");
 var expect = require("chai").expect;
 var sinon = require("sinon");
-var Game = require("../../app/Game");
 var THREE = require("THREE");
 
 describe("Add Command", function(){
@@ -11,8 +10,12 @@ describe("Add Command", function(){
 	
 	beforeEach(function(){
 		addCommand = new AddCommand();
-		game = Game;
+		game = {
+			addEntity: function(){},
+			nameEntity: function(){},
+		};
 		mockGame = sinon.mock(game);
+		addCommand.setGame(game);
 	})
 
 	describe("execute", function(){

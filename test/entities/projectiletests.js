@@ -21,7 +21,7 @@ describe("Projectile", function(){
 		};
 	})
 
-	describe("When Created", function(){
+	describe("#start", function(){
 		it("should create blocks", function(){
 			projectile.start();
 			expect(projectile.getChildEntities().length).to.equal(4);
@@ -39,64 +39,9 @@ describe("Projectile", function(){
 		});
 	})
 
-	describe("update", function(){
+	describe("#update", function(){
 		it("should remove self when no life", function(){
 
 		})
 	})
 });
-
-// var power = power;
-// 	var velocity = new THREE.Vector3();
-// 	velocity.copy(direction);
-// 	velocity.setLength(4);
-
-// 	var life = 200;
-// 	var hasCollision = true;
-// 	var collisionRadius = 1;
-// 	var rigidBody = null;
-// 	var actor = null;
-
-// 	var projectile = {
-// 		update: function(){
-// 			//update age
-// 			if(this.getFrameAge() > life && life != -1){
-// 				this.removeFromParent();
-// 			}
-// 		},
-
-// 		createBlock: function(size, offset){
-// 			var block = new Block();
-
-// 			block.setSize(size);
-// 			block.setLife(life);
-
-// 			var sizeOverTime = function(time){
-// 				var remainingLife = this.life - time;
-// 				if(remainingLife < 50){
-// 					return this.size *= 0.95;
-// 				}
-// 				return this.size;
-// 			}.bind({
-// 				size: size,
-// 				life: life
-// 			});
-
-// 			block.sizeOverTime(sizeOverTime);
-
-// 			var position = new THREE.Vector3();
-// 			position.copy(velocity);
-// 			position.multiplyScalar(offset);
-// 			position.add(this.getPosition());
-// 			block.setPosition(position);
-
-// 			return block;
-// 		},
-
-// 		onCollision: function(entity){
-// 			if(entity == actor){
-// 				return;
-// 			}
-
-// 			this.destroy();
-// 		}

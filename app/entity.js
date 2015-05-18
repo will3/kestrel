@@ -15,9 +15,13 @@ var Entity = function(){
 	var frameAge = 0;
 	var parentEntity = null;
 
+	var game = null;
+
 	return {
 		getFrameAge: function(){ return frameAge; },
 		setFrameAge: function(value){ frameAge = value; },
+		getGame: function(){ if(game == null){ game = Game; } return game; },
+		setGame: function(value){ game = value;},
 
 		getTransform: function(){
 			if(transform == null){
@@ -59,7 +63,7 @@ var Entity = function(){
 		},
 
 		addComponent: function(component){
-			component.entity = this;
+			component.setEntity(this);
 			component.start();
 			components.push(component);
 		},
@@ -91,16 +95,32 @@ var Entity = function(){
 			if(parentEntity != null){
 				parentEntity.removeEntity(this);
 			}else{
-				Game.removeEntity(this);
+				this.getGame().removeEntity(this);
 			}
+		},
+
+		getPosition: function(){
+			return this.getTransform().getPosition();
 		},
 
 		setPosition: function(position){
 			this.getTransform().setPosition(position);
 		},
 
-		getPosition: function(position){
-			return this.getTransform().getPosition();
+		getScale: function(){
+			return this.getTransform().getScale();
+		},
+
+		setScale: function(scale){
+			this.getTransform().setScale(scale);
+		},
+
+		getRotation: function(){
+			return this.getTransform().getRotation();
+		},
+		
+		setRotation: function(rotation){
+			this.getTransform().setRotation(rotation);
 		},
 
 		getWorldPosition: function(){

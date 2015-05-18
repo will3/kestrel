@@ -25,8 +25,8 @@ Console.runScenario(
 			"add ship 100 0 100",
 			"select ship1",
 			"orbit 0 0 0 100",
-			"select ship0",
-			"attack ship1",
+			// "select ship0",
+			// "attack ship1",
 		]
 	);
 
