@@ -2,39 +2,16 @@ var Entity = require("../entity");
 var THREE = require("THREE");
 var Block = require("./block");
 var RigidBody = require("../components/rigidbody");
+var ParticleSystem = require("./particlesystem");
 
-var Projectile = function(params) {
-	var params = params	== null ? {} : params;
-	var power = params.power != null ? params.power : 4;
-	var direction = params.direction;
-
-	if(direction == null) {
-		throw "direction cannot be empty";
-	}
-
-	var life = params.life != null ? params.life : 200;
-	var num = params.num != null ? params.num : 4;
-	var speed = params.speed != null ? params.speed : 4;
-
-	var collisionRadius = 1;
+var Projectile = function() {
+	var power = 4;
+	var num = 4;
+	var life = 200;
 	var actor = null;
+	var defaultSpeed = 4;
 
-	//components
-	var rigidBody = null;
-	var transform = null;
-
-	var velocity = null;
-	function getVelocity(){
-		if(velocity == null){
-			velocity = new THREE.Vector3();
-			velocity.copy(direction);
-			velocity.setLength(speed);
-		}
-
-		return velocity;
-	}
-
-	function createBlock(size, offset){
+	function createBlock(size, offset, velocity){
 		var block = new Block();
 
 		block.setSize(size);
@@ -55,10 +32,12 @@ var Projectile = function(params) {
 
 		var position = new THREE.Vector3();
 
-		var velocity = getVelocity();
 		position.copy(velocity);
 		position.multiplyScalar(offset);
+<<<<<<< HEAD
 		position.add(transform.getPosition());
+=======
+>>>>>>> fa8cd2210bf54d8d2eef756246136a0c6170bf92
 		block.setPosition(position);
 
 		return block;
@@ -66,34 +45,45 @@ var Projectile = function(params) {
 
 	var projectile = {
 		hasCollision : true,
+		collisionRadius: 1,
+		setPower: function(value){ power = value;},
+		getPower: function(){ return power; }, 
 		setActor: function(value){ actor = value; },
 		getActor: function(){ return actor; },
-		getRigidBody: function(){ 
-			if(rigidBody == null){
-				rigidBody = new RigidBody();
-				rigidBody.defaultFriction = 1;
-			}
-			return rigidBody;
-		},
 
 		start: function(){
+			if(this.getSpeed() == 0){
+				this.setSpeed(defaultSpeed);
+			}
+
+			if(this.getDirection() == null){
+				throw "must have direction";
+			}
+
 			transform = this.getTransform();
-			var velocity = getVelocity();
+			var velocity = this.getVelocity();
 
 			this.addComponent(this.getRigidBody());
-			rigidBody.velocity = velocity;
+			this.getRigidBody().velocity = velocity;
 
 			var startPosition = new THREE.Vector3();
 			startPosition.copy(velocity);
-			startPosition.multiplyScalar(0.5);
+			startPosition.multiplyScalar(2);
 			this.getPosition().add(startPosition);
 
-			var num = 4;
-			for(var i = 0; i < num; i ++){
-				this.addEntity(this.createBlock(
-					power * (num - i) / num, 
-					- i * 0.5
-					));
+			this.emit(0);
+		},
+
+		emit: function(time){
+			if(time == 0){
+				var num = 4;
+				for(var i = 0; i < num; i ++){
+					this.addEntity(this.createBlock(
+						power * (num - i) / num, 
+						- i * 0.5,
+						this.getVelocity())
+					);
+				}
 			}
 		},
 
@@ -107,7 +97,7 @@ var Projectile = function(params) {
 		},
 
 		onCollision: function(entity){
-			if(entity == actor){
+			if(entity == this.getActor()){
 				return;
 			}
 
@@ -115,7 +105,7 @@ var Projectile = function(params) {
 		}
 	};
 
-	projectile.__proto__ = Entity();
+	projectile.__proto__ = ParticleSystem();
 
 	return projectile;
 }

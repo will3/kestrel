@@ -1,6 +1,8 @@
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
+var Entity = require("../entity");
+var Debug = require("../Debug");
 
 var OrbitCommand = function(){
 	var target = null;
@@ -10,14 +12,26 @@ var OrbitCommand = function(){
 		getTarget: function(){ return target; },
 		getDistance: function(){ return	distance; },
 		execute: function(){
-			var x = parseInt(params[0]);
-			var y = parseInt(params[1]);
-			var z = parseInt(params[2]);
-			
+			var entities = Game.getEntities({name: params[0]});
+
+			var distanceParam = null;
+			if(entities.length > 0){
+				target = entities[0];
+				distanceParam = params[1];
+			}else{
+				var x = parseInt(params[0]);
+				var y = parseInt(params[1]);
+				var z = parseInt(params[2]);
+				distanceParam = params[3];
+
+				target = new Entity();
+				target.setPosition(new THREE.Vector3(x, y, z));
+			}
+
 			var distanceParam = params[3];
 			distance = (distanceParam == null || distanceParam.length == 0) ? 50 : parseInt(distanceParam);
 
-			target = new THREE.Vector3(x, y, z);
+			position = new THREE.Vector3(x, y, z);
 
 			this.getActor().getShipController().setCommand(this);
 		},
@@ -28,7 +42,7 @@ var OrbitCommand = function(){
 			var position = this.getActor().getTransform().getPosition();
 			//a being vector from position to target
 			var a = new THREE.Vector3();
-			a.subVectors(target, position);
+			a.subVectors(target.getPosition(), position);
 			a.setY(0);
 
 			var yAxis = MathUtils.yAxis;
@@ -44,14 +58,16 @@ var OrbitCommand = function(){
 			b.setLength(distance);
 			c.setLength(distance);
 
-			b.addVectors(b, target);
-			c.addVectors(c, target);
+			b.addVectors(b, target.getPosition());
+			c.addVectors(c, target.getPosition());
 
 			var unitFacing = shipController.getUnitFacing();
 			var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
 			var angle2 = Math.abs(MathUtils.angleBetween(c, position, unitFacing));
 			
 			var point = angle1 < angle2 ? b : c;
+
+			// Debug.addIndicator(point, 2);
 
 			shipController.align(point);
 

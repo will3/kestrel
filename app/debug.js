@@ -1,11 +1,15 @@
+var Block = require("./entities/block");
+
 var Debug = function(){
 	return {
-		addIndicator: function(point){
+		addIndicator: function(point, duration){
 			var indicator = new Block();
-			indicator.size = 2;
-			indicator.life = 8;
+			indicator.setSize(2);
+			var life = duration == null ? 8 : duration;
+
+			indicator.setLife(life);
 			indicator.sizeOverTime(function(time){
-				return 2 - time * 0.25;
+				return 2 - time * (2 / life);
 			});
 
 			indicator.getTransform().position.copy(point);

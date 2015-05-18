@@ -3,7 +3,7 @@ var Command = require('../command');
 var StopCommand = function(){
 	var stopCommand = {
 		execute: function(){
-			this.actor.getShipController().setCommand(this);
+			this.getActor().getShipController().setCommand(this);
 		},
 
 		update: function(){

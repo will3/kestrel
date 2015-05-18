@@ -1,12 +1,14 @@
-- add engine trail
 
-- ship collision
-	- shield?
 - add weapons
 	- projectile
 		- collision
 	- laser
 	- missile
+
+- add engine trail
+
+- ship collision
+	- shield?
 
 - collision
 

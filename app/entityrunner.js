@@ -31,8 +31,11 @@ var EntityRunner = function(){
 		},
 
 		runEntity: function(entity){
+			//increment frame age
+			entity.setFrameAge(entity.getFrameAge() + 1);
+
 			entity.update();
-			entity.frameAge ++;
+
 			entity.getComponents().forEach(function(component){
 				component.update();
 			});
