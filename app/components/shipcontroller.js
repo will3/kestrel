@@ -75,13 +75,12 @@ var Roll = function(){
 
 var Pitch = function(){
 	return new RotationState({
-		axis: "x",
+		axis: "y",
 		resting: 0,
 	});
 }
 
-var Yaw = function(roll){
-	var roll = roll;
+var Yaw = function(){
 	var yawForce = 0.015;
 
 	return {
@@ -96,7 +95,7 @@ var Yaw = function(roll){
 
 			var yaw = rotation.x;
 			yaw += yawVelocity;
-			rotation.setY(yaw);
+			rotation.setX(yaw);
 		}
 	};
 }
@@ -107,7 +106,7 @@ var ShipController = function(yaw, pitch, roll){
 
 	var roll = roll != null ? roll : new Roll();
 	var pitch = pitch != null ? pitch : new Pitch();
-	var yaw = yaw != null ? yaw : new Yaw(roll);
+	var yaw = yaw != null ? yaw : new Yaw();
 
 	//yaw
 	var yawForce = 0.015;
@@ -184,30 +183,29 @@ var ShipController = function(yaw, pitch, roll){
 		},
 
 		align: function(point){
-			bank(1);
-			// var position = this.getTransform().getPosition();
+			var position = this.getTransform().getPosition();
 
-			// var a = new THREE.Vector3();
-			// a.copy(point);
-			// var b = new THREE.Vector3();
-			// b.copy(position)
-			// var c = this.getUnitFacing();
+			var a = new THREE.Vector3();
+			a.copy(point);
+			var b = new THREE.Vector3();
+			b.copy(position)
+			var c = this.getUnitFacing();
 
-			// var angleBetween = MathUtils.angleBetween(a, b, c);
+			var angleBetween = MathUtils.angleBetween(a, b, c);
 
-			// var desiredYawSpeed = angleBetween * 0.1;
+			var desiredYawSpeed = angleBetween * 0.1;
 
-			// bankForYawVelocity(desiredYawSpeed);
-			// var xDiff = point.x - position.x;
-			// var yDiff = point.y - position.y;
-			// var zDiff = point.z - position.z;
+			bankForYawVelocity(desiredYawSpeed);
+			var xDiff = point.x - position.x;
+			var yDiff = point.y - position.y;
+			var zDiff = point.z - position.z;
 
-			// pitch.setDesired(Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff)));
+			pitch.setDesired(Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff)));
 		},
 
 		move: function(point){
 			this.align(point);
-			this.acceleration(1.0);
+			this.accelerate(1.0);
 		},
 
 		getUnitFacing: function(){

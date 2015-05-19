@@ -17,7 +17,7 @@ var MoveCommand = function(){
 
 			target = new THREE.Vector3(x, y, z);
 
-			this.getActor.getShipController().setCommand(this);
+			this.getActor().getShipController().setCommand(this);
 		},
 
 		update: function(){

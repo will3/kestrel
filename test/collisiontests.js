@@ -28,6 +28,13 @@ describe("Collision", function(){
 			mockCollision.verify();
 		})
 
+		it("should ignore non colliable objects", function(){
+			entities = [createNonColliable(), createNonColliable()];
+			mockCollision.expects("hitTest").never();
+			collision.update();
+			mockCollision.verify();
+		})
+
 		it("should notify collision when hit test returns true", function(){
 			collision.hitTest = function(){
 				return true;
@@ -90,6 +97,15 @@ describe("Collision", function(){
 
 		if(hasOnCollision == true){
 			entity.onCollision = function(){ };
+		}
+
+		return entity;
+	}
+
+	function createNonColliable(){
+		var entity = new Entity();
+		entity.hasCollision = function(){
+			return false;
 		}
 
 		return entity;

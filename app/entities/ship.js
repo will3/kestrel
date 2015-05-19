@@ -14,6 +14,7 @@ var Ship = function(){
 	var weaponController = null;
 	
 	var ship = {
+		destroyable: true,
 		getWeaponController: function(){
 			if(weaponController == null){
 				weaponController = new WeaponController();

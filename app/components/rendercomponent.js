@@ -48,7 +48,7 @@ var RenderComponent = function(){
 		updateTransform: updateTransform,
 
 		destroy: function(){
-			this.getGame().getScene().remove(this.innerObject);
+			this.getGame().getScene().remove(innerObject);
 		},
 
 		initGeometry: function(){ throw "must override"; },

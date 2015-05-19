@@ -218,42 +218,6 @@ describe('Entity', function(){
 		})
 	})
 
-	describe("#onAddEntity", function(){
-		it("should notify when entity added", function(){
-			var callback = sinon.spy();
-			entity.onAddEntity(callback);
-			entity.addEntity(new Entity());
-			expect(callback.called).to.be.true;
-		})
-	})
-
-	describe("#onAddEntity", function(){
-		it("should notify when entity removed", function(){
-			var callback = sinon.spy();
-			entity.onRemoveEntity(callback);
-			entity.removeEntity(new Entity());
-			expect(callback.called).to.be.true;
-		})
-	})
-
-	describe("#onAddEntity", function(){
-		it("should notify when component added", function(){
-			var callback = sinon.spy();
-			entity.onAddComponent(callback);
-			entity.addComponent(new Component());
-			expect(callback.called).to.be.true;
-		})
-	})
-
-	describe("#onAddEntity", function(){
-		it("should notify when component removed", function(){
-			var callback = sinon.spy();
-			entity.onRemoveComponent(callback);
-			entity.removeComponent(new Component());
-			expect(callback.called).to.be.true;
-		})
-	})
-
 	function mockEntity(){
 		return sinon.mock(new Entity());
 	};

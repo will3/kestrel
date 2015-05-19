@@ -103,9 +103,9 @@ describe("Roll", function(){
 })
 
 describe("Pitch", function(){
-	it("should have axis X", function(){
+	it("should have axis Y", function(){
 		var pitch = new ShipController.Pitch();
-		expect(pitch.getAxis()).to.equal("x");
+		expect(pitch.getAxis()).to.equal("y");
 	})
 })
 

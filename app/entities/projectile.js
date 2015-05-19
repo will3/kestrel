@@ -40,6 +40,7 @@ var Projectile = function() {
 	}
 
 	var projectile = {
+		destroyable: true,
 		getPower: function(){ return power; }, 
 		setPower: function(value){ power = value;},
 		getActor: function(){ return actor; },
@@ -94,7 +95,7 @@ var Projectile = function() {
 
 		onCollision: function(entity){
 			if(entity == this.getActor()){
-			return;
+				return;
 			}
 
 			this.destroy();

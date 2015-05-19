@@ -16,11 +16,15 @@ var RigidBody = function(){
 		getAcceleration: function(){ return acceleration; },
 		setAcceleration: function(value){ acceleration = value; },
 		setDefaultFriction: function(value){ 
+			defaultFriction = value;
 			friction = value;
-			defaultFriction = value; 
 		},
 		getDefaultFriction: function(){ return defaultFriction; },
 		getFriction: function(){ return friction; },
+
+		start: function(){
+			friction = defaultFriction;
+		},
 
 		update: function(){
 			this.updatePosition();

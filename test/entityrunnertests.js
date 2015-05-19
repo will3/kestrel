@@ -57,16 +57,6 @@ describe("EntityRunner", function(){
 			entityRunner.addEntity(entity);
 			mockChildComponent.verify();
 		})
-
-		it("should subsribe to entity changes", function(){
-			mockEntity.expects("onAddEntity").withArgs(entityRunner.onAddEntity);
-			mockEntity.expects("onRemoveEntity").withArgs(entityRunner.onRemoveEntity);
-			mockEntity.expects("onAddComponent").withArgs(entityRunner.onAddComponent);
-			mockEntity.expects("onRemoveComponent").withArgs(entityRunner.onRemoveComponent);
-
-			entityRunner.addEntity(entity);
-			mockEntity.verify();
-		});
 	})
 
 	describe("#removeEntity", function(){
@@ -125,38 +115,6 @@ describe("EntityRunner", function(){
 			mockChildComponent.expects("update");
 			entityRunner.run();
 			mockChildComponent.verify();
-		})
-	})
-
-	describe("#onAddEntity", function(){
-		it("should start entity", function(){
-			mockEntity.expects("start");
-			entityRunner.onAddEntity(entity);
-			mockEntity.verify();
-		})
-	})
-
-	describe("#onRemoveEntity", function(){
-		it("should destroy entity", function(){
-			mockEntity.expects("destroy");
-			entityRunner.onRemoveEntity(entity);
-			mockEntity.verify();
-		})
-	})
-
-	describe("#onAddComponent", function(){
-		it("should start component", function(){
-			mockComponent.expects("start");
-			entityRunner.onAddComponent(component);
-			mockComponent.verify();
-		})
-	})
-
-	describe("#onRemoveComponent", function(){
-		it("should destroy component", function(){
-			mockComponent.expects("destroy");
-			entityRunner.onRemoveComponent(component);
-			mockComponent.verify();
 		})
 	})
 })

@@ -35,7 +35,7 @@ var PartileSystem = function() {
 		getRigidBody: function(){ 
 			if(rigidBody == null){
 				rigidBody = new RigidBody();
-				rigidBody.defaultFriction = 1;
+				rigidBody.setDefaultFriction(1);
 				rigidBody.setCollisionRadius(this.getCollisionRadius());
 			}
 			return rigidBody;

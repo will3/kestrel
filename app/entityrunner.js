@@ -28,37 +28,12 @@ var EntityRunner = function(){
 		});
 	}
 
-	var onAddEntity = function(entity){
-		entity.start();
-	}
-
-	var onRemoveEntity = function(entity){
-		entity.destroy();
-	}
-
-	var onAddComponent = function(component){
-		component.start();
-	}
-
-	var onRemoveComponent = function(component){
-		component.destroy();
-	}
-
 	return {
-		onAddEntity: onAddEntity,
-		onRemoveEntity: onRemoveEntity,
-		onAddComponent: onAddComponent,
-		onRemoveComponent: onRemoveComponent,
-
 		getEntities: function(){
 			return entities;
 		},
 
 		addEntity: function(entity){
-			entity.onAddEntity(this.onAddEntity);
-			entity.onRemoveEntity(this.onRemoveEntity);
-			entity.onAddComponent(this.onAddComponent);
-			entity.onRemoveComponent(this.onRemoveComponent);
 			startEntity(entity);
 			entities.push(entity);
 		},

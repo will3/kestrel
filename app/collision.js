@@ -8,8 +8,9 @@ var Collision = function(){
 	//visit collidable entities
 	var visitEntities = function(callback){
 		var entities = _.filter(getGame().getEntities(), function(entity){ 
-			return entity.hasCollision; 
+			return entity.hasCollision();
 		});
+		
 		for(var i = 0; i < entities.length; i++){
 			for(var j = 0; j < i; j ++){
 				if(i == j){
