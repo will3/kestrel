@@ -17,11 +17,30 @@ var Entity = function(){
 
 	var game = null;
 
+	var onAddEntity = null;
+	var onRemoveEntity = null;
+	var onAddComponent = null;
+	var onRemoveComponent = null;
+
 	return {
 		getFrameAge: function(){ return frameAge; },
 		setFrameAge: function(value){ frameAge = value; },
 		getGame: function(){ if(game == null){ game = Game; } return game; },
 		setGame: function(value){ game = value;},
+		onAddEntity: function(value){ onAddEntity = value; },
+		onRemoveEntity: function(value){ onRemoveEntity = value; },
+		onAddComponent: function(value){ onAddComponent = value; },
+		onRemoveComponent: function(value){ onRemoveComponent = value; },
+
+		hasCollision: function(){
+			if(this.getRigidBody == null){
+				return false;
+			}
+
+			var rigidBody = this.getRigidBody();
+
+			return rigidBody.getCollisionRadius() != null;
+		},
 
 		getTransform: function(){
 			if(transform == null){
@@ -53,24 +72,34 @@ var Entity = function(){
 
 		addEntity: function(entity){
 			entity.setParentEntity(this);
-			entity.start();
 			childEntities.push(entity);
+			if(onAddEntity != null){
+				onAddEntity(entity);
+			}
 		},
 
 		removeEntity: function(entity){
 			entity.destroy();
 			_.pull(childEntities, entity);
+			if(onRemoveEntity != null){
+				onRemoveEntity(entity);
+			}
 		},
 
 		addComponent: function(component){
 			component.setEntity(this);
-			component.start();
 			components.push(component);
+			if(onAddComponent != null){
+				onAddComponent(component);
+			}
 		},
 
 		removeComponent: function(component){
 			component.destroy();
 			_.pull(components, component);
+			if(onRemoveComponent != null){
+				onRemoveComponent(component);
+			}
 		},
 
 		start: function(){

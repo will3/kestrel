@@ -34,22 +34,17 @@ var Projectile = function() {
 
 		position.copy(velocity);
 		position.multiplyScalar(offset);
-<<<<<<< HEAD
-		position.add(transform.getPosition());
-=======
->>>>>>> fa8cd2210bf54d8d2eef756246136a0c6170bf92
 		block.setPosition(position);
 
 		return block;
 	}
 
 	var projectile = {
-		hasCollision : true,
-		collisionRadius: 1,
-		setPower: function(value){ power = value;},
 		getPower: function(){ return power; }, 
-		setActor: function(value){ actor = value; },
+		setPower: function(value){ power = value;},
 		getActor: function(){ return actor; },
+		setActor: function(value){ actor = value; },
+		getCollisionRadius: function(){ return 1; },
 
 		start: function(){
 			if(this.getSpeed() == 0){
@@ -64,11 +59,12 @@ var Projectile = function() {
 			var velocity = this.getVelocity();
 
 			this.addComponent(this.getRigidBody());
-			this.getRigidBody().velocity = velocity;
+			this.getRigidBody().setVelocity(velocity);
 
 			var startPosition = new THREE.Vector3();
 			startPosition.copy(velocity);
 			startPosition.multiplyScalar(2);
+
 			this.getPosition().add(startPosition);
 
 			this.emit(0);
@@ -98,7 +94,7 @@ var Projectile = function() {
 
 		onCollision: function(entity){
 			if(entity == this.getActor()){
-				return;
+			return;
 			}
 
 			this.destroy();

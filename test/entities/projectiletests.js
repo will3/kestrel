@@ -9,16 +9,18 @@ describe("Projectile", function(){
 	var projectile = null;
 
 	beforeEach(function(){
-		projectile = new Projectile({
-			power : 2,
-			direction : new THREE.Vector3(1, 0, 0),
-			num : 4,
-			speed : 5,
-		});
+		projectile = new Projectile();
+		projectile.setDirection(new THREE.Vector3(1, 0, 0));
+		projectile.setSpeed(5);
+		projectile.setPower(2);
 
 		projectile.createBlock = function(){
 			return new Entity();
-		};
+		}
+	})
+
+	it("should be collidable", function(){
+		expect(projectile.hasCollision()).to.equal(true);
 	})
 
 	describe("#start", function(){
@@ -35,7 +37,7 @@ describe("Projectile", function(){
 
 		it("should initialize velocity", function(){
 			projectile.start();
-			expect(projectile.getRigidBody().velocity.equals(new THREE.Vector3(5, 0, 0))).to.equal(true);
+			expect(projectile.getRigidBody().getVelocity().equals(new THREE.Vector3(5, 0, 0))).to.equal(true);
 		});
 	})
 

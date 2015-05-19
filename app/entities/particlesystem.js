@@ -27,10 +27,16 @@ var PartileSystem = function() {
 			return velocity;
 		},
 
+		//default to nothing, override to add collision
+		getCollisionRadius: function(){
+			return null;
+		},
+
 		getRigidBody: function(){ 
 			if(rigidBody == null){
 				rigidBody = new RigidBody();
 				rigidBody.defaultFriction = 1;
+				rigidBody.setCollisionRadius(this.getCollisionRadius());
 			}
 			return rigidBody;
 		},

@@ -3,6 +3,7 @@ var Component = require("../app/component");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
+var RigidBody = require("../app/components/rigidBody");
 
 describe('Entity', function(){
 	var entity = null;
@@ -12,18 +13,41 @@ describe('Entity', function(){
 		entity = new Entity();
 		game = {
 			removeEntity: function(entity){ }
-		};
-	});
+		}
+	})
 
-	describe('get transform', function(){
+	describe('#getTransform', function(){
 		it('initialize with default if empty', function(){
 			entity = new Entity();
 
 			expect(entity.getTransform()).to.not.equal(null);
-		});
-	});
+		})
+	})
 
-	describe('set parent entity', function(){
+	describe('#hasCollision', function(){
+		it('returns no when collision radius is not defined', function(){
+			var rigidBody = new RigidBody();
+			entity.getRigidBody = function(){
+				return rigidBody;
+			}
+			rigidBody.setCollisionRadius(null);
+			expect(entity.hasCollision()).to.equal(false);
+		})
+
+		it('returns no when no rigid body', function(){
+			entity.getRigidBody = null;
+			expect(entity.hasCollision()).to.equal(false);
+		})
+
+		it('returns yes when has collision radius and has rigid body', function(){
+			var rigidBody = new RigidBody();
+			rigidBody.setCollisionRadius(10);
+			entity.getRigidBody = function(){ return rigidBody; }
+			expect(entity.hasCollision()).to.equal(true);
+		})
+	})
+
+	describe('#setParentEntity', function(){
 		it('should throw if parent entity already exists', function(){
 			entity = new Entity();
 			var parent1 = new Entity();
@@ -34,10 +58,10 @@ describe('Entity', function(){
 			expect(function(){
 				entity.setParentEntity(parent2);
 			}).to.throw("entity already has a parent entity");
-		});
-	});
+		})
+	})
 
-	describe('add entity', function(){
+	describe('#addEntity', function(){
 		it('should set parent', function(){
 			entity = new Entity();
 			var child = mockEntity();
@@ -46,26 +70,16 @@ describe('Entity', function(){
 			entity.addEntity(child.object);
 
 			child.verify();
-		});
-
-		it('should start child entity', function(){
-			entity = new Entity();
-			var child = mockEntity();
-			child.expects("start");
-
-			entity.addEntity(child.object);
-
-			child.verify();
-		});
+		})
 
 		it('should push child entity', function(){
 			entity = new Entity();
 			entity.addEntity(new Entity());
 			expect(entity.getChildEntities().length).to.equal(1);
-		});
-	});
+		})
+	})
 
-	describe('remove entity', function(){
+	describe('#removeEntity', function(){
 		it('should destroy entity and remove', function(){
 			var child = mockEntity();
 			var entity = entityWithChildEntity(child.object);
@@ -74,7 +88,7 @@ describe('Entity', function(){
 			entity.removeEntity(child.object);
 
 			child.verify();
-		});
+		})
 
 		it('should remove entity', function(){
 			var child = mockEntity();
@@ -83,10 +97,10 @@ describe('Entity', function(){
 			entity.removeEntity(child.object);
 
 			expect(entity.getChildEntities().length).to.equal(0);
-		});
-	});
+		})
+	})
 
-	describe('add component', function(){
+	describe('#addComponent', function(){
 		it('should set entity', function(){
 			var component = mockComponent();
 			var entity = new Entity();
@@ -94,17 +108,7 @@ describe('Entity', function(){
 			entity.addComponent(component.object);
 
 			expect(component.object.getEntity()).to.equal(entity);
-		});
-
-		it('should start component', function(){
-			var component = mockComponent();
-			var entity = new Entity();
-			component.expects("start");
-
-			entity.addComponent(component.object);
-
-			component.verify();
-		});
+		})
 
 		it('should add component', function(){
 			var component = mockComponent();
@@ -113,10 +117,10 @@ describe('Entity', function(){
 			entity.addComponent(component.object);
 
 			expect(entity.getComponents().length).to.equal(1);
-		});
-	});
+		})
+	})
 
-	describe('remove component', function(){
+	describe('#removeComponent', function(){
 		it('should destroy component', function(){
 			var component = mockComponent();
 			entity.addComponent(component.object);
@@ -125,7 +129,7 @@ describe('Entity', function(){
 			entity.removeComponent(component.object);
 			
 			component.verify();
-		});
+		})
 
 		it('should remove component', function(){
 			var component = new Component();
@@ -134,10 +138,10 @@ describe('Entity', function(){
 			entity.removeComponent(component);
 
 			expect(entity.getComponents().length).to.equal(0);
-		});
-	});
+		})
+	})
 
-	describe('destroy', function(){
+	describe('#destroy', function(){
 		it('should destroy components', function(){
 			var component1 = mockComponent();
 			var component2 = mockComponent();
@@ -151,7 +155,7 @@ describe('Entity', function(){
 
 			component1.verify();
 			component2.verify();
-		});
+		})
 
 		it('should destroy child entities', function(){
 			var entity1 = mockEntity();
@@ -167,9 +171,9 @@ describe('Entity', function(){
 			entity1.verify();
 			entity2.verify();
 		})
-	});
+	})
 
-	describe('remove from parent', function(){
+	describe('#removeFromParent', function(){
 		context('has parent entity', function(){
 			it('removes from parent', function(){
 				var entity = new Entity();
@@ -180,8 +184,8 @@ describe('Entity', function(){
 				entity.removeFromParent();
 
 				parent.verify();
-			});
-		});
+			})
+		})
 
 		context("doesn't have parent entity", function(){
 			it('removes from Game', function(){
@@ -193,12 +197,12 @@ describe('Entity', function(){
 				entity.removeFromParent();
 
 				mockGame.verify();
-			});
-		});
-	});
+			})
+		})
+	})
 
-	describe('get world position', function(){
-		it('increments from parent position', function(){
+	describe("#getWorldPosition", function(){
+		it("increments from parent position", function(){
 			var entity = new Entity();
 			var parent = new Entity();
 			var grandparent = new Entity();
@@ -211,8 +215,44 @@ describe('Entity', function(){
 			var worldPosition = entity.getWorldPosition();
 
 			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321))).to.equal(true);
-		});
-	});
+		})
+	})
+
+	describe("#onAddEntity", function(){
+		it("should notify when entity added", function(){
+			var callback = sinon.spy();
+			entity.onAddEntity(callback);
+			entity.addEntity(new Entity());
+			expect(callback.called).to.be.true;
+		})
+	})
+
+	describe("#onAddEntity", function(){
+		it("should notify when entity removed", function(){
+			var callback = sinon.spy();
+			entity.onRemoveEntity(callback);
+			entity.removeEntity(new Entity());
+			expect(callback.called).to.be.true;
+		})
+	})
+
+	describe("#onAddEntity", function(){
+		it("should notify when component added", function(){
+			var callback = sinon.spy();
+			entity.onAddComponent(callback);
+			entity.addComponent(new Component());
+			expect(callback.called).to.be.true;
+		})
+	})
+
+	describe("#onAddEntity", function(){
+		it("should notify when component removed", function(){
+			var callback = sinon.spy();
+			entity.onRemoveComponent(callback);
+			entity.removeComponent(new Component());
+			expect(callback.called).to.be.true;
+		})
+	})
 
 	function mockEntity(){
 		return sinon.mock(new Entity());

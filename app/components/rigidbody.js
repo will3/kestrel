@@ -6,12 +6,15 @@ var RigidBody = function(){
 	var acceleration = new THREE.Vector3();
 	var friction = 0.98;
 	var defaultFriction = 0.98;
+	var collisionRadius = null;
 
 	var rigidBody = {
-		setVelocity: function(value){ velocity = value; },
+		getCollisionRadius: function(){ return collisionRadius; },
+		setCollisionRadius: function(value){ collisionRadius = value; },
 		getVelocity: function(){ return velocity; },
-		setAcceleration: function(value){ acceleration = value; },
+		setVelocity: function(value){ velocity = value; },
 		getAcceleration: function(){ return acceleration; },
+		setAcceleration: function(value){ acceleration = value; },
 		setDefaultFriction: function(value){ 
 			friction = value;
 			defaultFriction = value; 

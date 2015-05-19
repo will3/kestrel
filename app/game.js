@@ -142,7 +142,6 @@ Game = function(entityRunner){
 				entity.setPosition(position);
 			}
 
-			entity.start();
 			entityRunner.addEntity(entity);
 		},
 

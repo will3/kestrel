@@ -10,6 +10,10 @@ describe("Ship", function(){
 		ship = new Ship();
 	})
 
+	it("should be collidable", function(){
+		expect(ship.hasCollision()).to.equal(true);
+	})
+
 	it("should initialize components", function(){
 		expect(ship.getShipController()).to.not.equal(null);
 		expect(ship.getRigidBody()).to.not.equal(null);
@@ -19,12 +23,13 @@ describe("Ship", function(){
 
 	describe("start", function(){
 		it("should add components", function(){
-			ship.start();
-
 			ship.setShipController(new Component());
 			ship.setRigidBody(new Component());
 			ship.setRenderComponent(new Component());
 			ship.setWeaponController(new Component());
+			
+			ship.start();
+
 			expect(_.includes(ship.getComponents(), ship.getShipController())).to.equal(true);
 			expect(_.includes(ship.getComponents(), ship.getRigidBody())).to.equal(true);
 			expect(_.includes(ship.getComponents(), ship.getRenderComponent())).to.equal(true);

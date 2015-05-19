@@ -14,14 +14,15 @@ var Ship = function(){
 	var weaponController = null;
 	
 	var ship = {
-		hasCollision: true,
-		collisionRadius: 9,
-
 		getWeaponController: function(){
 			if(weaponController == null){
 				weaponController = new WeaponController();
 			}
 			return weaponController;
+		},
+
+		setWeaponController: function(value){
+			weaponController = value;
 		},
 
 		getShipController: function(){ 
@@ -38,6 +39,7 @@ var Ship = function(){
 		getRigidBody: function(){ 
 			if(rigidBody == null){
 				rigidBody = new RigidBody();
+				rigidBody.setCollisionRadius(9);
 			}
 			return rigidBody; 
 		},

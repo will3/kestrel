@@ -15,14 +15,12 @@ describe('Game', function(){
 	});
 
 	describe('addEntity', function(){
-		it('should add and initialize entity', function(){
-			var entity = mockEntity();
-			entity.expects("start");
-			entityRunner.expects("addEntity").withArgs(entity.object);
+		it('should add entity', function(){
+			var entity = new Entity();
+			entityRunner.expects("addEntity").withArgs(entity);
 
-			game.addEntity(entity.object);
+			game.addEntity(entity);
 
-			entity.verify();
 			entityRunner.verify();
 		});
 	});
