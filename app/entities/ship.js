@@ -6,13 +6,15 @@ var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
+var Weapon = require("./weapon");
 
 var Ship = function(){
 	var shipController = null;
 	var rigidBody = null;
 	var renderComponent = null;
 	var weaponController = null;
-	
+	var weapons = null;
+
 	var ship = {
 		destroyable: true,
 		getWeaponController: function(){
@@ -45,6 +47,28 @@ var Ship = function(){
 			return rigidBody; 
 		},
 
+		getWeapons: function(){
+			if(weapons == null){
+				var weapon1 = new Weapon();
+				weapon1.setActor(this);
+				weapon1.setDelta(0);
+
+				var weapon2 = new Weapon();
+				weapon2.setActor(this);
+				weapon2.setDelta(8);
+
+				weapons = [
+					weapon1, weapon2
+				];
+			}
+
+			return weapons;
+		},
+
+		setWeapons: function(value){
+			weapons = value;
+		},
+
 		setRigidBody: function(value){
 			rigidBody = value;
 		},
@@ -69,6 +93,10 @@ var Ship = function(){
 			this.addComponent(this.getRigidBody());
 			this.addComponent(this.getShipController());
 			this.addComponent(this.getWeaponController());
+
+			this.getWeapons().forEach(function(weapon){
+				this.addEntity(weapon);
+			}.bind(this));
 		},
 	};
 

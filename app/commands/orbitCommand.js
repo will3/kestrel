@@ -29,7 +29,6 @@ var OrbitCommand = function(){
 				target.setPosition(new THREE.Vector3(x, y, z));
 			}
 
-			var distanceParam = params[3];
 			distance = parseInt(distanceParam);
 
 			position = new THREE.Vector3(x, y, z);

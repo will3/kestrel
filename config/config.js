@@ -7,6 +7,8 @@ var defaults = {
 	root: path.normalize(__dirname + '/..')
 }
 
+var nodeEnv = process.env.NODE_ENV == null ? null : process.env.NODE_ENV.trim();
+
 module.exports = {
 	development: extend(development, defaults),
-}[process.env.NODE_ENV || 'development'];
+}[nodeEnv || 'development'];

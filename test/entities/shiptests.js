@@ -35,5 +35,14 @@ describe("Ship", function(){
 			expect(_.includes(ship.getComponents(), ship.getRenderComponent())).to.equal(true);
 			expect(_.includes(ship.getComponents(), ship.getWeaponController())).to.equal(true);
 		})
+
+		it("should add weapons", function(){
+			var weapon1 = { setParentEntity: function(){ } };
+			var weapon2 = { setParentEntity: function(){ } };
+			ship.setWeapons([weapon1, weapon2]);
+			ship.start();
+			expect(ship.getChildEntities()).to.contain(weapon1);
+			expect(ship.getChildEntities()).to.contain(weapon2);
+		})
 	})
 })

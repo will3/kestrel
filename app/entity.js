@@ -8,10 +8,8 @@ var Entity = function(){
 	var transform = null;
 	var components = [];
 	var childEntities = [];
-
 	var frameAge = 0;
 	var parentEntity = null;
-
 	var game = null;
 
 	return {

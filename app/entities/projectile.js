@@ -2,14 +2,15 @@ var Entity = require("../entity");
 var THREE = require("THREE");
 var Block = require("./block");
 var RigidBody = require("../components/rigidbody");
-var ParticleSystem = require("./particlesystem");
 
 var Projectile = function() {
 	var power = 4;
 	var num = 4;
-	var life = 200;
+	var life = 100;
 	var actor = null;
-	var defaultSpeed = 4;
+	var rigidBody = null;
+	var direction = null;
+	var speed = 0;
 
 	function createBlock(size, offset, velocity){
 		var block = new Block();
@@ -39,25 +40,48 @@ var Projectile = function() {
 		return block;
 	}
 
+	var getVelocity = function(){
+		if(direction == null || speed == 0){
+			return null;
+		}
+		var velocity = new THREE.Vector3();
+		velocity.copy(direction);
+		velocity.setLength(speed);
+		return velocity;
+	}
+
 	var projectile = {
 		destroyable: true,
+		setDirection: function(value) { direction = value; },
+		getDirection: function() { return direction; },
+
+		setSpeed: function(value) { speed = value; },
+		getSpeed: function() { return speed; },
+
 		getPower: function(){ return power; }, 
 		setPower: function(value){ power = value;},
+
 		getActor: function(){ return actor; },
 		setActor: function(value){ actor = value; },
+
 		getCollisionRadius: function(){ return 1; },
 
-		start: function(){
-			if(this.getSpeed() == 0){
-				this.setSpeed(defaultSpeed);
+		getRigidBody: function(){ 
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.setDefaultFriction(1);
+				rigidBody.setCollisionRadius(1);
 			}
+			return rigidBody;
+		},
 
+		start: function(){
 			if(this.getDirection() == null){
 				throw "must have direction";
 			}
 
 			transform = this.getTransform();
-			var velocity = this.getVelocity();
+			var velocity = getVelocity();
 
 			this.addComponent(this.getRigidBody());
 			this.getRigidBody().setVelocity(velocity);
@@ -78,7 +102,7 @@ var Projectile = function() {
 					this.addEntity(this.createBlock(
 						power * (num - i) / num, 
 						- i * 0.5,
-						this.getVelocity())
+						getVelocity())
 					);
 				}
 			}
@@ -102,7 +126,7 @@ var Projectile = function() {
 		}
 	};
 
-	projectile.__proto__ = ParticleSystem();
+	projectile.__proto__ = Entity();
 
 	return projectile;
 }
