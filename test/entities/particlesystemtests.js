@@ -1,4 +1,4 @@
-var ParticleSystem = require("../../app/entities/particleSystem");
+var ParticleSystem = require("../../app/entities/particlesystem");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 

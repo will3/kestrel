@@ -1,9 +1,9 @@
-var AlignCommand = require("../../app/commands/AlignCommand");
-var Ship = require("../../app/entities/Ship");
+var AlignCommand = require("../../app/commands/aligncommand");
+var Ship = require("../../app/entities/ship");
 var expect = require("chai").expect;
 var THREE = require("THREE");
 var sinon = require("sinon");
-var ShipController = require("../../app/components/ShipController");
+var ShipController = require("../../app/components/shipcontroller");
 
 describe("Align Command", function(){
 	var alignCommand, actor, shipController, mockShipController;

@@ -1,5 +1,5 @@
 var THREE = require("THREE");
-var MathUtils = require("../MathUtils");
+var MathUtils = require("../mathutils");
 
 function Beam(segments, sides){
 	var segments = segments;

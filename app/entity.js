@@ -3,7 +3,7 @@ var THREE = require("THREE");
 var _ = require("lodash");
 
 var Entity = function(){
-	var name = null; //optional name
+	this.name = null;
 	var innerObject = null;
 	var transform = null;
 	var components = [];

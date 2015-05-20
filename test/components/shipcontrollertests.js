@@ -1,11 +1,11 @@
-var ShipController = require("../../app/components/shipController");
+var ShipController = require("../../app/components/shipcontroller");
 var Entity = require("../../app/entity");
-var RigidBody = require("../../app/components/rigidBody");
+var RigidBody = require("../../app/components/rigidbody");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var Command = require("../../app/command");
 var THREE = require("THREE");
-var MathUtils = require("../../app/MathUtils");
+var MathUtils = require("../../app/mathutils");
 
 describe("ShipController", function(){
 	var shipController, entity, rigidBody, mockRigidBody, mockShipController,

@@ -5,7 +5,7 @@ var THREE = require("THREE");
 var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
-var WeaponController = require("../components/weaponController");
+var WeaponController = require("../components/weaponcontroller");
 
 var Ship = function(){
 	var shipController = null;

@@ -12,6 +12,7 @@ var OrbitCommand = function(){
 		getTarget: function(){ return target; },
 		getDistance: function(){ return	distance; },
 		execute: function(){
+			var params = this.getParams() || [];
 			var entities = Game.getEntities({name: params[0]});
 
 			var distanceParam = null;
@@ -19,17 +20,17 @@ var OrbitCommand = function(){
 				target = entities[0];
 				distanceParam = params[1];
 			}else{
-				var x = parseInt(params[0]);
-				var y = parseInt(params[1]);
-				var z = parseInt(params[2]);
-				distanceParam = params[3];
+				var x = parseInt(params[0] || 0);
+				var y = parseInt(params[1] || 0);
+				var z = parseInt(params[2] || 0);
+				distanceParam = params[3] || 50;
 
 				target = new Entity();
 				target.setPosition(new THREE.Vector3(x, y, z));
 			}
 
 			var distanceParam = params[3];
-			distance = (distanceParam == null || distanceParam.length == 0) ? 50 : parseInt(distanceParam);
+			distance = parseInt(distanceParam);
 
 			position = new THREE.Vector3(x, y, z);
 

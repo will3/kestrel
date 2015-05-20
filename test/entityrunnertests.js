@@ -1,4 +1,4 @@
-var EntityRunner = require("../app/entityRunner");
+var EntityRunner = require("../app/entityrunner");
 var sinon = require("sinon");
 var expect = require("chai").expect;
 var Entity = require("../app/entity");

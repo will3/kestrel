@@ -2,7 +2,7 @@ var Collision = require('../app/collision');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var Entity = require("../app/entity");
-var RigidBody = require("../app/components/rigidBody");
+var RigidBody = require("../app/components/rigidbody");
 var THREE = require("THREE");
 
 describe("Collision", function(){

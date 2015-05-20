@@ -1,42 +1,47 @@
-var AttackCommand = require("../../app/commands/AttackCommand");
+var AttackCommand = require("../../app/commands/attackcommand");
 var expect = require("chai").expect;
 var sinon = require("sinon");
-var Ship = require("../../app/entities/Ship");
-var ShipController = require("../../app/components/ShipController");
+var Ship = require("../../app/entities/ship");
+var ShipController = require("../../app/components/shipcontroller");
 var THREE = require("THREE");
-var Game = require("../../app/Game")
+var Game = require("../../app/game");
+var Entity = require("../../app/entity");
 
 describe("Attack Command", function(){
-	var attackCommand, actor, shipController, mockShipController, target, game;
+	var attackCommand, actor, game, mockGame, target, weaponController, mockWeaponController;
 
 	beforeEach(function(){
 		attackCommand = new AttackCommand();
-		actor = new Ship();
-		shipController = new ShipController();
-		mockShipController = sinon.mock(shipController);
+		actor = {};
+		game = {};
+		weaponController = {};
 		attackCommand.setActor(actor);
-		actor.setShipController = shipController;
-		target = new Ship();
-		game = new Game.constructor();
+		attackCommand.setGame(game);
+		mockGame = sinon.mock(game);
+		attackCommand.setActor(actor);
+		weaponController = {
+			setTarget: function(){ }
+		}
+		mockWeaponController = sinon.mock(weaponController);
+		actor.getWeaponController = function(){
+			return weaponController;
+		}
 	})
 
 	describe("execute", function(){
-		//todo
 		it("should parse target correctly", function(){
-
+			game.getEntity = sinon.stub().returns(target).withArgs("test");
+			attackCommand.setParams(["test"]);
+			attackCommand.execute();
+			expect(attackCommand.getTarget()).to.equal(target);
 		})
 
-		//todo
 		it("should issue command", function(){
-			
+			game.getEntity = sinon.stub().returns(target);
+			attackCommand.setParams(["test"]);
+			mockWeaponController.expects("setTarget").withArgs(target);
+			attackCommand.execute();
+			mockWeaponController.verify();
 		})
-	})
-
-	describe("update", function(){
-		//todo
-	})
-
-	describe("shoot", function(){
-		//todo
 	})
 })

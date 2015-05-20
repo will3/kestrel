@@ -1,4 +1,4 @@
-var AddCommand = require("../../app/commands/AddCommand");
+var AddCommand = require("../../app/commands/addcommand");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");

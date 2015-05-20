@@ -1,8 +1,8 @@
-	var OrbitCommand = require("../../app/commands/orbitCommand");
+	var OrbitCommand = require("../../app/commands/orbitcommand");
 var THREE = require("THREE");
 var expect = require("chai").expect;
 var Ship = require("../../app/entities/ship");
-var ShipController = require("../../app/components/ShipController");
+var ShipController = require("../../app/components/shipcontroller");
 var sinon = require("sinon");
 
 describe("OribtCommand", function(){

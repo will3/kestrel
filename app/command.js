@@ -1,6 +1,7 @@
 var Command = function(){
 	var actor = null;
-
+	var params = null;
+	
 	var command = {
 		getActor: function(){ return actor; },
 		setActor: function(value){ actor = value; },

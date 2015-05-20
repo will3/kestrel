@@ -3,7 +3,7 @@ var Component = require("../app/component");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
-var RigidBody = require("../app/components/rigidBody");
+var RigidBody = require("../app/components/rigidbody");
 
 describe('Entity', function(){
 	var entity = null;

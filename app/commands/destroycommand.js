@@ -1,5 +1,5 @@
 var Command = require("../command");
-var $ = require("jquery");
+var _ = require("lodash");
 var Game = require("../game");
 
 var DestroyCommand = function(){
@@ -13,13 +13,19 @@ var DestroyCommand = function(){
 			var param = params == null ? null : params[0];
 			
 			if(param == "all"){
-				var entities = $.grep(this.getGame().getEntities(), function(e){ return e.destroyable; })
-				entities.forEach(function(e){this.getGame().removeEntity(e); }.bind(this));
+				var entities = _.filter(this.getGame().getEntities(), function(entity){
+					return entity.destroyable;
+				});
+				entities.forEach(
+					function(e){
+						this.getGame().removeEntity(e); 
+					}.bind(this)
+				);
 
 				return;
 			}
 
-			var entity = Game.getEntity(param);
+			var entity = this.getGame().getEntity(param);
 			this.getGame().removeEntity(entity);
 		}
 	};

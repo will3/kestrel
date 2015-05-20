@@ -1,4 +1,4 @@
-var RenderComponent = require("../../app/components/RenderComponent");
+var RenderComponent = require("../../app/components/rendercomponent");
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");

@@ -19,7 +19,6 @@ describe("Component", function(){
 			};
 			component.setEntity(entity);
 
-			console.log(component.getTransform());
 			expect(component.getTransform()).to.equal(transform);
 		})
 	})

@@ -9,4 +9,4 @@ var defaults = {
 
 module.exports = {
 	development: extend(development, defaults),
-}[process.env.NODE_ENV.trim() || 'development'];
+}[process.env.NODE_ENV || 'development'];

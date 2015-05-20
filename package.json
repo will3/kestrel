@@ -15,9 +15,16 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "mocha test --recursive",
+    "test": "mocha --recursive",
+    "cov": "mocha --require blanket -R html-cov > coverage.html --recursive",
     "start": "nodemon server.js",
     "build": "browserify app/main.js -o public/js/bundle.js"
+  },
+  "config": {
+    "blanket": {
+      "pattern": [ "" ],
+      "data-cover-never": [ "node_modules", "tests" ]
+    }
   },
   "author": "",
   "license": "ISC"
