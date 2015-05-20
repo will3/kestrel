@@ -16,6 +16,7 @@ var Ship = function(){
 	var weaponController = null;
 	var weapons = null;
 	var engineTrail = null;
+	var bluePrint = null;
 
 	var ship = {
 		destroyable: true,
@@ -24,6 +25,13 @@ var Ship = function(){
 				weaponController = new WeaponController();
 			}
 			return weaponController;
+		},
+
+		getBluePrint: function(){
+			if(bluePrint == null){ 
+				bluePrint = new ShipBluePrint(); 
+			}
+			return bluePrint;
 		},
 
 		setWeaponController: function(value){
@@ -77,9 +85,7 @@ var Ship = function(){
 
 		getRenderComponent: function(){ 
 			if(renderComponent == null){
-				var bluePrint = new ShipBluePrint();
-				var geometry = bluePrint.initGeometry();
-				renderComponent = new ShipRenderComponent(geometry);
+				renderComponent = new ShipRenderComponent(this.getBluePrint().build());
 			}
 			return renderComponent;
 		},
@@ -116,19 +122,19 @@ var Ship = function(){
 }
 
 var ShipBluePrint = function(){
-	function getShip(){
-		var wing = new Beam([0, 15], [2, 2]);
-		wing.setAlignment("x");
-		wing.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
+	function getHull(){
+		var hull = new Beam([0, 15], [2, 2]);
+		hull.setAlignment("x");
+		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
 
-		wing.branch(getWeapon(), 5 , 1.4, "z");
-		wing.branch(getWeapon(), -5 , 1.4, "z");
+		hull.branch(getWeapon(), 5 , 1.4, "z");
+		hull.branch(getWeapon(), -5 , 1.4, "z");
 
-		wing.branch(getCargo(), 2, -0.5, "z");
-		wing.branch(getCargo(), 0, -0.5, "z");
-		wing.branch(getCargo(), -2, -0.5, "z");
+		hull.branch(getCargo(), 2, -0.5, "z");
+		hull.branch(getCargo(), 0, -0.5, "z");
+		hull.branch(getCargo(), -2, -0.5, "z");
 
-		return wing;
+		return hull;
 	}
 
 	function getSensor(){
@@ -159,20 +165,18 @@ var ShipBluePrint = function(){
 	}
 
 	return {
-		initGeometry: function(){
-			var ship = getShip();
-			var geometry = ship.getGeometry();
-			return geometry;
-		},
+		build: function(){
+			return getHull();
+		}
 	};
 };
 
-var ShipRenderComponent = function(geometry){
-	var geometry = geometry;
+var ShipRenderComponent = function(hull){
+	var hull = hull;
 
 	var shipRenderComponent = {
 		initGeometry: function(){
-			return geometry;
+			return hull.getGeometry();
 		},
 
 		initMaterial: function(){
