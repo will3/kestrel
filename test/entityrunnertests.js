@@ -33,30 +33,6 @@ describe("EntityRunner", function(){
 			entityRunner.addEntity(entity);
 			expect(entityRunner.getEntities().length).to.equal(1);
 		})
-
-		it("should start entity", function(){
-			mockEntity.expects("start");
-			entityRunner.addEntity(entity);
-			mockEntity.verify();
-		})
-
-		it("should start component", function(){
-			mockComponent.expects("start");
-			entityRunner.addEntity(entity);
-			mockComponent.verify();
-		})
-
-		it("should start childEntity", function(){
-			mockChildEntity.expects("start");
-			entityRunner.addEntity(entity);
-			mockChildEntity.verify();		
-		})
-
-		it("should start child component", function(){
-			mockChildComponent.expects("start");
-			entityRunner.addEntity(entity);
-			mockChildComponent.verify();
-		})
 	})
 
 	describe("#removeEntity", function(){
@@ -80,6 +56,34 @@ describe("EntityRunner", function(){
 			entity.setFrameAge(99);
 			entityRunner.run();
 			expect(entity.getFrameAge()).to.equal(100);
+		})
+
+		it("should start entity", function(){
+			entityRunner.addEntity(entity);
+			mockEntity.expects("start");
+			entityRunner.run();
+			mockEntity.verify();
+		})
+
+		it("should start component", function(){
+			entityRunner.addEntity(entity);
+			mockComponent.expects("start");
+			entityRunner.run();
+			mockComponent.verify();
+		})
+
+		it("should start childEntity", function(){
+			entityRunner.addEntity(entity);
+			mockChildEntity.expects("start");
+			entityRunner.run();
+			mockChildEntity.verify();		
+		})
+
+		it("should start child component", function(){
+			entityRunner.addEntity(entity);
+			mockChildComponent.expects("start");
+			entityRunner.run();
+			mockChildComponent.verify();
 		})
 
 		it("should update entity", function(){
