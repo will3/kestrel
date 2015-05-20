@@ -11,6 +11,7 @@ var Entity = function(){
 	var frameAge = 0;
 	var parentEntity = null;
 	var game = null;
+	var started = false;
 
 	return {
 		destroyable: false,
@@ -18,7 +19,9 @@ var Entity = function(){
 		setFrameAge: function(value){ frameAge = value; },
 		getGame: function(){ if(game == null){ game = Game; } return game; },
 		setGame: function(value){ game = value;},
-
+		getStarted: function(){ return started; },
+		setStarted: function(value){ started = value; },
+		
 		hasCollision: function(){
 			if(this.getRigidBody == null){
 				return false;

@@ -3,23 +3,21 @@ var _ = require("lodash");
 var EntityRunner = function(){
 	var entities = [];
 
-	var startEntity = function(entity){
-		entity.start();
-		entity.getComponents().forEach(function(component){
-			component.start();
-		})
-		entity.getChildEntities().forEach(function(childEntity){
-			startEntity(childEntity);
-		})
-	}
-
 	var runEntity = function(entity){
 		//increment frame age
 		entity.setFrameAge(entity.getFrameAge() + 1);
 
+		if(!entity.getStarted()){
+			entity.start();
+			entity.setStarted(true);
+		}
 		entity.update();
 
 		entity.getComponents().forEach(function(component){
+			if(!component.getStarted()){
+				component.start();
+				component.setStarted(true);
+			}
 			component.update();
 		});
 
@@ -34,7 +32,6 @@ var EntityRunner = function(){
 		},
 
 		addEntity: function(entity){
-			startEntity(entity);
 			entities.push(entity);
 		},
 

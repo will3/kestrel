@@ -69,14 +69,14 @@ var RotationState = function(params){
 var Roll = function(){
 	return new RotationState({
 		axis: "z",
-		resting: 0,
+		resting: null,
 	});
 }
 
 var Pitch = function(){
 	return new RotationState({
 		axis: "y",
-		resting: 0,
+		resting: null,
 	});
 }
 
@@ -113,6 +113,8 @@ var ShipController = function(yaw, pitch, roll){
 
 	var command = null;
 
+	var engineAmount = 0.0;
+
 	//amount 0 - 1
 	var bank = function(amount){
 		roll.setAmount(amount);
@@ -146,12 +148,15 @@ var ShipController = function(yaw, pitch, roll){
 		getRigidBody: function(){
 			return this.getEntity().getRigidBody();
 		},
+		getEngineAmount: function(){
+			return engineAmount;
+		},
 		setForce: function(value){
 			force = value;
 		},
 
 		start: function(){
-
+			
 		},
 
 		setCommand: function(value){
@@ -176,6 +181,7 @@ var ShipController = function(yaw, pitch, roll){
 		},
 
 		accelerate: function(amount){
+			engineAmount = amount;
 			var rotation = this.getTransform().getRotation();
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			vector.multiplyScalar(amount * force);

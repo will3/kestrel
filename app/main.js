@@ -31,4 +31,3 @@ Console.runScenario(
 			// "attack ship1",
 		]
 	);
-

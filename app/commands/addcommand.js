@@ -3,7 +3,7 @@ var THREE = require("THREE");
 
 var AddCommand = function(){
 	var objectMapping = {
-		"ship": require('../entities/ship'),
+		"ship": require('../entities/ship')
 	};
 
 	var game = null;

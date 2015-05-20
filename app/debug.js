@@ -12,7 +12,7 @@ var Debug = function(){
 				return 2 - time * (2 / life);
 			});
 
-			indicator.getTransform().position.copy(point);
+			indicator.getTransform().getPosition().copy(point);
 
 			Game.addEntity(indicator);
 		},

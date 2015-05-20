@@ -7,6 +7,7 @@ var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var Weapon = require("./weapon");
+var EngineTrail = require("./enginetrail");
 
 var Ship = function(){
 	var shipController = null;
@@ -14,6 +15,7 @@ var Ship = function(){
 	var renderComponent = null;
 	var weaponController = null;
 	var weapons = null;
+	var engineTrail = null;
 
 	var ship = {
 		destroyable: true,
@@ -97,7 +99,15 @@ var Ship = function(){
 			this.getWeapons().forEach(function(weapon){
 				this.addEntity(weapon);
 			}.bind(this));
+
+			engineTrail = new EngineTrail();
+			engineTrail.setShip(this);
+			this.addEntity(engineTrail);
 		},
+
+		update: function(){
+			engineTrail.setAmount(shipController.getEngineAmount());
+		}
 	};
 
 	ship.__proto__ = Entity();
