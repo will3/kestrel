@@ -18,7 +18,7 @@ var Entity = function(){
 		getFrameAge: function(){ return frameAge; },
 		setFrameAge: function(value){ frameAge = value; },
 		getGame: function(){ if(game == null){ game = Game; } return game; },
-		setGame: function(value){ game = value;},
+		setGame: function(value){ game = value; },
 		getStarted: function(){ return started; },
 		setStarted: function(value){ started = value; },
 		

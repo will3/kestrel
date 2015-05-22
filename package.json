@@ -1,14 +1,17 @@
 {
   "name": "kestrel",
   "version": "1.0.0",
-  "description": "",
+  "description": "kestrel",
   "main": "server.js",
   "dependencies": {
     "chai": "^2.3.0",
-    "express": "^4.12.3",
+    "express": "^4.12.4",
     "express-handlebars": "^2.0.1",
+    "extend": "^2.0.1",
     "handlebars": "^3.0.3",
+    "jquery": "^2.1.4",
     "klass": "^1.4.0",
+    "lodash": "^3.9.1",
     "nodemon": "^1.3.7",
     "sinon": "^1.14.1",
     "three": "^0.71.0"
@@ -22,10 +25,26 @@
   },
   "config": {
     "blanket": {
-      "pattern": [ "" ],
-      "data-cover-never": [ "node_modules", "tests" ]
+      "pattern": [
+        ""
+      ],
+      "data-cover-never": [
+        "node_modules",
+        "tests"
+      ]
     }
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/will3/kestrel"
+  },
+  "bugs": {
+    "url": "https://github.com/will3/kestrel/issues"
+  },
+  "homepage": "https://github.com/will3/kestrel"
 }

@@ -8,8 +8,9 @@ var EngineTrail = function(){
 	var size = 3;
 	var amount = 0;
 	var ship = null;
+	var game = null;
 
-	function createBlock(velocity){
+	var createBlock = function(velocity){
 		var block = new Block();
 		block.setSize(size);
 		block.setLife(life);
@@ -22,11 +23,23 @@ var EngineTrail = function(){
 		return block;
 	}
 
+	var getGame = function(){
+		if(game == null){
+			game = Game;
+		}
+		return game;
+	}
+
+	var setGame = function(value){
+		game = value;
+	}
+
 	var engineTrail = {
 		setAmount: function(value){ amount = value; },
 		getAmount: function(){ return amount; },
 		setShip: function(value){ ship = value; },
 		getShip: function(){ return ship; },
+		setGame: setGame,
 
 		start: function(){
 
@@ -41,7 +54,7 @@ var EngineTrail = function(){
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			vector.setLength(-1);
 
-			Game.addEntity(createBlock(vector), this.getWorldPosition());
+			getGame().addEntity(createBlock(vector), this.getWorldPosition());
 		}
 	}
 

@@ -6,7 +6,6 @@ var Block = function(){
 	var size = 4;
 	var life = -1;
 	var sizeOverTimeFunc = null;
-	var velocity = new THREE.Vector3(0, 0, 0);
 	var velocityOverTimeFunc = null;
 
 	//component
@@ -16,38 +15,41 @@ var Block = function(){
 	var updateSize = function(){
 		transform.getScale().set(size, size, size);
 	}
-
-	var updateVelocity = function(){
-		rigidBody.getVelocity().copy(velocity);
+	
+	var getRigidBody = function(){
+		if(rigidBody == null){
+			rigidBody = new RigidBody();
+			rigidBody.defaultFriction = 1;
+		}
+		return rigidBody;
 	}
 
 	var block = {
 		setSize: function(value){ size = value; },
 		getSize: function(){ return size; },
-		setVelocity: function(value){ velocity = value; },
-		getVelocity: function(){ return velocity; },
+		setVelocity: function(value){ getRigidBody().setVelocity(value); },
+		getVelocity: function(){ return getRigidBody().getVelocity(); },
 		setLife: function(value){ life = value },
 		getLife: function(){ return	life; },
-		
-		getRigidBody: function(){
-			if(rigidBody == null){
-				rigidBody = new RigidBody();
-				rigidBody.defaultFriction = 1;
-			}
-			return rigidBody;
+
+		getRigidBody: getRigidBody,
+
+		sizeOverTime: function(func){
+			sizeOverTimeFunc = func;
+		},
+
+		velocityOverTime: function(func){
+			velocityOverTimeFunc = func;
 		},
 
 		start: function(){
 			//add rigid body
 			transform = this.getTransform();
-			this.addComponent(this.getRigidBody());
+			this.addComponent(getRigidBody());
 			this.addComponent(this.getRenderComponent());
 
 			//initialize size
 			updateSize();
-
-			//initialize velocity
-			updateVelocity();
 		},
 
 		update: function(){
@@ -66,19 +68,10 @@ var Block = function(){
 			}
 
 			if(velocityOverTimeFunc != null){
-				var newVelocity = velocityOverTimeFunc(this.getFrameAge());
-				velocity = newVelocity;
-				updateVelocity();
+				var velocity = velocityOverTimeFunc(this.getFrameAge());
+				this.setVelocity(velocity);
 			}
-		},
-
-		sizeOverTime: function(func){
-			sizeOverTimeFunc = func;
-		},
-
-		velocityOverTime: function(func){
-			velocityOverTimeFunc = func;
-		},
+		}
 	};
 
 	block.__proto__ = PointSprite();

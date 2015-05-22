@@ -2,7 +2,7 @@ var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Entity = require("../entity");
-var Debug = require("../Debug");
+var Debug = require("../debug");
 
 var OrbitCommand = function(){
 	var target = null;
