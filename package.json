@@ -46,5 +46,8 @@
   "bugs": {
     "url": "https://github.com/will3/kestrel/issues"
   },
-  "homepage": "https://github.com/will3/kestrel"
+  "homepage": "https://github.com/will3/kestrel",
+  "engines" : { 
+    "node" : "0.12.2" 
+  }
 }
