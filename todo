@@ -29,7 +29,10 @@
 
 - documentation
 
-- publish
-	- find hosting
-
 - tester
+
+- multiplayer
+	- socket io
+
+- gameplay
+	- ?
