@@ -4,8 +4,11 @@ var EntityRunner = function(){
 	var entities = [];
 
 	var runEntity = function(entity){
-		//increment frame age
-		entity.setFrameAge(entity.getFrameAge() + 1);
+		if(entity.getLife() != -1){
+			if(entity.getFrameAge() == entity.getLife()){
+				entity.removeFromParent();
+			}
+		}
 
 		if(!entity.getStarted()){
 			entity.start();
@@ -24,6 +27,9 @@ var EntityRunner = function(){
 		entity.getChildEntities().forEach(function(childEntity){
 			runEntity(childEntity);
 		});
+
+		//increment frame age
+		entity.setFrameAge(entity.getFrameAge() + 1);
 	}
 
 	return {
@@ -49,6 +55,10 @@ var EntityRunner = function(){
 			entities.forEach(function(entity){
 				runEntity(entity);
 			});
+		},
+
+		getEntityCount: function(){
+			return entities.length;
 		}
 	}
 }

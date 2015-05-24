@@ -2,12 +2,15 @@ var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var Beam = require("./beam");
 var THREE = require("THREE");
-var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var Weapon = require("./weapon");
-var EngineTrail = require("./enginetrail");
+var SmokeTrail = require("./smoketrail");
+var extend = require("extend");
+var Laser = require("./laser");
+var Missile = require("./missile");
+var MaterialLoader = require("../materialloader");
 
 var Ship = function(){
 	var shipController = null;
@@ -15,11 +18,14 @@ var Ship = function(){
 	var renderComponent = null;
 	var weaponController = null;
 	var weapons = null;
-	var engineTrail = null;
+	var smokeTrail = null;
 	var bluePrint = null;
+	var hull = null;
 
 	var ship = {
 		destroyable: true,
+
+		getHull: function(){ return hull; },
 		getWeaponController: function(){
 			if(weaponController == null){
 				weaponController = new WeaponController();
@@ -59,17 +65,34 @@ var Ship = function(){
 
 		getWeapons: function(){
 			if(weapons == null){
-				var weapon1 = new Weapon();
+				var laser = new Laser();
+				var missile = new Missile();
+
+				weapons = [];
+
+				// var weapon1 = new Weapon(laser);
+				// weapon1.setActor(this);
+				// weapon1.setDelta(0);
+				// weapons.push(weapon1);
+
+				// var weapon2 = new Weapon(laser);
+				// weapon2.setActor(this);
+				// weapon2.setDelta(8);
+				// weapons.push(weapon2);
+
+				var weapon1 = new Weapon(missile);
 				weapon1.setActor(this);
 				weapon1.setDelta(0);
+				weapons.push(weapon1);
 
-				var weapon2 = new Weapon();
+				var weapon2 = new Weapon(missile);
 				weapon2.setActor(this);
 				weapon2.setDelta(8);
+				weapons.push(weapon2);
 
-				weapons = [
-					weapon1, weapon2
-				];
+				// var weapon3 = new Weapon(missile);
+				// weapon3.setActor(this);
+				// weapons.push(weapon3);
 			}
 
 			return weapons;
@@ -85,7 +108,8 @@ var Ship = function(){
 
 		getRenderComponent: function(){ 
 			if(renderComponent == null){
-				renderComponent = new ShipRenderComponent(this.getBluePrint().build());
+				hull = this.getBluePrint().build();
+				renderComponent = new ShipRenderComponent(hull);
 			}
 			return renderComponent;
 		},
@@ -106,13 +130,13 @@ var Ship = function(){
 				this.addEntity(weapon);
 			}.bind(this));
 
-			engineTrail = new EngineTrail();
-			engineTrail.setShip(this);
-			this.addEntity(engineTrail);
+			smokeTrail = new SmokeTrail();
+			smokeTrail.setShip(this);
+			this.addEntity(smokeTrail);
 		},
 
 		update: function(){
-			engineTrail.setAmount(shipController.getEngineAmount());
+			smokeTrail.setAmount(shipController.getEngineAmount());
 		}
 	};
 
@@ -127,12 +151,26 @@ var ShipBluePrint = function(){
 		hull.setAlignment("x");
 		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
 
-		hull.branch(getWeapon(), 5 , 1.4, "z");
-		hull.branch(getWeapon(), -5 , 1.4, "z");
+		var weapon1 = getWeapon();
+		var weapon2 = getWeapon();
+		var cargo1 = getCargo();
+		var cargo2 = getCargo();
+		var cargo3 = getCargo();
 
-		hull.branch(getCargo(), 2, -0.5, "z");
-		hull.branch(getCargo(), 0, -0.5, "z");
-		hull.branch(getCargo(), -2, -0.5, "z");
+		hull.branch(weapon1, 5 , 1.4, "z");
+		hull.branch(weapon2, -5 , 1.4, "z");
+
+		hull.branch(cargo1, 2, -0.5, "z");
+		hull.branch(cargo2, 0, -0.5, "z");
+		hull.branch(cargo3, -2, -0.5, "z");
+
+		extend(hull, {
+			weapon1: weapon1,
+			weapon2: weapon2,
+			cargo1: cargo1,
+			cargo2: cargo2,
+			cargo3: cargo3,			
+		});
 
 		return hull;
 	}
@@ -180,7 +218,7 @@ var ShipRenderComponent = function(hull){
 		},
 
 		initMaterial: function(){
-			return new Material.Solid(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
+			return MaterialLoader.getSolidMaterial(new THREE.Vector4(1.0, 1.0, 1.0, 1.0));
 		}
 	}
 

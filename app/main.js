@@ -22,12 +22,23 @@ Console.setCommandMapping({
 Console.runScenario(
 		[
 			"add ship",
-			"add ship 100 0 100",
+			"add ship 200 0 200",
 			"select ship1",
-			"orbit ship0 100",
+			"orbit ship0 200",
 			"attack ship0",
 			// "select ship0",
 			// "orbit ship1 100",
 			// "attack ship1",
 		]
 	);
+
+var stats = new Stats();
+stats.setMode(0);
+
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+
+document.body.appendChild(stats.domElement);
+
+Game.setStats(stats);

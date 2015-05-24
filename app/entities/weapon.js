@@ -1,30 +1,30 @@
 var Entity = require("../entity");
 var THREE = require("THREE");
-var Projectile = require("./projectile");
+var extend = require("extend");
 
-var Weapon = function(){
+var Weapon = function(ammo){
 	var fireInterval = 50;
 	var cooldown = 50;
 	var actor = null;
-
+	var game = null;
+	var ammo = ammo;
+	
 	var weapon = {
 		setDelta: function(value){ cooldown = value; },
 		getActor: function(){ return actor; },
 		setActor: function(value){ actor = value; },
+		setGame: function(value){ game = value; },
+		getGame: function(){ if(game == null){ game = Game; } return game; },
+		setAmmo: function(value){ ammo = value; },
+		getAmmo: function(){ return ammo; },
+		
 		shoot: function(target){
-			var direction = new THREE.Vector3();
-			direction.subVectors(target.getWorldPosition(), this.getWorldPosition());
-			direction.setLength(1);
+			var newAmmo = ammo.createInstance();
+			newAmmo.setActor(actor);
+			newAmmo.setTarget(target);
+			newAmmo.setPosition(actor.getWorldPosition());
 
-			var projectile = new Projectile();
-			projectile.setDirection(direction);
-			projectile.setPower(2);
-			projectile.setSpeed(4);
-			projectile.setActor(actor);
-			
-			projectile.setPosition(this.getWorldPosition());
-
-			Game.addEntity(projectile);
+			this.getGame().addEntity(newAmmo);
 
 			cooldown = 0;
 		},

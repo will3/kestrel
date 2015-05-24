@@ -81,7 +81,7 @@ var Collision = function(){
 
 module.exports = Collision;
 
-},{"./entity":28,"THREE":34,"lodash":38}],2:[function(require,module,exports){
+},{"./entity":30,"THREE":36,"lodash":40}],2:[function(require,module,exports){
 var Command = function(){
 	var actor = null;
 	var params = null;
@@ -159,7 +159,7 @@ var AddCommand = function(){
 }
 
 module.exports = AddCommand;
-},{"../command":2,"../entities/ship":26,"THREE":34}],4:[function(require,module,exports){
+},{"../command":2,"../entities/ship":27,"THREE":36}],4:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -192,10 +192,9 @@ var AlignCommand = function(){
 }
 
 module.exports = AlignCommand;
-},{"../command":2,"THREE":34}],5:[function(require,module,exports){
+},{"../command":2,"THREE":36}],5:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
-var Projectile = require("../entities/projectile");
 var Game = require("../game");
 
 var AttackCommand = function(){
@@ -233,7 +232,7 @@ var AttackCommand = function(){
 }
 
 module.exports = AttackCommand;
-},{"../command":2,"../entities/projectile":25,"../game":30,"THREE":34}],6:[function(require,module,exports){
+},{"../command":2,"../game":32,"THREE":36}],6:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -273,7 +272,7 @@ var DestroyCommand = function(){
 
 module.exports = DestroyCommand;
 
-},{"../command":2,"../game":30,"lodash":38}],7:[function(require,module,exports){
+},{"../command":2,"../game":32,"lodash":40}],7:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -298,7 +297,7 @@ var ListCommand = function(){
 }
 
 module.exports = ListCommand;
-},{"../command":2,"../game":30,"lodash":38}],8:[function(require,module,exports){
+},{"../command":2,"../game":32,"lodash":40}],8:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -333,7 +332,7 @@ var MoveCommand = function(){
 }
 
 module.exports = MoveCommand;
-},{"../command":2,"THREE":34}],9:[function(require,module,exports){
+},{"../command":2,"THREE":36}],9:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -417,7 +416,7 @@ var OrbitCommand = function(){
 }
 
 module.exports = OrbitCommand;
-},{"../command":2,"../debug":20,"../entity":28,"../mathutils":32,"THREE":34}],10:[function(require,module,exports){
+},{"../command":2,"../debug":20,"../entity":30,"../mathutils":34,"THREE":36}],10:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
 
@@ -493,7 +492,7 @@ var Component = function(){
 }
 
 module.exports = Component;
-},{"klass":37}],13:[function(require,module,exports){
+},{"klass":39}],13:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -554,7 +553,7 @@ var RenderComponent = function(){
 		initObject: function(geometry, material){
 			return new THREE.Mesh(
 				geometry,
-				material.getInnerMaterial()
+				material
 				);
 		}
 	};
@@ -565,7 +564,7 @@ var RenderComponent = function(){
 }
 
 module.exports = RenderComponent;
-},{"../component":12,"../game":30,"../mathutils":32,"THREE":34}],14:[function(require,module,exports){
+},{"../component":12,"../game":32,"../mathutils":34,"THREE":36}],14:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -622,7 +621,7 @@ var RigidBody = function(){
 }
 
 module.exports = RigidBody;
-},{"../component":12,"THREE":34}],15:[function(require,module,exports){
+},{"../component":12,"THREE":36}],15:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -861,7 +860,7 @@ ShipController.Pitch = Pitch;
 ShipController.Yaw = Yaw;
 
 module.exports = ShipController;
-},{"../component":12,"../mathutils":32,"THREE":34}],16:[function(require,module,exports){
+},{"../component":12,"../mathutils":34,"THREE":36}],16:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -885,10 +884,9 @@ var TransformComponent = function(){
 }
 
 module.exports = TransformComponent;
-},{"../component":12,"THREE":34}],17:[function(require,module,exports){
+},{"../component":12,"THREE":36}],17:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
-var Projectile = require("../entities/projectile");
 var Game = require("../game");
 var Debug = require("../debug");
 
@@ -923,7 +921,7 @@ var WeaponController = function(){
 }
 
 module.exports = WeaponController;
-},{"../component":12,"../debug":20,"../entities/projectile":25,"../game":30,"THREE":34}],18:[function(require,module,exports){
+},{"../component":12,"../debug":20,"../game":32,"THREE":36}],18:[function(require,module,exports){
 var Console = function(){
 	var input;
 	var displayResult = false;
@@ -1113,7 +1111,34 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/block":22}],21:[function(require,module,exports){
+},{"./entities/block":23}],21:[function(require,module,exports){
+var Entity = require("../entity.js");
+var THREE = require("THREE");
+
+var Ammo = function(){
+	var actor = null;
+	var target = null;
+
+	var ammo = {
+		destroyable: true,
+
+		getActor: function(){ return actor; },
+		setActor: function(value){ actor = value; },
+		getTarget: function(){ return target; },
+		setTarget: function(value){ target = value; },
+
+		createInstance: function(){
+			throw "must override";
+		}
+	}
+
+	ammo.__proto__ = Entity();
+
+	return ammo;
+}
+
+module.exports = Ammo;
+},{"../entity.js":30,"THREE":36}],22:[function(require,module,exports){
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 
@@ -1185,25 +1210,33 @@ function Beam(segments, sides){
 			}
 		}
 
-		var m;
+		return geometry;
+	}
 
+	function getRotationMatrix(){
 		if(alignment == "x"){
-			var m = MathUtils.getRotationMatrix(0, 0, Math.PI / 2);
+			return MathUtils.getRotationMatrix(0, 0, Math.PI / 2);
 		}else if(alignment == "y"){
-			var m = MathUtils.getRotationMatrix(0, 0, 0);
+			return MathUtils.getRotationMatrix(0, 0, 0);
 		}else if(alignment == "z"){
-			var m = MathUtils.getRotationMatrix(0, Math.PI/2, 0);
+			return MathUtils.getRotationMatrix(0, Math.PI/2, 0);
 		}else if(alignment == "-x"){
-			var m = MathUtils.getRotationMatrix(0, 0, - Math.PI / 2);
+			return MathUtils.getRotationMatrix(0, 0, - Math.PI / 2);
 		}else if(alignment == "-y"){
-			var m = MathUtils.getRotationMatrix(0, Math.PI, 0);
+			return MathUtils.getRotationMatrix(0, Math.PI, 0);
 		}else if(alignment == "-z"){
-			var m = MathUtils.getRotationMatrix(0, -Math.PI/2, 0);
+			return MathUtils.getRotationMatrix(0, -Math.PI/2, 0);
 		}
 
-		geometry.applyMatrix(m);
+		throw "invalid axis";
+	}
 
-		return geometry;
+	function getScaleMatrix(){
+		return new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z);
+	}
+
+	function getTranslationMatrix(){
+		return new THREE.Matrix4().makeTranslation(position.x, position.y, position.z);
 	}
 
 	function getCenterY(){
@@ -1271,6 +1304,9 @@ function Beam(segments, sides){
 		}
 	}
 
+	var topPoint = null;
+	var bottomPoint = null;
+
 	return {
 		getGeometry : function(){
 			if(geometryNeedsUpdate){
@@ -1281,14 +1317,37 @@ function Beam(segments, sides){
 				geometry = makeGeometry();
 			}
 
-			geometry.applyMatrix(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
-			geometry.applyMatrix(new THREE.Matrix4().makeTranslation(position.x, position.y, position.z));
+			geometry.applyMatrix(getRotationMatrix());
+			geometry.applyMatrix(getScaleMatrix());
+			geometry.applyMatrix(getTranslationMatrix());
 
 			childBeams.forEach(function(childBeam){
 				geometry.merge(childBeam.getGeometry());
 			});
 
 			return geometry;
+		},
+	
+		getTopPoint: function(){
+			if(topPoint == null){
+				var centerY = getCenterY();
+				topPoint = new THREE.Vector3(0, Math.max.apply(Math, segments) - centerY, 0);
+				topPoint.applyMatrix4(getRotationMatrix());
+				topPoint.applyMatrix4(getScaleMatrix());
+				topPoint.applyMatrix4(getTranslationMatrix());
+			}
+			return new THREE.Vector3().copy(topPoint);
+		},
+
+		getBottomPoint: function(){
+			if(bottomPoint == null){
+				var centerY = getCenterY();
+				bottomPoint = new THREE.Vector3(0, Math.min.apply(Math, segments) - centerY, 0);
+				bottomPoint.applyMatrix4(getRotationMatrix());
+				bottomPoint.applyMatrix4(getScaleMatrix());
+				bottomPoint.applyMatrix4(getTranslationMatrix());
+			}
+			return new THREE.Vector3().copy(bottomPoint);
 		},
 
 		setAlignment : function(value){
@@ -1348,7 +1407,7 @@ function Beam(segments, sides){
 }
 
 module.exports = Beam;
-},{"../mathutils":32,"THREE":34}],22:[function(require,module,exports){
+},{"../mathutils":34,"THREE":36}],23:[function(require,module,exports){
 var PointSprite = require("./pointsprite");
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
@@ -1358,7 +1417,8 @@ var Block = function(){
 	var life = -1;
 	var sizeOverTimeFunc = null;
 	var velocityOverTimeFunc = null;
-
+	var opacity = 1.0;
+	
 	//component
 	var transform = null;
 	var rigidBody = null;
@@ -1382,7 +1442,11 @@ var Block = function(){
 		getVelocity: function(){ return getRigidBody().getVelocity(); },
 		setLife: function(value){ life = value },
 		getLife: function(){ return	life; },
-
+		setColor: function(value){ color = value; },
+		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
+		
 		getRigidBody: getRigidBody,
 
 		sizeOverTime: function(func){
@@ -1431,152 +1495,17 @@ var Block = function(){
 };
 
 module.exports = Block;
-},{"../components/rigidbody":14,"./pointsprite":24,"THREE":34}],23:[function(require,module,exports){
-var Entity = require("../entity");
-var Block = require("./block");
-var Debug = require("../debug");
-var MathUtils = require("../mathutils");
-
-var EngineTrail = function(){
-	var life = 10;
-	var size = 3;
-	var amount = 0;
-	var ship = null;
-	var game = null;
-
-	var createBlock = function(velocity){
-		var block = new Block();
-		block.setSize(size);
-		block.setLife(life);
-		block.sizeOverTime(function(time){
-			return size - time * (size / life);
-		});
-
-		block.setVelocity(velocity);
-
-		return block;
-	}
-
-	var getGame = function(){
-		if(game == null){
-			game = Game;
-		}
-		return game;
-	}
-
-	var setGame = function(value){
-		game = value;
-	}
-
-	var engineTrail = {
-		setAmount: function(value){ amount = value; },
-		getAmount: function(){ return amount; },
-		setShip: function(value){ ship = value; },
-		getShip: function(){ return ship; },
-		setGame: setGame,
-
-		start: function(){
-
-		},
-
-		update: function(){
-			if(amount == 0){
-				return;
-			}
-
-			var rotation = ship.getRotation();
-			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
-			vector.setLength(-1);
-
-			getGame().addEntity(createBlock(vector), this.getWorldPosition());
-		}
-	}
-
-	engineTrail.__proto__ = Entity();
-
-	return engineTrail;
-}
-
-module.exports = EngineTrail;
-},{"../debug":20,"../entity":28,"../mathutils":32,"./block":22}],24:[function(require,module,exports){
-var Entity = require('../entity');
-var RenderComponent = require('../components/rendercomponent');
-var TextureLoader = require("../textureloader");
-var THREE = require("THREE");
-var extend = require("extend");
-
-var PointSprite = function(){
-	var texture = null;
-	var renderComponent = null;
-
-	var pointSprite = {
-		setTexture: function(value){ texture = value; },
-		getTexture: function(){ return texture; },
-
-		setRenderComponent: function(value){
-			renderComponent = value;
-		},
-
-		getRenderComponent: function(value){
-			if(renderComponent == null){
-				renderComponent = new PointSpriteRenderComponent(texture);
-			}
-			return renderComponent;
-		},
-
-		start: function(){
-			this.addComponent(this.getRenderComponent());
-		},
-	};
-
-	pointSprite.__proto__ = Entity();
-
-
-	return pointSprite;
-}
-
-var PointSpriteRenderComponent = function(texture){
-	var texture = texture;
-
-	var pointSpriteRenderComponent = {
-		initGeometry: function(){
-			return null;
-		},
-
-		initMaterial: function(){
-			var map = texture == null ? TextureLoader.getDefault() : texture;
-			map.minFilter = THREE.NearestFilter;
-			var material = new THREE.SpriteMaterial({ map: map, color: 0xffffff, fog:true });
-			return material;
-		},
-
-		initObject: function(geometry, material){
-			return new THREE.Sprite(material);
-		},
-	};
-
-	pointSpriteRenderComponent.__proto__ = RenderComponent();
-
-	return pointSpriteRenderComponent;
-}
-
-module.exports = PointSprite;
-},{"../components/rendercomponent":13,"../entity":28,"../textureloader":33,"THREE":34,"extend":35}],25:[function(require,module,exports){
-var Entity = require("../entity");
+},{"../components/rigidbody":14,"./pointsprite":26,"THREE":36}],24:[function(require,module,exports){
+var Ammo = require("./ammo");
 var THREE = require("THREE");
 var Block = require("./block");
 var RigidBody = require("../components/rigidbody");
 
-var Projectile = function() {
-	var power = 4;
-	var num = 4;
-	var life = 100;
-	var actor = null;
+var Laser = function() {
 	var rigidBody = null;
-	var direction = null;
-	var speed = 0;
+	var velocity = null;
 
-	function createBlock(size, offset, velocity){
+	var createBlock = function(size, offset, velocity, life){
 		var block = new Block();
 
 		block.setSize(size);
@@ -1604,31 +1533,8 @@ var Projectile = function() {
 		return block;
 	}
 
-	var getVelocity = function(){
-		if(direction == null || speed == 0){
-			return null;
-		}
-		var velocity = new THREE.Vector3();
-		velocity.copy(direction);
-		velocity.setLength(speed);
-		return velocity;
-	}
-
-	var projectile = {
-		destroyable: true,
-		setDirection: function(value) { direction = value; },
-		getDirection: function() { return direction; },
-
-		setSpeed: function(value) { speed = value; },
-		getSpeed: function() { return speed; },
-
-		getPower: function(){ return power; }, 
-		setPower: function(value){ power = value;},
-
-		getActor: function(){ return actor; },
-		setActor: function(value){ actor = value; },
-
-		getCollisionRadius: function(){ return 1; },
+	var laser = {
+		createInstance: function(){ return new Laser(); },
 
 		getRigidBody: function(){ 
 			if(rigidBody == null){
@@ -1639,13 +1545,26 @@ var Projectile = function() {
 			return rigidBody;
 		},
 
-		start: function(){
-			if(this.getDirection() == null){
-				throw "must have direction";
+		initVelocity: function(){
+			var actor = this.getActor();
+			var target = this.getTarget();
+
+			if(actor == null || target == null){
+				throw "actor or target cannot be null";
 			}
 
+			var v = new THREE.Vector3();
+			v.subVectors(target.getWorldPosition(), actor.getWorldPosition());
+			v.setLength(4);
+
+			velocity = v;
+		},
+
+		start: function(){
+			this.setLife(200);
+
+			this.initVelocity();
 			transform = this.getTransform();
-			var velocity = getVelocity();
 
 			this.addComponent(this.getRigidBody());
 			this.getRigidBody().setVelocity(velocity);
@@ -1656,28 +1575,20 @@ var Projectile = function() {
 
 			this.getPosition().add(startPosition);
 
-			this.emit(0);
+			this.createBlocks();
 		},
 
-		emit: function(time){
-			if(time == 0){
-				var num = 4;
-				for(var i = 0; i < num; i ++){
-					this.addEntity(this.createBlock(
-						power * (num - i) / num, 
-						- i * 0.5,
-						getVelocity())
-					);
-				}
-			}
-		},
-
-		createBlock: createBlock,
-
-		update: function(){
-			//update age
-			if(this.getFrameAge() > life && life != -1){
-				this.removeFromParent();
+		createBlocks: function(time){
+			var power = 2;
+			var num = 4;
+			
+			for(var i = 0; i < num; i ++){
+				this.addEntity(createBlock(
+					power * (num - i) / num, 
+					- i * 0.5,
+					velocity,
+					this.getLife())
+				);
 			}
 		},
 
@@ -1690,23 +1601,201 @@ var Projectile = function() {
 		}
 	};
 
-	projectile.__proto__ = Entity();
+	laser.__proto__ = Ammo();
 
-	return projectile;
+	return laser;
 }
 
-module.exports = Projectile;
-},{"../components/rigidbody":14,"../entity":28,"./block":22,"THREE":34}],26:[function(require,module,exports){
+module.exports = Laser;
+},{"../components/rigidbody":14,"./ammo":21,"./block":23,"THREE":36}],25:[function(require,module,exports){
+var THREE = require("THREE");
+var RigidBody = require("../components/rigidbody");
+var Ammo = require("./ammo");
+var Block = require("./block");
+var MathUtils = require("../mathutils");
+
+var Missile = function(){
+	var rigidBody = null;
+	var launchSpeed = 0.8;
+	var launchForce = 0.0;
+	var force = 0.2;
+	var direction = null;
+	var fuse = 50;
+	var launchFriction = 0.97;
+	var friction = 0.95;
+	var launchNoiseAmount = 0.02;
+	var noiseAmount = 0.1;
+
+	var missile = {
+		createInstance: function(){
+			return new Missile();
+		},
+
+		getRigidBody: function(){ 
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.setDefaultFriction(launchFriction);
+				rigidBody.setCollisionRadius(1);
+			}
+
+			return rigidBody;
+		},
+		setRigidBody: function(value){ rigidBody = value; },
+
+		start: function(){
+			direction = new THREE.Vector3(
+				Math.random() - 0.5, 
+				Math.random() - 0.5, 
+				Math.random() - 0.5
+				);
+			direction.setLength(1);
+
+			this.addComponent(this.getRigidBody());
+			var velocity = new THREE.Vector3().copy(direction).setLength(launchSpeed);
+			this.getRigidBody().setVelocity(velocity);
+
+			var block = new Block();
+			block.setSize(2);
+			this.addEntity(block);
+		},
+
+		update: function(){
+			var isLaunching = this.getFrameAge() < fuse;
+			var forceToApply = isLaunching ? launchForce : force;
+			var frictionToApply = isLaunching ? launchFriction : friction;
+			var noiseToApply = isLaunching ? launchNoiseAmount : noiseAmount;
+
+			if(!isLaunching){
+				var position = this.getWorldPosition();
+				var targetPosition = this.getTarget().getWorldPosition();
+				direction = new THREE.Vector3().subVectors(targetPosition, position);
+			}
+
+			this.getRigidBody().setDefaultFriction(frictionToApply);
+			var forceVector = new THREE.Vector3().copy(direction).setLength(forceToApply);
+			var noise = MathUtils.randomVector(noiseToApply);
+			forceVector.add(noise);
+			this.getRigidBody().applyForce(
+				forceVector
+				);
+		},
+
+		onCollision: function(entity){
+			if(entity == this.getActor()){
+				return;
+			}
+
+			this.removeFromParent();
+		}
+	}
+
+	missile.__proto__ = Ammo();
+	
+	return missile;
+}
+
+module.exports = Missile;
+},{"../components/rigidbody":14,"../mathutils":34,"./ammo":21,"./block":23,"THREE":36}],26:[function(require,module,exports){
+var Entity = require('../entity');
+var RenderComponent = require('../components/rendercomponent');
+var TextureLoader = require("../textureloader");
+var THREE = require("THREE");
+var extend = require("extend");
+
+var PointSprite = function(){
+	var texture = null;
+	var renderComponent = null;
+
+	var pointSprite = {
+		setTexture: function(value){ texture = value; },
+		getTexture: function(){ return texture; },
+
+		setOpacity: function(value){ 
+			renderComponent.setOpacity(value); 
+		},
+		
+		getOpacity: function(){ 
+			return renderComponent.getOpacity(); 
+		},
+
+		setColor: function(value){ 
+			renderComponent.setColor(value);
+		},
+		getColor: function(){ 
+			return renderComponent.getColor();
+		},
+
+		setRenderComponent: function(value){
+			renderComponent = value;
+		},
+
+		getRenderComponent: function(value){
+			if(renderComponent == null){
+				renderComponent = new PointSpriteRenderComponent();
+			}
+			return renderComponent;
+		},
+
+		start: function(){
+			this.addComponent(this.getRenderComponent());
+		}
+	};
+
+	pointSprite.__proto__ = Entity();
+
+
+	return pointSprite;
+}
+
+var PointSpriteRenderComponent = function(){
+	var texture = texture;
+	var color = null;
+
+	var pointSpriteRenderComponent = {
+		initGeometry: function(){
+			return null;
+		},
+
+		setColor: function(value){ color = value; },
+		getColor: function(){ return color; },
+
+		initMaterial: function(){
+			var map = texture == null ? TextureLoader.getDefault() : texture;
+			map.minFilter = THREE.NearestFilter;
+			var material = new THREE.SpriteMaterial({ 
+				map: map,
+				color: color || 0xffffff, 
+				fog:true 
+			});
+
+			return material;
+		},
+
+		initObject: function(geometry, material){
+			return new THREE.Sprite(material);
+		},
+	};
+
+	pointSpriteRenderComponent.__proto__ = RenderComponent();
+
+	return pointSpriteRenderComponent;
+}
+
+module.exports = PointSprite;
+},{"../components/rendercomponent":13,"../entity":30,"../textureloader":35,"THREE":36,"extend":37}],27:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var Beam = require("./beam");
 var THREE = require("THREE");
-var Material = require("../material");
 var RigidBody = require("../components/rigidbody");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var Weapon = require("./weapon");
-var EngineTrail = require("./enginetrail");
+var SmokeTrail = require("./smoketrail");
+var extend = require("extend");
+var Laser = require("./laser");
+var Missile = require("./missile");
+var MaterialLoader = require("../materialloader");
 
 var Ship = function(){
 	var shipController = null;
@@ -1714,11 +1803,14 @@ var Ship = function(){
 	var renderComponent = null;
 	var weaponController = null;
 	var weapons = null;
-	var engineTrail = null;
+	var smokeTrail = null;
 	var bluePrint = null;
+	var hull = null;
 
 	var ship = {
 		destroyable: true,
+
+		getHull: function(){ return hull; },
 		getWeaponController: function(){
 			if(weaponController == null){
 				weaponController = new WeaponController();
@@ -1758,17 +1850,34 @@ var Ship = function(){
 
 		getWeapons: function(){
 			if(weapons == null){
-				var weapon1 = new Weapon();
+				var laser = new Laser();
+				var missile = new Missile();
+
+				weapons = [];
+
+				// var weapon1 = new Weapon(laser);
+				// weapon1.setActor(this);
+				// weapon1.setDelta(0);
+				// weapons.push(weapon1);
+
+				// var weapon2 = new Weapon(laser);
+				// weapon2.setActor(this);
+				// weapon2.setDelta(8);
+				// weapons.push(weapon2);
+
+				var weapon1 = new Weapon(missile);
 				weapon1.setActor(this);
 				weapon1.setDelta(0);
+				weapons.push(weapon1);
 
-				var weapon2 = new Weapon();
+				var weapon2 = new Weapon(missile);
 				weapon2.setActor(this);
 				weapon2.setDelta(8);
+				weapons.push(weapon2);
 
-				weapons = [
-					weapon1, weapon2
-				];
+				// var weapon3 = new Weapon(missile);
+				// weapon3.setActor(this);
+				// weapons.push(weapon3);
 			}
 
 			return weapons;
@@ -1784,7 +1893,8 @@ var Ship = function(){
 
 		getRenderComponent: function(){ 
 			if(renderComponent == null){
-				renderComponent = new ShipRenderComponent(this.getBluePrint().build());
+				hull = this.getBluePrint().build();
+				renderComponent = new ShipRenderComponent(hull);
 			}
 			return renderComponent;
 		},
@@ -1805,13 +1915,13 @@ var Ship = function(){
 				this.addEntity(weapon);
 			}.bind(this));
 
-			engineTrail = new EngineTrail();
-			engineTrail.setShip(this);
-			this.addEntity(engineTrail);
+			smokeTrail = new SmokeTrail();
+			smokeTrail.setShip(this);
+			this.addEntity(smokeTrail);
 		},
 
 		update: function(){
-			engineTrail.setAmount(shipController.getEngineAmount());
+			smokeTrail.setAmount(shipController.getEngineAmount());
 		}
 	};
 
@@ -1826,12 +1936,26 @@ var ShipBluePrint = function(){
 		hull.setAlignment("x");
 		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
 
-		hull.branch(getWeapon(), 5 , 1.4, "z");
-		hull.branch(getWeapon(), -5 , 1.4, "z");
+		var weapon1 = getWeapon();
+		var weapon2 = getWeapon();
+		var cargo1 = getCargo();
+		var cargo2 = getCargo();
+		var cargo3 = getCargo();
 
-		hull.branch(getCargo(), 2, -0.5, "z");
-		hull.branch(getCargo(), 0, -0.5, "z");
-		hull.branch(getCargo(), -2, -0.5, "z");
+		hull.branch(weapon1, 5 , 1.4, "z");
+		hull.branch(weapon2, -5 , 1.4, "z");
+
+		hull.branch(cargo1, 2, -0.5, "z");
+		hull.branch(cargo2, 0, -0.5, "z");
+		hull.branch(cargo3, -2, -0.5, "z");
+
+		extend(hull, {
+			weapon1: weapon1,
+			weapon2: weapon2,
+			cargo1: cargo1,
+			cargo2: cargo2,
+			cargo3: cargo3,			
+		});
 
 		return hull;
 	}
@@ -1879,7 +2003,7 @@ var ShipRenderComponent = function(hull){
 		},
 
 		initMaterial: function(){
-			return new Material.Solid(new THREE.Vector4(1.0, 1.0, 0.0, 1.0));
+			return MaterialLoader.getSolidMaterial(new THREE.Vector4(1.0, 1.0, 1.0, 1.0));
 		}
 	}
 
@@ -1889,34 +2013,106 @@ var ShipRenderComponent = function(hull){
 }
 
 module.exports = Ship;
-},{"../components/rendercomponent":13,"../components/rigidbody":14,"../components/shipcontroller":15,"../components/weaponcontroller":17,"../entity":28,"../material":31,"./beam":21,"./enginetrail":23,"./weapon":27,"THREE":34}],27:[function(require,module,exports){
+},{"../components/rendercomponent":13,"../components/rigidbody":14,"../components/shipcontroller":15,"../components/weaponcontroller":17,"../entity":30,"../materialloader":33,"./beam":22,"./laser":24,"./missile":25,"./smoketrail":28,"./weapon":29,"THREE":36,"extend":37}],28:[function(require,module,exports){
+var Entity = require("../entity");
+var Block = require("./block");
+var Debug = require("../debug");
+var MathUtils = require("../mathutils");
+var THREE = require("THREE");
+
+var SmokeTrail = function(){
+	var amount = 0;
+	var ship = null;
+	var game = null;
+
+	var createBlock = function(velocity, size, life){
+		var block = new Block();
+		block.setSize(size);
+		block.setLife(life);
+		block.sizeOverTime(function(time){
+			return size - time * (size / life);
+		});
+		block.setVelocity(velocity);
+
+		return block;
+	}
+
+	var getGame = function(){
+		if(game == null){
+			game = Game;
+		}
+		return game;
+	}
+
+	var setGame = function(value){
+		game = value;
+	}
+
+	var emit = function(position, offset, speed, size, life){
+		var rotationMatrix = ship.getRotationMatrix();
+		offset.applyMatrix4(rotationMatrix);
+
+		getGame().addEntity(createBlock(speed, size, life), position.add(offset));
+	}
+
+	var smokeTrail = {
+		setAmount: function(value){ amount = value; },
+		getAmount: function(){ return amount; },
+		setShip: function(value){ ship = value; },
+		getShip: function(){ return ship; },
+		setGame: setGame,
+
+		start: function(){
+
+		},
+
+		update: function(){
+			if(amount == 0){
+				return;
+			}
+
+			var rotation = ship.getRotation();
+			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
+			vector.setLength(-1);
+
+			emit(this.getWorldPosition(), ship.getHull().cargo2.getBottomPoint(), vector, 3, 8);
+		}
+	}
+
+	smokeTrail.__proto__ = Entity();
+
+	return smokeTrail;
+}
+
+module.exports = SmokeTrail;
+},{"../debug":20,"../entity":30,"../mathutils":34,"./block":23,"THREE":36}],29:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
-var Projectile = require("./projectile");
+var extend = require("extend");
 
-var Weapon = function(){
+var Weapon = function(ammo){
 	var fireInterval = 50;
 	var cooldown = 50;
 	var actor = null;
-
+	var game = null;
+	var ammo = ammo;
+	
 	var weapon = {
 		setDelta: function(value){ cooldown = value; },
 		getActor: function(){ return actor; },
 		setActor: function(value){ actor = value; },
+		setGame: function(value){ game = value; },
+		getGame: function(){ if(game == null){ game = Game; } return game; },
+		setAmmo: function(value){ ammo = value; },
+		getAmmo: function(){ return ammo; },
+		
 		shoot: function(target){
-			var direction = new THREE.Vector3();
-			direction.subVectors(target.getWorldPosition(), this.getWorldPosition());
-			direction.setLength(1);
+			var newAmmo = ammo.createInstance();
+			newAmmo.setActor(actor);
+			newAmmo.setTarget(target);
+			newAmmo.setPosition(actor.getWorldPosition());
 
-			var projectile = new Projectile();
-			projectile.setDirection(direction);
-			projectile.setPower(2);
-			projectile.setSpeed(4);
-			projectile.setActor(actor);
-			
-			projectile.setPosition(this.getWorldPosition());
-
-			Game.addEntity(projectile);
+			this.getGame().addEntity(newAmmo);
 
 			cooldown = 0;
 		},
@@ -1950,10 +2146,11 @@ var Weapon = function(){
 }
 
 module.exports = Weapon;
-},{"../entity":28,"./projectile":25,"THREE":34}],28:[function(require,module,exports){
+},{"../entity":30,"THREE":36,"extend":37}],30:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
+var MathUtils = require("./mathutils");
 
 var Entity = function(){
 	this.name = null;
@@ -1965,6 +2162,7 @@ var Entity = function(){
 	var parentEntity = null;
 	var game = null;
 	var started = false;
+	var life = -1;
 
 	return {
 		destroyable: false,
@@ -1974,6 +2172,8 @@ var Entity = function(){
 		setGame: function(value){ game = value; },
 		getStarted: function(){ return started; },
 		setStarted: function(value){ started = value; },
+		getLife: function(){ return life; },
+		setLife: function(value){life = value; },
 		
 		hasCollision: function(){
 			if(this.getRigidBody == null){
@@ -2078,6 +2278,11 @@ var Entity = function(){
 		getRotation: function(){
 			return this.getTransform().getRotation();
 		},
+
+		getRotationMatrix: function(){
+			var rotation = this.getTransform().getRotation();
+			return MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z);
+		},
 		
 		setRotation: function(rotation){
 			this.getTransform().setRotation(rotation);
@@ -2098,15 +2303,18 @@ var Entity = function(){
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":16,"THREE":34,"lodash":38}],29:[function(require,module,exports){
+},{"./components/transformcomponent":16,"./mathutils":34,"THREE":36,"lodash":40}],31:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function(){
 	var entities = [];
 
 	var runEntity = function(entity){
-		//increment frame age
-		entity.setFrameAge(entity.getFrameAge() + 1);
+		if(entity.getLife() != -1){
+			if(entity.getFrameAge() == entity.getLife()){
+				entity.removeFromParent();
+			}
+		}
 
 		if(!entity.getStarted()){
 			entity.start();
@@ -2125,6 +2333,9 @@ var EntityRunner = function(){
 		entity.getChildEntities().forEach(function(childEntity){
 			runEntity(childEntity);
 		});
+
+		//increment frame age
+		entity.setFrameAge(entity.getFrameAge() + 1);
 	}
 
 	return {
@@ -2150,12 +2361,16 @@ var EntityRunner = function(){
 			entities.forEach(function(entity){
 				runEntity(entity);
 			});
+		},
+
+		getEntityCount: function(){
+			return entities.length;
 		}
 	}
 }
 
 module.exports = EntityRunner;
-},{"lodash":38}],30:[function(require,module,exports){
+},{"lodash":40}],32:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -2177,8 +2392,10 @@ Game = function(entityRunner){
 	var entityRunner = new EntityRunner();
 	var nameRegistry = {};
 	var collision = new Collision();
+	var stats = null;
 
 	var onEnterFrame = function(){ 
+		Console.write(entityRunner.getEntityCount());
 		entityRunner.run();
 	}
 
@@ -2283,11 +2500,21 @@ Game = function(entityRunner){
 	}
 
 	var render = function(){
+		if(stats != null){
+			stats.begin();
+		}
 		renderer.render(scene, camera);
+		if(stats != null){
+	    	stats.end();
+		}
 		requestAnimationFrame(render);
 	}
 
 	return{
+		setStats: function(value){
+			stats = value;
+		},
+
 		initialize: function(container) {
 			initScene();
 			initControl();
@@ -2358,7 +2585,7 @@ Game = function(entityRunner){
 }();
 
 module.exports = Game;
-},{"./collision":1,"./console":18,"./control":19,"./entityrunner":29,"./mathutils":32,"THREE":34,"lodash":38}],31:[function(require,module,exports){
+},{"./collision":1,"./console":18,"./control":19,"./entityrunner":31,"./mathutils":34,"THREE":36,"lodash":40}],33:[function(require,module,exports){
 var THREE = require("THREE");
 
 var ShaderCode = (function(){
@@ -2376,18 +2603,10 @@ var ShaderCode = (function(){
 	};
 })();
 
-function SolidColorMaterial(color){
-	var m = new Material("color");
-	m.color = color;
-	return m;
-}
-
-var Material = function(flag) {
+var MaterialLoader = function(flag) {
 	var flag = flag;
 
-	var color = new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
-
-	var getSolidMaterial = function(){
+	var getSolidMaterial = function(color){
 		return new THREE.ShaderMaterial({
 			uniforms: {
 				color : { type: "v4", value: color }
@@ -2399,22 +2618,12 @@ var Material = function(flag) {
 	}
 
 	return{
-		setColor: function(value){
-			color = value;
-		},
-
-		getInnerMaterial: function(){
-			if(flag == "color"){
-				return getSolidMaterial();
-			}
-		}
+		getSolidMaterial: getSolidMaterial,
 	};
-};
+}();
 
-module.exports = {
-	Solid: SolidColorMaterial,
-};
-},{"THREE":34}],32:[function(require,module,exports){
+module.exports = MaterialLoader;
+},{"THREE":36}],34:[function(require,module,exports){
 var THREE = require('THREE');
 
 var MathUtils = (function(){
@@ -2494,11 +2703,21 @@ var MathUtils = (function(){
 		    	new THREE.Vector3(radius * -Math.sin(t), 0, radius * Math.cos(t)),
 		    ];
 		},
+
+		randomVector: function(length){
+			var vector = new THREE.Vector3(
+				Math.random() - 0.5,
+				Math.random() - 0.5,
+				Math.random() - 0.5
+				);
+			vector.setLength(length);
+			return vector;
+		}
 	};
 })();
 
 module.exports = MathUtils;
-},{"THREE":34}],33:[function(require,module,exports){
+},{"THREE":36}],35:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -2523,7 +2742,7 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":34}],34:[function(require,module,exports){
+},{"THREE":36}],36:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -37671,7 +37890,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -37762,7 +37981,7 @@ module.exports = function extend() {
 };
 
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -46974,7 +47193,7 @@ return jQuery;
 
 }));
 
-},{}],37:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -47067,7 +47286,7 @@ return jQuery;
   return klass
 });
 
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -59246,7 +59465,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
@@ -59271,9 +59490,9 @@ Console.setCommandMapping({
 Console.runScenario(
 		[
 			"add ship",
-			"add ship 100 0 100",
+			"add ship 200 0 200",
 			"select ship1",
-			"orbit ship0 100",
+			"orbit ship0 200",
 			"attack ship0",
 			// "select ship0",
 			// "orbit ship1 100",
@@ -59281,4 +59500,14 @@ Console.runScenario(
 		]
 	);
 
-},{"./commands/addcommand":3,"./commands/aligncommand":4,"./commands/attackcommand":5,"./commands/destroycommand":6,"./commands/listcommand":7,"./commands/movecommand":8,"./commands/orbitcommand":9,"./commands/selectcommand":10,"./commands/stopcommand":11,"./console":18,"./game.js":30,"jquery":36}]},{},[39]);
+var stats = new Stats();
+stats.setMode(0);
+
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+
+document.body.appendChild(stats.domElement);
+
+Game.setStats(stats);
+},{"./commands/addcommand":3,"./commands/aligncommand":4,"./commands/attackcommand":5,"./commands/destroycommand":6,"./commands/listcommand":7,"./commands/movecommand":8,"./commands/orbitcommand":9,"./commands/selectcommand":10,"./commands/stopcommand":11,"./console":18,"./game.js":32,"jquery":38}]},{},[41]);

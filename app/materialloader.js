@@ -15,18 +15,10 @@ var ShaderCode = (function(){
 	};
 })();
 
-function SolidColorMaterial(color){
-	var m = new Material("color");
-	m.color = color;
-	return m;
-}
-
-var Material = function(flag) {
+var MaterialLoader = function(flag) {
 	var flag = flag;
 
-	var color = new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
-
-	var getSolidMaterial = function(){
+	var getSolidMaterial = function(color){
 		return new THREE.ShaderMaterial({
 			uniforms: {
 				color : { type: "v4", value: color }
@@ -38,18 +30,8 @@ var Material = function(flag) {
 	}
 
 	return{
-		setColor: function(value){
-			color = value;
-		},
-
-		getInnerMaterial: function(){
-			if(flag == "color"){
-				return getSolidMaterial();
-			}
-		}
+		getSolidMaterial: getSolidMaterial,
 	};
-};
+}();
 
-module.exports = {
-	Solid: SolidColorMaterial,
-};
+module.exports = MaterialLoader;

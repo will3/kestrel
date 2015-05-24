@@ -6,15 +6,10 @@ var Entity = require("../../app/entity");
 
 describe("Render Component", function(){
 	var renderComponent, game, mockGame, material, geometry, 
-		scene, mockScene, entity, innerObject, mockRenderComponent, innerMaterial;
+		scene, mockScene, entity, innerObject, mockRenderComponent;
 
 	beforeEach(function(){
-		var innerMaterial = {};
-		material = { 
-			getInnerMaterial: function(){
-				return innerMaterial;
-			}
-		};
+		material = { };
 
 		geometry = { };
 
