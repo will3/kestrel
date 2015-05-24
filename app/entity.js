@@ -1,6 +1,7 @@
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
+var MathUtils = require("./mathutils");
 
 var Entity = function(){
 	this.name = null;
@@ -12,6 +13,7 @@ var Entity = function(){
 	var parentEntity = null;
 	var game = null;
 	var started = false;
+	var life = -1;
 
 	return {
 		destroyable: false,
@@ -21,6 +23,8 @@ var Entity = function(){
 		setGame: function(value){ game = value; },
 		getStarted: function(){ return started; },
 		setStarted: function(value){ started = value; },
+		getLife: function(){ return life; },
+		setLife: function(value){life = value; },
 		
 		hasCollision: function(){
 			if(this.getRigidBody == null){
@@ -124,6 +128,11 @@ var Entity = function(){
 
 		getRotation: function(){
 			return this.getTransform().getRotation();
+		},
+
+		getRotationMatrix: function(){
+			var rotation = this.getTransform().getRotation();
+			return MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z);
 		},
 		
 		setRotation: function(rotation){

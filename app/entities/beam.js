@@ -69,25 +69,33 @@ function Beam(segments, sides){
 			}
 		}
 
-		var m;
+		return geometry;
+	}
 
+	function getRotationMatrix(){
 		if(alignment == "x"){
-			var m = MathUtils.getRotationMatrix(0, 0, Math.PI / 2);
+			return MathUtils.getRotationMatrix(0, 0, Math.PI / 2);
 		}else if(alignment == "y"){
-			var m = MathUtils.getRotationMatrix(0, 0, 0);
+			return MathUtils.getRotationMatrix(0, 0, 0);
 		}else if(alignment == "z"){
-			var m = MathUtils.getRotationMatrix(0, Math.PI/2, 0);
+			return MathUtils.getRotationMatrix(0, Math.PI/2, 0);
 		}else if(alignment == "-x"){
-			var m = MathUtils.getRotationMatrix(0, 0, - Math.PI / 2);
+			return MathUtils.getRotationMatrix(0, 0, - Math.PI / 2);
 		}else if(alignment == "-y"){
-			var m = MathUtils.getRotationMatrix(0, Math.PI, 0);
+			return MathUtils.getRotationMatrix(0, Math.PI, 0);
 		}else if(alignment == "-z"){
-			var m = MathUtils.getRotationMatrix(0, -Math.PI/2, 0);
+			return MathUtils.getRotationMatrix(0, -Math.PI/2, 0);
 		}
 
-		geometry.applyMatrix(m);
+		throw "invalid axis";
+	}
 
-		return geometry;
+	function getScaleMatrix(){
+		return new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z);
+	}
+
+	function getTranslationMatrix(){
+		return new THREE.Matrix4().makeTranslation(position.x, position.y, position.z);
 	}
 
 	function getCenterY(){
@@ -155,6 +163,9 @@ function Beam(segments, sides){
 		}
 	}
 
+	var topPoint = null;
+	var bottomPoint = null;
+
 	return {
 		getGeometry : function(){
 			if(geometryNeedsUpdate){
@@ -165,14 +176,37 @@ function Beam(segments, sides){
 				geometry = makeGeometry();
 			}
 
-			geometry.applyMatrix(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
-			geometry.applyMatrix(new THREE.Matrix4().makeTranslation(position.x, position.y, position.z));
+			geometry.applyMatrix(getRotationMatrix());
+			geometry.applyMatrix(getScaleMatrix());
+			geometry.applyMatrix(getTranslationMatrix());
 
 			childBeams.forEach(function(childBeam){
 				geometry.merge(childBeam.getGeometry());
 			});
 
 			return geometry;
+		},
+	
+		getTopPoint: function(){
+			if(topPoint == null){
+				var centerY = getCenterY();
+				topPoint = new THREE.Vector3(0, Math.max.apply(Math, segments) - centerY, 0);
+				topPoint.applyMatrix4(getRotationMatrix());
+				topPoint.applyMatrix4(getScaleMatrix());
+				topPoint.applyMatrix4(getTranslationMatrix());
+			}
+			return new THREE.Vector3().copy(topPoint);
+		},
+
+		getBottomPoint: function(){
+			if(bottomPoint == null){
+				var centerY = getCenterY();
+				bottomPoint = new THREE.Vector3(0, Math.min.apply(Math, segments) - centerY, 0);
+				bottomPoint.applyMatrix4(getRotationMatrix());
+				bottomPoint.applyMatrix4(getScaleMatrix());
+				bottomPoint.applyMatrix4(getTranslationMatrix());
+			}
+			return new THREE.Vector3().copy(bottomPoint);
 		},
 
 		setAlignment : function(value){

@@ -7,7 +7,8 @@ var Block = function(){
 	var life = -1;
 	var sizeOverTimeFunc = null;
 	var velocityOverTimeFunc = null;
-
+	var opacity = 1.0;
+	
 	//component
 	var transform = null;
 	var rigidBody = null;
@@ -31,7 +32,11 @@ var Block = function(){
 		getVelocity: function(){ return getRigidBody().getVelocity(); },
 		setLife: function(value){ life = value },
 		getLife: function(){ return	life; },
-
+		setColor: function(value){ color = value; },
+		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
+		
 		getRigidBody: getRigidBody,
 
 		sizeOverTime: function(func){

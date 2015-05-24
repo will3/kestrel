@@ -77,6 +77,16 @@ var MathUtils = (function(){
 		    	new THREE.Vector3(radius * -Math.sin(t), 0, radius * Math.cos(t)),
 		    ];
 		},
+
+		randomVector: function(length){
+			var vector = new THREE.Vector3(
+				Math.random() - 0.5,
+				Math.random() - 0.5,
+				Math.random() - 0.5
+				);
+			vector.setLength(length);
+			return vector;
+		}
 	};
 })();
 

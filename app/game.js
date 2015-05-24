@@ -19,8 +19,10 @@ Game = function(entityRunner){
 	var entityRunner = new EntityRunner();
 	var nameRegistry = {};
 	var collision = new Collision();
+	var stats = null;
 
 	var onEnterFrame = function(){ 
+		Console.write(entityRunner.getEntityCount());
 		entityRunner.run();
 	}
 
@@ -125,11 +127,21 @@ Game = function(entityRunner){
 	}
 
 	var render = function(){
+		if(stats != null){
+			stats.begin();
+		}
 		renderer.render(scene, camera);
+		if(stats != null){
+	    	stats.end();
+		}
 		requestAnimationFrame(render);
 	}
 
 	return{
+		setStats: function(value){
+			stats = value;
+		},
+
 		initialize: function(container) {
 			initScene();
 			initControl();

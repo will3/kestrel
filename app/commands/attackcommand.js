@@ -1,6 +1,5 @@
 var Command = require("../command");
 var THREE = require("THREE");
-var Projectile = require("../entities/projectile");
 var Game = require("../game");
 
 var AttackCommand = function(){

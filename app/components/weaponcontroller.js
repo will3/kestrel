@@ -1,6 +1,5 @@
 var Component = require("../component");
 var THREE = require("THREE");
-var Projectile = require("../entities/projectile");
 var Game = require("../game");
 var Debug = require("../debug");
 

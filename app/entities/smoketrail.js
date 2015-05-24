@@ -2,22 +2,20 @@ var Entity = require("../entity");
 var Block = require("./block");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
+var THREE = require("THREE");
 
-var EngineTrail = function(){
-	var life = 10;
-	var size = 3;
+var SmokeTrail = function(){
 	var amount = 0;
 	var ship = null;
 	var game = null;
 
-	var createBlock = function(velocity){
+	var createBlock = function(velocity, size, life){
 		var block = new Block();
 		block.setSize(size);
 		block.setLife(life);
 		block.sizeOverTime(function(time){
 			return size - time * (size / life);
 		});
-
 		block.setVelocity(velocity);
 
 		return block;
@@ -34,7 +32,14 @@ var EngineTrail = function(){
 		game = value;
 	}
 
-	var engineTrail = {
+	var emit = function(position, offset, speed, size, life){
+		var rotationMatrix = ship.getRotationMatrix();
+		offset.applyMatrix4(rotationMatrix);
+
+		getGame().addEntity(createBlock(speed, size, life), position.add(offset));
+	}
+
+	var smokeTrail = {
 		setAmount: function(value){ amount = value; },
 		getAmount: function(){ return amount; },
 		setShip: function(value){ ship = value; },
@@ -54,13 +59,13 @@ var EngineTrail = function(){
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			vector.setLength(-1);
 
-			getGame().addEntity(createBlock(vector), this.getWorldPosition());
+			emit(this.getWorldPosition(), ship.getHull().cargo2.getBottomPoint(), vector, 3, 8);
 		}
 	}
 
-	engineTrail.__proto__ = Entity();
+	smokeTrail.__proto__ = Entity();
 
-	return engineTrail;
+	return smokeTrail;
 }
 
-module.exports = EngineTrail;
+module.exports = SmokeTrail;
