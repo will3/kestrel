@@ -1,5 +1,5 @@
 var Entity = require("../entity");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
 var THREE = require("THREE");
@@ -9,16 +9,16 @@ var SmokeTrail = function(){
 	var ship = null;
 	var game = null;
 
-	var createBlock = function(velocity, size, life){
-		var block = new Block();
-		block.setSize(size);
-		block.setLife(life);
-		block.sizeOverTime(function(time){
+	var createSprite = function(velocity, size, life){
+		var pointsprite = new PointSprite();
+		pointsprite.setSize(size);
+		pointsprite.setLife(life);
+		pointsprite.sizeOverTime(function(time){
 			return size - time * (size / life);
 		});
-		block.setVelocity(velocity);
+		pointsprite.setVelocity(velocity);
 
-		return block;
+		return pointsprite;
 	}
 
 	var getGame = function(){
@@ -36,7 +36,7 @@ var SmokeTrail = function(){
 		var rotationMatrix = ship.getRotationMatrix();
 		offset.applyMatrix4(rotationMatrix);
 
-		getGame().addEntity(createBlock(speed, size, life), position.add(offset));
+		getGame().addEntity(createSprite(speed, size, life), position.add(offset));
 	}
 
 	var smokeTrail = {

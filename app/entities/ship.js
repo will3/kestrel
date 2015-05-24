@@ -147,7 +147,7 @@ var Ship = function(){
 
 var ShipBluePrint = function(){
 	function getHull(){
-		var hull = new Beam([0, 15], [2, 2]);
+		var hull = new Beam([0, 16], [2, 2]);
 		hull.setAlignment("x");
 		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
 
@@ -157,8 +157,8 @@ var ShipBluePrint = function(){
 		var cargo2 = getCargo();
 		var cargo3 = getCargo();
 
-		hull.branch(weapon1, 5 , 1.4, "z");
-		hull.branch(weapon2, -5 , 1.4, "z");
+		hull.branch(weapon1, 5 , 1.5, "z");
+		hull.branch(weapon2, -5 , 1.5, "z");
 
 		hull.branch(cargo1, 2, -0.5, "z");
 		hull.branch(cargo2, 0, -0.5, "z");
@@ -175,31 +175,15 @@ var ShipBluePrint = function(){
 		return hull;
 	}
 
-	function getSensor(){
-		var beam = new Beam([0, 1, 4], [0.8, 0.8, 0]);
-
-		return beam;
-	}
-
-	function getEngine(){
-		var engine = new Beam([0, 1.5], [1.2, 1.2]);
-
-		return engine;
-	}
-
 	function getWeapon(){
 		var beam = new Beam([0, 4, 7], [1.0, 1.0, 0]);
 		return beam;
 	}
 
 	function getCargo(){
-		var cargo = new Beam([0, 2, 6], [1.1, 1.0, 1.0]);
+		var cargo = new Beam([0, 6], [1.0, 1.0]);
 
 		return cargo;
-	}
-
-	function getCargoAndEngine(){
-
 	}
 
 	return {

@@ -1,17 +1,17 @@
 var Ammo = require("./ammo");
 var THREE = require("THREE");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 
 var Laser = function() {
 	var rigidBody = null;
 	var velocity = null;
 
-	var createBlock = function(size, offset, velocity, life){
-		var block = new Block();
+	var createSprite = function(size, offset, velocity, life){
+		var sprite = new PointSprite();
 
-		block.setSize(size);
-		block.setLife(life);
+		sprite.setSize(size);
+		sprite.setLife(life);
 
 		var sizeOverTime = function(time){
 			var remainingLife = this.life - time;
@@ -24,15 +24,15 @@ var Laser = function() {
 			life: life
 		});
 
-		block.sizeOverTime(sizeOverTime);
+		sprite.sizeOverTime(sizeOverTime);
 
 		var position = new THREE.Vector3();
 
 		position.copy(velocity);
 		position.multiplyScalar(offset);
-		block.setPosition(position);
+		sprite.setPosition(position);
 
-		return block;
+		return sprite;
 	}
 
 	var laser = {
@@ -77,15 +77,15 @@ var Laser = function() {
 
 			this.getPosition().add(startPosition);
 
-			this.createBlocks();
+			this.createSprites();
 		},
 
-		createBlocks: function(time){
+		createSprites: function(time){
 			var power = 2;
 			var num = 4;
 			
 			for(var i = 0; i < num; i ++){
-				this.addEntity(createBlock(
+				this.addEntity(createSprite(
 					power * (num - i) / num, 
 					- i * 0.5,
 					velocity,

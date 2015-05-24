@@ -81,7 +81,7 @@ var Collision = function(){
 
 module.exports = Collision;
 
-},{"./entity":30,"THREE":36,"lodash":40}],2:[function(require,module,exports){
+},{"./entity":29,"THREE":35,"lodash":39}],2:[function(require,module,exports){
 var Command = function(){
 	var actor = null;
 	var params = null;
@@ -159,7 +159,7 @@ var AddCommand = function(){
 }
 
 module.exports = AddCommand;
-},{"../command":2,"../entities/ship":27,"THREE":36}],4:[function(require,module,exports){
+},{"../command":2,"../entities/ship":26,"THREE":35}],4:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -192,7 +192,7 @@ var AlignCommand = function(){
 }
 
 module.exports = AlignCommand;
-},{"../command":2,"THREE":36}],5:[function(require,module,exports){
+},{"../command":2,"THREE":35}],5:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -232,7 +232,7 @@ var AttackCommand = function(){
 }
 
 module.exports = AttackCommand;
-},{"../command":2,"../game":32,"THREE":36}],6:[function(require,module,exports){
+},{"../command":2,"../game":31,"THREE":35}],6:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -272,7 +272,7 @@ var DestroyCommand = function(){
 
 module.exports = DestroyCommand;
 
-},{"../command":2,"../game":32,"lodash":40}],7:[function(require,module,exports){
+},{"../command":2,"../game":31,"lodash":39}],7:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -297,7 +297,7 @@ var ListCommand = function(){
 }
 
 module.exports = ListCommand;
-},{"../command":2,"../game":32,"lodash":40}],8:[function(require,module,exports){
+},{"../command":2,"../game":31,"lodash":39}],8:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -332,7 +332,7 @@ var MoveCommand = function(){
 }
 
 module.exports = MoveCommand;
-},{"../command":2,"THREE":36}],9:[function(require,module,exports){
+},{"../command":2,"THREE":35}],9:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -416,7 +416,7 @@ var OrbitCommand = function(){
 }
 
 module.exports = OrbitCommand;
-},{"../command":2,"../debug":20,"../entity":30,"../mathutils":34,"THREE":36}],10:[function(require,module,exports){
+},{"../command":2,"../debug":20,"../entity":29,"../mathutils":33,"THREE":35}],10:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
 
@@ -492,7 +492,7 @@ var Component = function(){
 }
 
 module.exports = Component;
-},{"klass":39}],13:[function(require,module,exports){
+},{"klass":38}],13:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -564,7 +564,7 @@ var RenderComponent = function(){
 }
 
 module.exports = RenderComponent;
-},{"../component":12,"../game":32,"../mathutils":34,"THREE":36}],14:[function(require,module,exports){
+},{"../component":12,"../game":31,"../mathutils":33,"THREE":35}],14:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -621,7 +621,7 @@ var RigidBody = function(){
 }
 
 module.exports = RigidBody;
-},{"../component":12,"THREE":36}],15:[function(require,module,exports){
+},{"../component":12,"THREE":35}],15:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -860,7 +860,7 @@ ShipController.Pitch = Pitch;
 ShipController.Yaw = Yaw;
 
 module.exports = ShipController;
-},{"../component":12,"../mathutils":34,"THREE":36}],16:[function(require,module,exports){
+},{"../component":12,"../mathutils":33,"THREE":35}],16:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -884,7 +884,7 @@ var TransformComponent = function(){
 }
 
 module.exports = TransformComponent;
-},{"../component":12,"THREE":36}],17:[function(require,module,exports){
+},{"../component":12,"THREE":35}],17:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -921,7 +921,7 @@ var WeaponController = function(){
 }
 
 module.exports = WeaponController;
-},{"../component":12,"../debug":20,"../game":32,"THREE":36}],18:[function(require,module,exports){
+},{"../component":12,"../debug":20,"../game":31,"THREE":35}],18:[function(require,module,exports){
 var Console = function(){
 	var input;
 	var displayResult = false;
@@ -1089,12 +1089,12 @@ Control.KeyMap = KeyMap;
 
 module.exports = Control;
 },{}],20:[function(require,module,exports){
-var Block = require("./entities/block");
+var PointSprite = require("./entities/pointsprite");
 
 var Debug = function(){
 	return {
 		addIndicator: function(point, duration){
-			var indicator = new Block();
+			var indicator = new PointSprite();
 			indicator.setSize(2);
 			var life = duration == null ? 8 : duration;
 
@@ -1111,7 +1111,7 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/block":23}],21:[function(require,module,exports){
+},{"./entities/pointsprite":25}],21:[function(require,module,exports){
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
@@ -1138,7 +1138,7 @@ var Ammo = function(){
 }
 
 module.exports = Ammo;
-},{"../entity.js":30,"THREE":36}],22:[function(require,module,exports){
+},{"../entity.js":29,"THREE":35}],22:[function(require,module,exports){
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 
@@ -1407,109 +1407,21 @@ function Beam(segments, sides){
 }
 
 module.exports = Beam;
-},{"../mathutils":34,"THREE":36}],23:[function(require,module,exports){
-var PointSprite = require("./pointsprite");
-var THREE = require("THREE");
-var RigidBody = require("../components/rigidbody");
-
-var Block = function(){
-	var size = 4;
-	var life = -1;
-	var sizeOverTimeFunc = null;
-	var velocityOverTimeFunc = null;
-	var opacity = 1.0;
-	
-	//component
-	var transform = null;
-	var rigidBody = null;
-
-	var updateSize = function(){
-		transform.getScale().set(size, size, size);
-	}
-	
-	var getRigidBody = function(){
-		if(rigidBody == null){
-			rigidBody = new RigidBody();
-			rigidBody.defaultFriction = 1;
-		}
-		return rigidBody;
-	}
-
-	var block = {
-		setSize: function(value){ size = value; },
-		getSize: function(){ return size; },
-		setVelocity: function(value){ getRigidBody().setVelocity(value); },
-		getVelocity: function(){ return getRigidBody().getVelocity(); },
-		setLife: function(value){ life = value },
-		getLife: function(){ return	life; },
-		setColor: function(value){ color = value; },
-		getColor: function(){ return color; },
-		setOpacity: function(value){ opacity = value; },
-		getOpacity: function(){ return opacity; },
-		
-		getRigidBody: getRigidBody,
-
-		sizeOverTime: function(func){
-			sizeOverTimeFunc = func;
-		},
-
-		velocityOverTime: function(func){
-			velocityOverTimeFunc = func;
-		},
-
-		start: function(){
-			//add rigid body
-			transform = this.getTransform();
-			this.addComponent(getRigidBody());
-			this.addComponent(this.getRenderComponent());
-
-			//initialize size
-			updateSize();
-		},
-
-		update: function(){
-			//update age
-			if(this.getFrameAge() > life && life != -1){
-				this.removeFromParent();
-			}
-
-			//update size over time
-			if(sizeOverTimeFunc != null){
-				var newSize = sizeOverTimeFunc(this.getFrameAge());
-				if(size != newSize){
-					size = newSize;
-					updateSize();
-				}
-			}
-
-			if(velocityOverTimeFunc != null){
-				var velocity = velocityOverTimeFunc(this.getFrameAge());
-				this.setVelocity(velocity);
-			}
-		}
-	};
-
-	block.__proto__ = PointSprite();
-
-	return block;
-};
-
-module.exports = Block;
-},{"../components/rigidbody":14,"./pointsprite":26,"THREE":36}],24:[function(require,module,exports){
+},{"../mathutils":33,"THREE":35}],23:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 
 var Laser = function() {
 	var rigidBody = null;
 	var velocity = null;
 
-	var createBlock = function(size, offset, velocity, life){
-		var block = new Block();
+	var createSprite = function(size, offset, velocity, life){
+		var sprite = new PointSprite();
 
-		block.setSize(size);
-		block.setLife(life);
+		sprite.setSize(size);
+		sprite.setLife(life);
 
 		var sizeOverTime = function(time){
 			var remainingLife = this.life - time;
@@ -1522,15 +1434,15 @@ var Laser = function() {
 			life: life
 		});
 
-		block.sizeOverTime(sizeOverTime);
+		sprite.sizeOverTime(sizeOverTime);
 
 		var position = new THREE.Vector3();
 
 		position.copy(velocity);
 		position.multiplyScalar(offset);
-		block.setPosition(position);
+		sprite.setPosition(position);
 
-		return block;
+		return sprite;
 	}
 
 	var laser = {
@@ -1575,15 +1487,15 @@ var Laser = function() {
 
 			this.getPosition().add(startPosition);
 
-			this.createBlocks();
+			this.createSprites();
 		},
 
-		createBlocks: function(time){
+		createSprites: function(time){
 			var power = 2;
 			var num = 4;
 			
 			for(var i = 0; i < num; i ++){
-				this.addEntity(createBlock(
+				this.addEntity(createSprite(
 					power * (num - i) / num, 
 					- i * 0.5,
 					velocity,
@@ -1607,11 +1519,11 @@ var Laser = function() {
 }
 
 module.exports = Laser;
-},{"../components/rigidbody":14,"./ammo":21,"./block":23,"THREE":36}],25:[function(require,module,exports){
+},{"../components/rigidbody":14,"./ammo":21,"./pointsprite":25,"THREE":35}],24:[function(require,module,exports){
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
 var Ammo = require("./ammo");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var MathUtils = require("../mathutils");
 
 var Missile = function(){
@@ -1654,9 +1566,9 @@ var Missile = function(){
 			var velocity = new THREE.Vector3().copy(direction).setLength(launchSpeed);
 			this.getRigidBody().setVelocity(velocity);
 
-			var block = new Block();
-			block.setSize(2);
-			this.addEntity(block);
+			var sprite = new PointSprite();
+			sprite.setSize(2);
+			this.addEntity(sprite);
 		},
 
 		update: function(){
@@ -1695,20 +1607,55 @@ var Missile = function(){
 }
 
 module.exports = Missile;
-},{"../components/rigidbody":14,"../mathutils":34,"./ammo":21,"./block":23,"THREE":36}],26:[function(require,module,exports){
-var Entity = require('../entity');
-var RenderComponent = require('../components/rendercomponent');
+},{"../components/rigidbody":14,"../mathutils":33,"./ammo":21,"./pointsprite":25,"THREE":35}],25:[function(require,module,exports){
+var Entity = require("../entity");
+var RenderComponent = require("../components/rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
 var extend = require("extend");
+var RigidBody = require("../components/rigidbody");
 
 var PointSprite = function(){
 	var texture = null;
+	var size = 4;
+	var sizeOverTimeFunc = null;
+	var velocityOverTimeFunc = null;
+
 	var renderComponent = null;
+	var rigidBody = null;
+	var transform = null;
+
+	var updateSize = function(){
+		transform.getScale().set(size, size, size);
+	}
+
+	var getRigidBody = function(){
+		if(rigidBody == null){
+			rigidBody = new RigidBody();
+			rigidBody.setDefaultFriction(1);
+		}
+		return rigidBody;
+	}
 
 	var pointSprite = {
 		setTexture: function(value){ texture = value; },
 		getTexture: function(){ return texture; },
+		setSize: function(value){ size = value; },
+		getSize: function(){ return size; },
+		setVelocity: function(value){ getRigidBody().setVelocity(value); },
+		getVelocity: function(){ return getRigidBody().getVelocity(); },
+		setColor: function(value){ color = value; },
+		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
+		getRigidBody: getRigidBody,
+		sizeOverTime: function(func){
+			sizeOverTimeFunc = func;
+		},
+
+		velocityOverTime: function(func){
+			velocityOverTimeFunc = func;
+		},
 
 		setOpacity: function(value){ 
 			renderComponent.setOpacity(value); 
@@ -1737,7 +1684,27 @@ var PointSprite = function(){
 		},
 
 		start: function(){
+			transform = this.getTransform();
+			this.addComponent(getRigidBody());
 			this.addComponent(this.getRenderComponent());
+
+			updateSize();
+		},
+
+		update: function(){
+			//update size over time
+			if(sizeOverTimeFunc != null){
+				var newSize = sizeOverTimeFunc(this.getFrameAge());
+				if(size != newSize){
+					size = newSize;
+					updateSize();
+				}
+			}
+
+			if(velocityOverTimeFunc != null){
+				var velocity = velocityOverTimeFunc(this.getFrameAge());
+				this.setVelocity(velocity);
+			}
 		}
 	};
 
@@ -1750,6 +1717,7 @@ var PointSprite = function(){
 var PointSpriteRenderComponent = function(){
 	var texture = texture;
 	var color = null;
+	var opacity = 1.0;
 
 	var pointSpriteRenderComponent = {
 		initGeometry: function(){
@@ -1758,6 +1726,8 @@ var PointSpriteRenderComponent = function(){
 
 		setColor: function(value){ color = value; },
 		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
 
 		initMaterial: function(){
 			var map = texture == null ? TextureLoader.getDefault() : texture;
@@ -1767,6 +1737,7 @@ var PointSpriteRenderComponent = function(){
 				color: color || 0xffffff, 
 				fog:true 
 			});
+			material.opacity = opacity;
 
 			return material;
 		},
@@ -1782,7 +1753,7 @@ var PointSpriteRenderComponent = function(){
 }
 
 module.exports = PointSprite;
-},{"../components/rendercomponent":13,"../entity":30,"../textureloader":35,"THREE":36,"extend":37}],27:[function(require,module,exports){
+},{"../components/rendercomponent":13,"../components/rigidbody":14,"../entity":29,"../textureloader":34,"THREE":35,"extend":36}],26:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var Beam = require("./beam");
@@ -1932,7 +1903,7 @@ var Ship = function(){
 
 var ShipBluePrint = function(){
 	function getHull(){
-		var hull = new Beam([0, 15], [2, 2]);
+		var hull = new Beam([0, 16], [2, 2]);
 		hull.setAlignment("x");
 		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
 
@@ -1942,8 +1913,8 @@ var ShipBluePrint = function(){
 		var cargo2 = getCargo();
 		var cargo3 = getCargo();
 
-		hull.branch(weapon1, 5 , 1.4, "z");
-		hull.branch(weapon2, -5 , 1.4, "z");
+		hull.branch(weapon1, 5 , 1.5, "z");
+		hull.branch(weapon2, -5 , 1.5, "z");
 
 		hull.branch(cargo1, 2, -0.5, "z");
 		hull.branch(cargo2, 0, -0.5, "z");
@@ -1960,31 +1931,15 @@ var ShipBluePrint = function(){
 		return hull;
 	}
 
-	function getSensor(){
-		var beam = new Beam([0, 1, 4], [0.8, 0.8, 0]);
-
-		return beam;
-	}
-
-	function getEngine(){
-		var engine = new Beam([0, 1.5], [1.2, 1.2]);
-
-		return engine;
-	}
-
 	function getWeapon(){
 		var beam = new Beam([0, 4, 7], [1.0, 1.0, 0]);
 		return beam;
 	}
 
 	function getCargo(){
-		var cargo = new Beam([0, 2, 6], [1.1, 1.0, 1.0]);
+		var cargo = new Beam([0, 6], [1.0, 1.0]);
 
 		return cargo;
-	}
-
-	function getCargoAndEngine(){
-
 	}
 
 	return {
@@ -2013,9 +1968,9 @@ var ShipRenderComponent = function(hull){
 }
 
 module.exports = Ship;
-},{"../components/rendercomponent":13,"../components/rigidbody":14,"../components/shipcontroller":15,"../components/weaponcontroller":17,"../entity":30,"../materialloader":33,"./beam":22,"./laser":24,"./missile":25,"./smoketrail":28,"./weapon":29,"THREE":36,"extend":37}],28:[function(require,module,exports){
+},{"../components/rendercomponent":13,"../components/rigidbody":14,"../components/shipcontroller":15,"../components/weaponcontroller":17,"../entity":29,"../materialloader":32,"./beam":22,"./laser":23,"./missile":24,"./smoketrail":27,"./weapon":28,"THREE":35,"extend":36}],27:[function(require,module,exports){
 var Entity = require("../entity");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
 var THREE = require("THREE");
@@ -2025,16 +1980,16 @@ var SmokeTrail = function(){
 	var ship = null;
 	var game = null;
 
-	var createBlock = function(velocity, size, life){
-		var block = new Block();
-		block.setSize(size);
-		block.setLife(life);
-		block.sizeOverTime(function(time){
+	var createSprite = function(velocity, size, life){
+		var pointsprite = new PointSprite();
+		pointsprite.setSize(size);
+		pointsprite.setLife(life);
+		pointsprite.sizeOverTime(function(time){
 			return size - time * (size / life);
 		});
-		block.setVelocity(velocity);
+		pointsprite.setVelocity(velocity);
 
-		return block;
+		return pointsprite;
 	}
 
 	var getGame = function(){
@@ -2052,7 +2007,7 @@ var SmokeTrail = function(){
 		var rotationMatrix = ship.getRotationMatrix();
 		offset.applyMatrix4(rotationMatrix);
 
-		getGame().addEntity(createBlock(speed, size, life), position.add(offset));
+		getGame().addEntity(createSprite(speed, size, life), position.add(offset));
 	}
 
 	var smokeTrail = {
@@ -2085,7 +2040,7 @@ var SmokeTrail = function(){
 }
 
 module.exports = SmokeTrail;
-},{"../debug":20,"../entity":30,"../mathutils":34,"./block":23,"THREE":36}],29:[function(require,module,exports){
+},{"../debug":20,"../entity":29,"../mathutils":33,"./pointsprite":25,"THREE":35}],28:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -2146,7 +2101,7 @@ var Weapon = function(ammo){
 }
 
 module.exports = Weapon;
-},{"../entity":30,"THREE":36,"extend":37}],30:[function(require,module,exports){
+},{"../entity":29,"THREE":35,"extend":36}],29:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -2303,7 +2258,7 @@ var Entity = function(){
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":16,"./mathutils":34,"THREE":36,"lodash":40}],31:[function(require,module,exports){
+},{"./components/transformcomponent":16,"./mathutils":33,"THREE":35,"lodash":39}],30:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function(){
@@ -2370,7 +2325,7 @@ var EntityRunner = function(){
 }
 
 module.exports = EntityRunner;
-},{"lodash":40}],32:[function(require,module,exports){
+},{"lodash":39}],31:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -2585,7 +2540,7 @@ Game = function(entityRunner){
 }();
 
 module.exports = Game;
-},{"./collision":1,"./console":18,"./control":19,"./entityrunner":31,"./mathutils":34,"THREE":36,"lodash":40}],33:[function(require,module,exports){
+},{"./collision":1,"./console":18,"./control":19,"./entityrunner":30,"./mathutils":33,"THREE":35,"lodash":39}],32:[function(require,module,exports){
 var THREE = require("THREE");
 
 var ShaderCode = (function(){
@@ -2623,7 +2578,7 @@ var MaterialLoader = function(flag) {
 }();
 
 module.exports = MaterialLoader;
-},{"THREE":36}],34:[function(require,module,exports){
+},{"THREE":35}],33:[function(require,module,exports){
 var THREE = require('THREE');
 
 var MathUtils = (function(){
@@ -2717,7 +2672,7 @@ var MathUtils = (function(){
 })();
 
 module.exports = MathUtils;
-},{"THREE":36}],35:[function(require,module,exports){
+},{"THREE":35}],34:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -2742,7 +2697,7 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":36}],36:[function(require,module,exports){
+},{"THREE":35}],35:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -37890,7 +37845,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],37:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -37981,7 +37936,7 @@ module.exports = function extend() {
 };
 
 
-},{}],38:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -47193,7 +47148,7 @@ return jQuery;
 
 }));
 
-},{}],39:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -47286,7 +47241,7 @@ return jQuery;
   return klass
 });
 
-},{}],40:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -59465,7 +59420,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],41:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
@@ -59490,9 +59445,9 @@ Console.setCommandMapping({
 Console.runScenario(
 		[
 			"add ship",
-			"add ship 200 0 200",
+			"add ship 150 0 150",
 			"select ship1",
-			"orbit ship0 200",
+			"orbit ship0 150",
 			"attack ship0",
 			// "select ship0",
 			// "orbit ship1 100",
@@ -59510,4 +59465,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 Game.setStats(stats);
-},{"./commands/addcommand":3,"./commands/aligncommand":4,"./commands/attackcommand":5,"./commands/destroycommand":6,"./commands/listcommand":7,"./commands/movecommand":8,"./commands/orbitcommand":9,"./commands/selectcommand":10,"./commands/stopcommand":11,"./console":18,"./game.js":32,"jquery":38}]},{},[41]);
+},{"./commands/addcommand":3,"./commands/aligncommand":4,"./commands/attackcommand":5,"./commands/destroycommand":6,"./commands/listcommand":7,"./commands/movecommand":8,"./commands/orbitcommand":9,"./commands/selectcommand":10,"./commands/stopcommand":11,"./console":18,"./game.js":31,"jquery":37}]},{},[40]);

@@ -1,16 +1,50 @@
-var Entity = require('../entity');
-var RenderComponent = require('../components/rendercomponent');
+var Entity = require("../entity");
+var RenderComponent = require("../components/rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
 var extend = require("extend");
+var RigidBody = require("../components/rigidbody");
 
 var PointSprite = function(){
 	var texture = null;
+	var size = 4;
+	var sizeOverTimeFunc = null;
+	var velocityOverTimeFunc = null;
+
 	var renderComponent = null;
+	var rigidBody = null;
+	var transform = null;
+
+	var updateSize = function(){
+		transform.getScale().set(size, size, size);
+	}
 
 	var pointSprite = {
 		setTexture: function(value){ texture = value; },
 		getTexture: function(){ return texture; },
+		setSize: function(value){ size = value; },
+		getSize: function(){ return size; },
+		setVelocity: function(value){ this.getRigidBody().setVelocity(value); },
+		getVelocity: function(){ return this.getRigidBody().getVelocity(); },
+		setColor: function(value){ color = value; },
+		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
+		getRigidBody:  function(){
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.setDefaultFriction(1);
+			}
+			return rigidBody;
+		},
+		setRigidBody: function(value){ rigidBody = value; },
+		sizeOverTime: function(func){
+			sizeOverTimeFunc = func;
+		},
+
+		velocityOverTime: function(func){
+			velocityOverTimeFunc = func;
+		},
 
 		setOpacity: function(value){ 
 			renderComponent.setOpacity(value); 
@@ -39,7 +73,27 @@ var PointSprite = function(){
 		},
 
 		start: function(){
+			transform = this.getTransform();
+			this.addComponent(this.getRigidBody());
 			this.addComponent(this.getRenderComponent());
+
+			updateSize();
+		},
+
+		update: function(){
+			//update size over time
+			if(sizeOverTimeFunc != null){
+				var newSize = sizeOverTimeFunc(this.getFrameAge());
+				if(size != newSize){
+					size = newSize;
+					updateSize();
+				}
+			}
+
+			if(velocityOverTimeFunc != null){
+				var velocity = velocityOverTimeFunc(this.getFrameAge());
+				this.setVelocity(velocity);
+			}
 		}
 	};
 
@@ -52,6 +106,7 @@ var PointSprite = function(){
 var PointSpriteRenderComponent = function(){
 	var texture = texture;
 	var color = null;
+	var opacity = 1.0;
 
 	var pointSpriteRenderComponent = {
 		initGeometry: function(){
@@ -60,6 +115,8 @@ var PointSpriteRenderComponent = function(){
 
 		setColor: function(value){ color = value; },
 		getColor: function(){ return color; },
+		setOpacity: function(value){ opacity = value; },
+		getOpacity: function(){ return opacity; },
 
 		initMaterial: function(){
 			var map = texture == null ? TextureLoader.getDefault() : texture;
@@ -69,6 +126,7 @@ var PointSpriteRenderComponent = function(){
 				color: color || 0xffffff, 
 				fog:true 
 			});
+			material.opacity = opacity;
 
 			return material;
 		},

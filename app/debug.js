@@ -1,9 +1,9 @@
-var Block = require("./entities/block");
+var PointSprite = require("./entities/pointsprite");
 
 var Debug = function(){
 	return {
 		addIndicator: function(point, duration){
-			var indicator = new Block();
+			var indicator = new PointSprite();
 			indicator.setSize(2);
 			var life = duration == null ? 8 : duration;
 

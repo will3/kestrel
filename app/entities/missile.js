@@ -1,7 +1,7 @@
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
 var Ammo = require("./ammo");
-var Block = require("./block");
+var PointSprite = require("./pointsprite");
 var MathUtils = require("../mathutils");
 
 var Missile = function(){
@@ -44,9 +44,9 @@ var Missile = function(){
 			var velocity = new THREE.Vector3().copy(direction).setLength(launchSpeed);
 			this.getRigidBody().setVelocity(velocity);
 
-			var block = new Block();
-			block.setSize(2);
-			this.addEntity(block);
+			var sprite = new PointSprite();
+			sprite.setSize(2);
+			this.addEntity(sprite);
 		},
 
 		update: function(){
