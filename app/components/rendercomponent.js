@@ -56,6 +56,7 @@ var RenderComponent = function(){
 		initMaterial: function(){ throw "must override"; },
 
 		initObject: function(geometry, material){
+			geometry.mergeVertices();
 			return new THREE.Mesh(
 				geometry,
 				material
