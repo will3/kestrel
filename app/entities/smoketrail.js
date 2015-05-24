@@ -59,7 +59,7 @@ var SmokeTrail = function(){
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			vector.setLength(-1);
 
-			emit(this.getWorldPosition(), ship.getHull().cargo2.getBottomPoint(), vector, 3, 8);
+			emit(this.getWorldPosition(), ship.getHull().getEngineEmissionPoint(), vector, 3, 8);
 		}
 	}
 

@@ -22,7 +22,6 @@ Game = function(entityRunner){
 	var stats = null;
 
 	var onEnterFrame = function(){ 
-		Console.write(entityRunner.getEntityCount());
 		entityRunner.run();
 	}
 
@@ -117,12 +116,25 @@ Game = function(entityRunner){
 		updateCamera();
 	}
 
+	var mouseRotate = function(xDiff, yDiff){
+		cameraYawPitchRow.x += - xDiff / 100.0;
+		cameraYawPitchRow.y += yDiff / 100.0;
+
+		if(cameraYawPitchRow.y > Math.PI / 2.0){
+			cameraYawPitchRow.y = Math.PI / 2.0;
+		}else if(cameraYawPitchRow.y < -Math.PI / 2.0){
+			cameraYawPitchRow.y = - Math.PI / 2.0;
+		}
+
+		updateCamera();
+	}
+
 	var initControl = function(){
 		control = new Control();
 		control.hookContainer(container);
 
 		control.mousemove(function(xDiff, yDiff){
-			mouseMove(xDiff, yDiff)
+			mouseRotate(xDiff, yDiff);
 		});
 	}
 

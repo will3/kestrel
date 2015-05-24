@@ -1,4 +1,494 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var THREE = require("THREE");
+var CubeMaker = require("./cubemaker");
+
+var Block = function(){
+	var size = 2;
+	var grid = new THREE.Vector3(0, 0, 0);
+	var scale = new THREE.Vector3(1.0, 1.0, 1.0);
+	var cubeMaker = new CubeMaker();
+	var geometry = null;
+
+	var block = {
+		getSize: function(){ return size; },
+		setSize: function(value){ size = value; },
+		getGrid: function(){ return grid; },
+		setGrid: function(value){ grid = value; },
+		getScale: function(){ return scale; },
+		setScale: function(value){ scale = value; },
+
+		getGeometry: function(){
+			if(geometry == null){
+				geometry = cubeMaker.make().configure(size, grid, scale).build();
+			}
+			return geometry;
+		},
+
+		setGeometry: function(value){
+			geometry = value;
+		}
+	}
+
+	return block;
+}
+
+module.exports = Block;
+},{"./cubemaker":5,"THREE":42}],2:[function(require,module,exports){
+var Entity = require("../entity");
+var MaterialLoader = require("../materialloader");
+var THREE = require("THREE");
+var Block = require("./block");
+
+var BlockCollection = function(){
+	var renderComponent = null;
+	var size = 1;
+	var map = [[[
+		//object at 0 0 0
+	]]];
+
+	var childCollections = [];
+
+	this.type = "BlockCollection";
+
+	var grid = new THREE.Vector3(0, 0, 0);
+
+	var min = new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+	var max = new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+
+	var visitCoords = function(callback){
+		Object.keys(map).forEach(function(x){
+			Object.keys(map[x]).forEach(function(y){
+				Object.keys(map[x][y]).forEach(function(z){
+					callback(x, y, z);
+				})
+			})
+		})
+	}
+
+	var visitBlocks = function(callback){
+		visitCoords(function(x, y, z){
+			callback(map[x][y][z]);
+		})
+	}
+
+	var blockCollection = {
+		setGrid: function(value){ grid = value; },
+		getGrid: function(){ return grid; },
+		addCollection: function(value){
+			childCollections.push(value);
+		},
+		getChildCollections: function(){
+			return childCollections;
+		},
+
+		initBoundingBox: function(){
+			visitCoords(function(x, y, z){
+				if(x > max.x){ max.setX(x); }
+				if(y > max.y){ max.setY(y); }
+				if(z > max.z){ max.setZ(z); }
+
+				if(x < min.x){ min.setX(x); }
+				if(y < min.y){ min.setY(y); }
+				if(z < min.z){ min.setZ(z); }
+			})
+		},
+
+		getBoundingBox: function(){
+			var center = new THREE.Vector3().copy(min).add(max).multiplyScalar(0.5);
+			return {
+				min: min,
+				center: center,
+				max: max
+			}
+		},
+
+		addBlock: function(x, y, z){
+			if(map[x] == null){
+				map[x] = {};
+			}
+
+			if(map[x][y] == null){
+				map[x][y] = {};
+			}
+
+			if(map[x][y][z] != null){
+				throw "already something here!";
+			}
+
+			var block = new Block();
+			block.setSize(size);
+			block.setGrid(new THREE.Vector3(x, y, z));
+
+			map[x][y][z] = block;
+		},
+
+		getBlock: function(x, y, z){
+			var block = map[x][y][z];
+			if(block == null){
+				throw "nothing here";
+			}
+			return block;
+		},
+
+		visitBlocks: visitBlocks,
+
+		getSize: function(){ return size; },
+
+		getGeometry: function(parentOffset){
+			var geometry = new THREE.Geometry();
+			this.visitBlocks(function(block){
+				var cube = block.getGeometry();
+				geometry.merge(cube);
+			})
+
+			if(parentOffset == null){
+				parentOffset = new THREE.Vector3(0, 0, 0);
+			}
+
+			//apply offset
+			var localOffset = new THREE.Vector3().copy(grid).multiplyScalar(size);
+			localOffset.add(parentOffset);
+
+			geometry.applyMatrix(new THREE.Matrix4().makeTranslation(localOffset.x, localOffset.y, localOffset.z));
+
+			//merge child
+			this.getChildCollections().forEach(function(collection){
+				var childGeometry = collection.getGeometry(localOffset);
+				geometry.merge(childGeometry);
+			});
+
+			return geometry;
+		},
+
+		getMaterial: function(){
+			var material = MaterialLoader.getMeshFaceMaterial("cube");
+			return material;
+		}
+	}
+
+	return blockCollection;
+}
+
+module.exports = BlockCollection;
+
+},{"../entity":36,"../materialloader":39,"./block":1,"THREE":42}],3:[function(require,module,exports){
+var BlockCollection = require("./blockcollection");
+var _ = require("lodash");
+
+var BlockMaker = function(){
+	var blockCollection = null;
+
+	var visitRange = function(range, callback){
+		var range = range || {};
+		var xRange = range.xRange;
+		var yRange = range.yRange;
+		var zRange = range.zRange;
+
+		if(xRange == null || yRange == null || zRange == null){
+			throw "must specify range";
+		}
+
+		visitAxis(xRange, function(x){
+			visitAxis(yRange, function(y){
+				visitAxis(zRange, function(z){
+					callback(x, y, z);
+				})
+			})
+		})
+	}
+
+	var visitAxis = function(range, callback){
+		if(_.isArray(range)){
+			var min = range[0];
+			var max = range[1];
+			for(var i = min; i < max; i ++){
+				callback(i);
+			}
+		}
+	}
+
+	var blockMaker = {
+		createNew: function(){
+			blockCollection = new BlockCollection();
+			return this;
+		},
+
+		map: function(range){
+			visitRange(range, function(x, y, z){
+				blockCollection.addBlock(x, y, z);
+			})
+
+			return this;
+		},
+
+		scale : function(range, scale){
+			visitRange(range, function(x, y, z){
+				var block = blockCollection.getBlock(x, y, z);
+				block.setScale(scale);
+			});
+
+			return this;
+		},
+
+		translate: function(translation){
+			blockCollection.setGrid(translation);
+
+			return this;
+		},
+
+		visit: function(range, callback){
+			visitRange(range, function(x, y, z){
+				callback(x, y, z, blockCollection.getBlock(x, y, z));
+			});
+		},
+
+		make: function(){
+			return blockCollection;
+		}
+	}
+
+	return blockMaker;
+}
+
+module.exports = BlockMaker;
+},{"./blockcollection":2,"lodash":46}],4:[function(require,module,exports){
+var THREE = require("THREE");
+
+var CubeMaker = function(){
+	var geometry = null;
+
+	var make = function(bottomWidth, topWidth){
+		geometry = new THREE.Geometry();
+		var a, b, c, d, e, f, g, h;
+
+		var bottom = bottomWidth || 1.0;
+		var top = topWidth || 1.0;
+
+		a = new THREE.Vector3(-0.5 * bottom, -0.5, -0.5 * bottom);	//0
+		b = new THREE.Vector3(0.5 * bottom, -0.5, -0.5 * bottom);		//1
+		c = new THREE.Vector3(0.5 * bottom, -0.5, 0.5 * bottom);		//2
+		d = new THREE.Vector3(-0.5 * bottom, -0.5, 0.5 * bottom);		//3
+
+		e = new THREE.Vector3(-0.5 * top, 0.5, -0.5 * top);		//0
+		f = new THREE.Vector3(0.5 * top, 0.5, -0.5 * top);		//1
+		g = new THREE.Vector3(0.5 * top, 0.5, 0.5 * top);		//2
+		h = new THREE.Vector3(-0.5 * top, 0.5, 0.5 * top);		//3
+
+		[a, b, c, d, e, f, g, h].forEach(function(vertice){
+			geometry.vertices.push(vertice);
+		})
+
+		geometry.faces.push(new THREE.Face3(1, 0, 2));
+		geometry.faces.push(new THREE.Face3(3, 2, 0));
+		geometry.faces.push(new THREE.Face3(4, 5, 6));
+		geometry.faces.push(new THREE.Face3(4, 6, 7));
+
+		geometry.faces.push(new THREE.Face3(0, 1, 5));
+		geometry.faces.push(new THREE.Face3(1, 2, 6));
+		geometry.faces.push(new THREE.Face3(2, 3, 7));
+		geometry.faces.push(new THREE.Face3(3, 0, 4));
+
+		geometry.faces.push(new THREE.Face3(5, 4, 0));
+		geometry.faces.push(new THREE.Face3(6, 5, 1));
+		geometry.faces.push(new THREE.Face3(7, 6, 2));
+		geometry.faces.push(new THREE.Face3(4, 7, 3));
+
+		return this;
+	}
+
+	//	  7   6
+	//  4	5
+	//	  3   2
+	//	0	1
+	//size: grid size
+	//offset: offset in grid
+	var configure = function(size, grid, scale){
+		if(scale != null){
+			geometry.applyMatrix(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
+		}
+
+		if(grid != null){
+			geometry.applyMatrix(new THREE.Matrix4().makeTranslation(grid.x, grid.y, grid.z));
+		}
+
+		geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5));
+		
+		if(size	!= 1){
+			geometry.applyMatrix(new THREE.Matrix4.makeScale(size, size, size));
+		}
+
+		return this;
+	}
+
+	var build = function(){
+		return geometry;
+	}
+
+	var cube = {
+		make : make,
+		configure: configure,
+		build: build,
+	}
+
+	return cube;
+};
+
+module.exports = CubeMaker;
+},{"THREE":42}],5:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"THREE":42,"dup":4}],6:[function(require,module,exports){
+var BlockMaker = require("../blockengine/blockmaker");
+var THREE = require("THREE");
+var CubeMaker = require("../blockengine/cubeMaker");
+
+var BlockShipBluePrint = function(){
+	var hull = null;
+	var blockMaker = new BlockMaker();
+	var cubeMaker = new CubeMaker();
+	
+	var getHull = function(){
+		if(hull != null){
+			return hull;
+		}
+
+		var range = {
+				xRange: [0, 17],
+				yRange: [0, 1],
+				zRange: [0, 2],
+			}
+
+		hull = blockMaker.createNew().map(range).scale(range, new THREE.Vector3(1, 0.5, 1)).make();
+
+		hull.addCollection(getCargo().translate(new THREE.Vector3(6, 0, -3)).make());
+		hull.addCollection(getCargo().translate(new THREE.Vector3(8, 0, -3)).make());
+		hull.addCollection(getCargo().translate(new THREE.Vector3(10, 0, -3)).make());
+
+		hull.addCollection(getWeapon().translate(new THREE.Vector3(3, 0 , -1)).make());
+		hull.addCollection(getWeapon().translate(new THREE.Vector3(13, 0 , -1)).make());
+
+		hull.initBoundingBox();
+		var boundingBox = hull.getBoundingBox();
+		hull.setGrid(new THREE.Vector3().copy(boundingBox.center).multiplyScalar(-1));
+
+		return hull;
+	}
+
+	var getCargo = function(){
+		var range = {
+			xRange: [0, 1],
+			yRange: [0 ,1],
+			zRange: [0, 6]
+		}
+
+		var cargo = blockMaker.createNew().map(range);
+
+		return cargo;
+	}
+
+	var getWeapon = function(){
+		var range = {
+			xRange: [0, 1],
+			yRange: [0, 1],
+			zRange: [0, 6]
+		}
+
+		var weapon = blockMaker.createNew().map(range);
+
+		// return ;
+
+		blockMaker.visit(range, function(x, y, z, block){
+			if(z < 3){
+				return;
+			}
+
+			var index = 6 - z;
+			var slope = 1 / (6 - 3);
+			var scale = index * slope;
+
+			block.setScale(new THREE.Vector3(scale, scale, 1.0));
+		});
+
+
+		return weapon;
+	}
+
+	return {
+		build: function(){
+			return getHull();
+		}
+	}
+}
+
+module.exports = BlockShipBluePrint;
+},{"../blockengine/blockmaker":3,"../blockengine/cubeMaker":4,"THREE":42}],7:[function(require,module,exports){
+var THREE = require("THREE");
+var Beam = require("../entities/beam");
+var extend = require("extend");
+
+var ShipBluePrint = function(){
+	var hull = null;
+
+	function getHull(){
+		if(hull != null){
+			return hull;
+		}
+
+		hull = new Beam([0, 16], [2, 2]);
+		hull.setAlignment("x");
+		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
+
+		var weapon1 = getWeapon();
+		var weapon2 = getWeapon();
+		var cargo1 = getCargo();
+		var cargo2 = getCargo();
+		var cargo3 = getCargo();
+
+		hull.branch(weapon1, 5 , 1.5, "z");
+		hull.branch(weapon2, -5 , 1.5, "z");
+
+		hull.branch(cargo1, 2, -0.5, "z");
+		hull.branch(cargo2, 0, -0.5, "z");
+		hull.branch(cargo3, -2, -0.5, "z");
+
+		extend(hull, {
+			weapon1: weapon1,
+			weapon2: weapon2,
+			cargo1: cargo1,
+			cargo2: cargo2,
+			cargo3: cargo3,			
+		});
+
+		return hull;
+	}
+
+	function getWeapon(){
+		var beam = new Beam([0, 4, 7], [1.0, 1.0, 0]);
+		return beam;
+	}
+
+	function getCargo(){
+		var cargo = new Beam([0, 6], [1.0, 1.0]);
+
+		return cargo;
+	}
+
+	return {
+		build: function(){
+			return getHull();
+		},
+
+		getGeometry: function(){
+			return getHull().getGeometry();
+		},
+
+		getMaterial: function(){
+			return null;
+		}
+	}
+}
+
+module.exports = ShipBluePrint;
+},{"../entities/beam":29,"THREE":42,"extend":43}],8:[function(require,module,exports){
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
@@ -81,7 +571,7 @@ var Collision = function(){
 
 module.exports = Collision;
 
-},{"./entity":29,"THREE":35,"lodash":39}],2:[function(require,module,exports){
+},{"./entity":36,"THREE":42,"lodash":46}],9:[function(require,module,exports){
 var Command = function(){
 	var actor = null;
 	var params = null;
@@ -108,7 +598,7 @@ var Command = function(){
 }
 
 module.exports = Command;
-},{}],3:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -159,7 +649,7 @@ var AddCommand = function(){
 }
 
 module.exports = AddCommand;
-},{"../command":2,"../entities/ship":26,"THREE":35}],4:[function(require,module,exports){
+},{"../command":9,"../entities/ship":33,"THREE":42}],11:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -192,7 +682,7 @@ var AlignCommand = function(){
 }
 
 module.exports = AlignCommand;
-},{"../command":2,"THREE":35}],5:[function(require,module,exports){
+},{"../command":9,"THREE":42}],12:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -232,7 +722,7 @@ var AttackCommand = function(){
 }
 
 module.exports = AttackCommand;
-},{"../command":2,"../game":31,"THREE":35}],6:[function(require,module,exports){
+},{"../command":9,"../game":38,"THREE":42}],13:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -272,7 +762,7 @@ var DestroyCommand = function(){
 
 module.exports = DestroyCommand;
 
-},{"../command":2,"../game":31,"lodash":39}],7:[function(require,module,exports){
+},{"../command":9,"../game":38,"lodash":46}],14:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -297,7 +787,7 @@ var ListCommand = function(){
 }
 
 module.exports = ListCommand;
-},{"../command":2,"../game":31,"lodash":39}],8:[function(require,module,exports){
+},{"../command":9,"../game":38,"lodash":46}],15:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -332,7 +822,7 @@ var MoveCommand = function(){
 }
 
 module.exports = MoveCommand;
-},{"../command":2,"THREE":35}],9:[function(require,module,exports){
+},{"../command":9,"THREE":42}],16:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -416,7 +906,7 @@ var OrbitCommand = function(){
 }
 
 module.exports = OrbitCommand;
-},{"../command":2,"../debug":20,"../entity":29,"../mathutils":33,"THREE":35}],10:[function(require,module,exports){
+},{"../command":9,"../debug":27,"../entity":36,"../mathutils":40,"THREE":42}],17:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
 
@@ -435,7 +925,7 @@ var SelectCommand = function(){
 }
 
 module.exports = SelectCommand;
-},{"../command":2,"../console":18}],11:[function(require,module,exports){
+},{"../command":9,"../console":25}],18:[function(require,module,exports){
 var Command = require('../command');
 
 var StopCommand = function(){
@@ -455,7 +945,7 @@ var StopCommand = function(){
 }
 
 module.exports = StopCommand;
-},{"../command":2}],12:[function(require,module,exports){
+},{"../command":9}],19:[function(require,module,exports){
 var klass = require("klass");
 
 var Component = function(){
@@ -492,11 +982,12 @@ var Component = function(){
 }
 
 module.exports = Component;
-},{"klass":38}],13:[function(require,module,exports){
+},{"klass":45}],20:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Game = require("../game");
+var _ = require("lodash");
 
 var RenderComponent = function(){
 	var innerObject = null;
@@ -525,13 +1016,9 @@ var RenderComponent = function(){
 	var renderComponent = {
 		setGame: function(value){ game = value; },
 		getGame: function() { if(game == null){ game = Game; } return game; },
-		getInnerObject: function(){ return innerObject; },
-		setInnerObject: function(value){ innerObject = value; },
 
 		start: function(){
-			var geometry = this.initGeometry();
-			var material = this.initMaterial();
-			innerObject = this.initObject(geometry, material);
+			innerObject = this.initObject();
 			this.getGame().getScene().add(innerObject);
 			this.updateTransform(this.getEntity());
 		},
@@ -546,15 +1033,8 @@ var RenderComponent = function(){
 			this.getGame().getScene().remove(innerObject);
 		},
 
-		initGeometry: function(){ throw "must override"; },
-
-		initMaterial: function(){ throw "must override"; },
-
-		initObject: function(geometry, material){
-			return new THREE.Mesh(
-				geometry,
-				material
-				);
+		initObject: function(){
+			throw "must override";
 		}
 	};
 
@@ -564,7 +1044,7 @@ var RenderComponent = function(){
 }
 
 module.exports = RenderComponent;
-},{"../component":12,"../game":31,"../mathutils":33,"THREE":35}],14:[function(require,module,exports){
+},{"../component":19,"../game":38,"../mathutils":40,"THREE":42,"lodash":46}],21:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -621,7 +1101,7 @@ var RigidBody = function(){
 }
 
 module.exports = RigidBody;
-},{"../component":12,"THREE":35}],15:[function(require,module,exports){
+},{"../component":19,"THREE":42}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -860,7 +1340,7 @@ ShipController.Pitch = Pitch;
 ShipController.Yaw = Yaw;
 
 module.exports = ShipController;
-},{"../component":12,"../mathutils":33,"THREE":35}],16:[function(require,module,exports){
+},{"../component":19,"../mathutils":40,"THREE":42}],23:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -884,7 +1364,7 @@ var TransformComponent = function(){
 }
 
 module.exports = TransformComponent;
-},{"../component":12,"THREE":35}],17:[function(require,module,exports){
+},{"../component":19,"THREE":42}],24:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -921,7 +1401,7 @@ var WeaponController = function(){
 }
 
 module.exports = WeaponController;
-},{"../component":12,"../debug":20,"../game":31,"THREE":35}],18:[function(require,module,exports){
+},{"../component":19,"../debug":27,"../game":38,"THREE":42}],25:[function(require,module,exports){
 var Console = function(){
 	var input;
 	var displayResult = false;
@@ -1031,7 +1511,7 @@ var Console = function(){
 }();
 
 module.exports = Console;
-},{}],19:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 function Control()
 {
 	var lastX;
@@ -1088,7 +1568,7 @@ var KeyMap = (function(){
 Control.KeyMap = KeyMap;
 
 module.exports = Control;
-},{}],20:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var PointSprite = require("./entities/pointsprite");
 
 var Debug = function(){
@@ -1111,7 +1591,7 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/pointsprite":25}],21:[function(require,module,exports){
+},{"./entities/pointsprite":32}],28:[function(require,module,exports){
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
@@ -1138,7 +1618,7 @@ var Ammo = function(){
 }
 
 module.exports = Ammo;
-},{"../entity.js":29,"THREE":35}],22:[function(require,module,exports){
+},{"../entity.js":36,"THREE":42}],29:[function(require,module,exports){
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 
@@ -1407,7 +1887,7 @@ function Beam(segments, sides){
 }
 
 module.exports = Beam;
-},{"../mathutils":33,"THREE":35}],23:[function(require,module,exports){
+},{"../mathutils":40,"THREE":42}],30:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
@@ -1519,7 +1999,7 @@ var Laser = function() {
 }
 
 module.exports = Laser;
-},{"../components/rigidbody":14,"./ammo":21,"./pointsprite":25,"THREE":35}],24:[function(require,module,exports){
+},{"../components/rigidbody":21,"./ammo":28,"./pointsprite":32,"THREE":42}],31:[function(require,module,exports){
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
 var Ammo = require("./ammo");
@@ -1607,7 +2087,7 @@ var Missile = function(){
 }
 
 module.exports = Missile;
-},{"../components/rigidbody":14,"../mathutils":33,"./ammo":21,"./pointsprite":25,"THREE":35}],25:[function(require,module,exports){
+},{"../components/rigidbody":21,"../mathutils":40,"./ammo":28,"./pointsprite":32,"THREE":42}],32:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var TextureLoader = require("../textureloader");
@@ -1629,26 +2109,25 @@ var PointSprite = function(){
 		transform.getScale().set(size, size, size);
 	}
 
-	var getRigidBody = function(){
-		if(rigidBody == null){
-			rigidBody = new RigidBody();
-			rigidBody.setDefaultFriction(1);
-		}
-		return rigidBody;
-	}
-
 	var pointSprite = {
 		setTexture: function(value){ texture = value; },
 		getTexture: function(){ return texture; },
 		setSize: function(value){ size = value; },
 		getSize: function(){ return size; },
-		setVelocity: function(value){ getRigidBody().setVelocity(value); },
-		getVelocity: function(){ return getRigidBody().getVelocity(); },
+		setVelocity: function(value){ this.getRigidBody().setVelocity(value); },
+		getVelocity: function(){ return this.getRigidBody().getVelocity(); },
 		setColor: function(value){ color = value; },
 		getColor: function(){ return color; },
 		setOpacity: function(value){ opacity = value; },
 		getOpacity: function(){ return opacity; },
-		getRigidBody: getRigidBody,
+		getRigidBody:  function(){
+			if(rigidBody == null){
+				rigidBody = new RigidBody();
+				rigidBody.setDefaultFriction(1);
+			}
+			return rigidBody;
+		},
+		setRigidBody: function(value){ rigidBody = value; },
 		sizeOverTime: function(func){
 			sizeOverTimeFunc = func;
 		},
@@ -1685,7 +2164,7 @@ var PointSprite = function(){
 
 		start: function(){
 			transform = this.getTransform();
-			this.addComponent(getRigidBody());
+			this.addComponent(this.getRigidBody());
 			this.addComponent(this.getRenderComponent());
 
 			updateSize();
@@ -1719,6 +2198,19 @@ var PointSpriteRenderComponent = function(){
 	var color = null;
 	var opacity = 1.0;
 
+	var getMatrial = function(){
+		var map = texture == null ? TextureLoader.getDefault() : texture;
+		map.minFilter = THREE.NearestFilter;
+		var material = new THREE.SpriteMaterial({ 
+			map: map,
+			color: color || 0xffffff, 
+			fog:true 
+		});
+		material.opacity = opacity;
+
+		return material;
+	}
+
 	var pointSpriteRenderComponent = {
 		initGeometry: function(){
 			return null;
@@ -1729,22 +2221,9 @@ var PointSpriteRenderComponent = function(){
 		setOpacity: function(value){ opacity = value; },
 		getOpacity: function(){ return opacity; },
 
-		initMaterial: function(){
-			var map = texture == null ? TextureLoader.getDefault() : texture;
-			map.minFilter = THREE.NearestFilter;
-			var material = new THREE.SpriteMaterial({ 
-				map: map,
-				color: color || 0xffffff, 
-				fog:true 
-			});
-			material.opacity = opacity;
-
-			return material;
-		},
-
-		initObject: function(geometry, material){
-			return new THREE.Sprite(material);
-		},
+		initObject: function(){
+			return new THREE.Sprite(getMatrial());
+		}
 	};
 
 	pointSpriteRenderComponent.__proto__ = RenderComponent();
@@ -1753,7 +2232,7 @@ var PointSpriteRenderComponent = function(){
 }
 
 module.exports = PointSprite;
-},{"../components/rendercomponent":13,"../components/rigidbody":14,"../entity":29,"../textureloader":34,"THREE":35,"extend":36}],26:[function(require,module,exports){
+},{"../components/rendercomponent":20,"../components/rigidbody":21,"../entity":36,"../textureloader":41,"THREE":42,"extend":43}],33:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var Beam = require("./beam");
@@ -1763,19 +2242,19 @@ var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var Weapon = require("./weapon");
 var SmokeTrail = require("./smoketrail");
-var extend = require("extend");
 var Laser = require("./laser");
 var Missile = require("./missile");
 var MaterialLoader = require("../materialloader");
+var ShipBluePrint = require("../blueprints/shipblueprint");
 
-var Ship = function(){
+var Ship = function(bluePrint){
 	var shipController = null;
 	var rigidBody = null;
 	var renderComponent = null;
 	var weaponController = null;
 	var weapons = null;
 	var smokeTrail = null;
-	var bluePrint = null;
+	var bluePrint = bluePrint || new ShipBluePrint();
 	var hull = null;
 
 	var ship = {
@@ -1787,13 +2266,6 @@ var Ship = function(){
 				weaponController = new WeaponController();
 			}
 			return weaponController;
-		},
-
-		getBluePrint: function(){
-			if(bluePrint == null){ 
-				bluePrint = new ShipBluePrint(); 
-			}
-			return bluePrint;
 		},
 
 		setWeaponController: function(value){
@@ -1840,15 +2312,6 @@ var Ship = function(){
 				// weapon1.setActor(this);
 				// weapon1.setDelta(0);
 				// weapons.push(weapon1);
-
-				// var weapon2 = new Weapon(missile);
-				// weapon2.setActor(this);
-				// weapon2.setDelta(8);
-				// weapons.push(weapon2);
-
-				// var weapon3 = new Weapon(missile);
-				// weapon3.setActor(this);
-				// weapons.push(weapon3);
 			}
 
 			return weapons;
@@ -1864,8 +2327,7 @@ var Ship = function(){
 
 		getRenderComponent: function(){ 
 			if(renderComponent == null){
-				hull = this.getBluePrint().build();
-				renderComponent = new ShipRenderComponent(hull);
+				renderComponent = new ShipRenderComponent(bluePrint.build());
 			}
 			return renderComponent;
 		},
@@ -1901,64 +2363,15 @@ var Ship = function(){
 	return ship;
 }
 
-var ShipBluePrint = function(){
-	function getHull(){
-		var hull = new Beam([0, 16], [2, 2]);
-		hull.setAlignment("x");
-		hull.setScale(new THREE.Vector3(1.0, 0.25, 1.0));
-
-		var weapon1 = getWeapon();
-		var weapon2 = getWeapon();
-		var cargo1 = getCargo();
-		var cargo2 = getCargo();
-		var cargo3 = getCargo();
-
-		hull.branch(weapon1, 5 , 1.5, "z");
-		hull.branch(weapon2, -5 , 1.5, "z");
-
-		hull.branch(cargo1, 2, -0.5, "z");
-		hull.branch(cargo2, 0, -0.5, "z");
-		hull.branch(cargo3, -2, -0.5, "z");
-
-		extend(hull, {
-			weapon1: weapon1,
-			weapon2: weapon2,
-			cargo1: cargo1,
-			cargo2: cargo2,
-			cargo3: cargo3,			
-		});
-
-		return hull;
-	}
-
-	function getWeapon(){
-		var beam = new Beam([0, 4, 7], [1.0, 1.0, 0]);
-		return beam;
-	}
-
-	function getCargo(){
-		var cargo = new Beam([0, 6], [1.0, 1.0]);
-
-		return cargo;
-	}
-
-	return {
-		build: function(){
-			return getHull();
-		}
-	};
-};
-
-var ShipRenderComponent = function(hull){
-	var hull = hull;
+var ShipRenderComponent = function(product){
+	var product = product;
 
 	var shipRenderComponent = {
-		initGeometry: function(){
-			return hull.getGeometry();
-		},
+		initObject: function(){
+			var material = MaterialLoader.getSolidMaterial(new THREE.Vector4(1.0, 1.0, 1.0, 1.0));
+			var geometry = product.getGeometry();
 
-		initMaterial: function(){
-			return MaterialLoader.getSolidMaterial(new THREE.Vector4(1.0, 1.0, 1.0, 1.0));
+			return new THREE.Mesh(geometry, material);
 		}
 	}
 
@@ -1968,7 +2381,7 @@ var ShipRenderComponent = function(hull){
 }
 
 module.exports = Ship;
-},{"../components/rendercomponent":13,"../components/rigidbody":14,"../components/shipcontroller":15,"../components/weaponcontroller":17,"../entity":29,"../materialloader":32,"./beam":22,"./laser":23,"./missile":24,"./smoketrail":27,"./weapon":28,"THREE":35,"extend":36}],27:[function(require,module,exports){
+},{"../blueprints/shipblueprint":7,"../components/rendercomponent":20,"../components/rigidbody":21,"../components/shipcontroller":22,"../components/weaponcontroller":24,"../entity":36,"../materialloader":39,"./beam":29,"./laser":30,"./missile":31,"./smoketrail":34,"./weapon":35,"THREE":42}],34:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2040,7 +2453,7 @@ var SmokeTrail = function(){
 }
 
 module.exports = SmokeTrail;
-},{"../debug":20,"../entity":29,"../mathutils":33,"./pointsprite":25,"THREE":35}],28:[function(require,module,exports){
+},{"../debug":27,"../entity":36,"../mathutils":40,"./pointsprite":32,"THREE":42}],35:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -2101,7 +2514,7 @@ var Weapon = function(ammo){
 }
 
 module.exports = Weapon;
-},{"../entity":29,"THREE":35,"extend":36}],29:[function(require,module,exports){
+},{"../entity":36,"THREE":42,"extend":43}],36:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -2258,7 +2671,7 @@ var Entity = function(){
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":16,"./mathutils":33,"THREE":35,"lodash":39}],30:[function(require,module,exports){
+},{"./components/transformcomponent":23,"./mathutils":40,"THREE":42,"lodash":46}],37:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function(){
@@ -2325,7 +2738,7 @@ var EntityRunner = function(){
 }
 
 module.exports = EntityRunner;
-},{"lodash":39}],31:[function(require,module,exports){
+},{"lodash":46}],38:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -2350,7 +2763,6 @@ Game = function(entityRunner){
 	var stats = null;
 
 	var onEnterFrame = function(){ 
-		Console.write(entityRunner.getEntityCount());
 		entityRunner.run();
 	}
 
@@ -2445,12 +2857,25 @@ Game = function(entityRunner){
 		updateCamera();
 	}
 
+	var mouseRotate = function(xDiff, yDiff){
+		cameraYawPitchRow.x += - xDiff / 100.0;
+		cameraYawPitchRow.y += yDiff / 100.0;
+
+		if(cameraYawPitchRow.y > Math.PI / 2.0){
+			cameraYawPitchRow.y = Math.PI / 2.0;
+		}else if(cameraYawPitchRow.y < -Math.PI / 2.0){
+			cameraYawPitchRow.y = - Math.PI / 2.0;
+		}
+
+		updateCamera();
+	}
+
 	var initControl = function(){
 		control = new Control();
 		control.hookContainer(container);
 
 		control.mousemove(function(xDiff, yDiff){
-			mouseMove(xDiff, yDiff)
+			mouseRotate(xDiff, yDiff);
 		});
 	}
 
@@ -2540,8 +2965,9 @@ Game = function(entityRunner){
 }();
 
 module.exports = Game;
-},{"./collision":1,"./console":18,"./control":19,"./entityrunner":30,"./mathutils":33,"THREE":35,"lodash":39}],32:[function(require,module,exports){
+},{"./collision":8,"./console":25,"./control":26,"./entityrunner":37,"./mathutils":40,"THREE":42,"lodash":46}],39:[function(require,module,exports){
 var THREE = require("THREE");
+var TextureLoader = require("./textureloader");
 
 var ShaderCode = (function(){
 	return {
@@ -2572,13 +2998,29 @@ var MaterialLoader = function(flag) {
 		});
 	}
 
+	var getMeshFaceMaterial = function(name){
+		var material = new THREE.MeshLambertMaterial({
+			map: TextureLoader.loadTexture("cube")
+		});
+
+		return new THREE.MeshFaceMaterial([
+			material, 
+			material, 
+			material, 
+			material, 
+			material, 
+			material, 
+			])
+	}
+
 	return{
 		getSolidMaterial: getSolidMaterial,
+		getMeshFaceMaterial: getMeshFaceMaterial
 	};
 }();
 
 module.exports = MaterialLoader;
-},{"THREE":35}],33:[function(require,module,exports){
+},{"./textureloader":41,"THREE":42}],40:[function(require,module,exports){
 var THREE = require('THREE');
 
 var MathUtils = (function(){
@@ -2672,7 +3114,7 @@ var MathUtils = (function(){
 })();
 
 module.exports = MathUtils;
-},{"THREE":35}],34:[function(require,module,exports){
+},{"THREE":42}],41:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -2697,7 +3139,7 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":35}],35:[function(require,module,exports){
+},{"THREE":42}],42:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -37845,7 +38287,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],36:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -37936,7 +38378,7 @@ module.exports = function extend() {
 };
 
 
-},{}],37:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -47148,7 +47590,7 @@ return jQuery;
 
 }));
 
-},{}],38:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -47241,7 +47683,7 @@ return jQuery;
   return klass
 });
 
-},{}],39:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -59420,7 +59862,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],40:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
@@ -59442,18 +59884,30 @@ Console.setCommandMapping({
 		"stop": 	require('./commands/stopcommand'),
 	});
 
+// Console.runScenario(
+// 		[
+// 			"add ship",
+// 			"add ship 150 0 150",
+// 			"select ship1",
+// 			"orbit ship0 150",
+// 			"attack ship0",
+// 			// "select ship0",
+// 			// "orbit ship1 100",
+// 			// "attack ship1",
+// 		]
+// 	);
+
 Console.runScenario(
-		[
-			"add ship",
-			"add ship 150 0 150",
-			"select ship1",
-			"orbit ship0 150",
-			"attack ship0",
-			// "select ship0",
-			// "orbit ship1 100",
-			// "attack ship1",
-		]
-	);
+	[
+		"add ship 50 0 0"
+	]
+);
+
+var BlockShipBluePrint = require("./blueprints/blockshipblueprint");
+var Ship = require("./entities/ship");
+var ship = new Ship(new BlockShipBluePrint());
+Game.addEntity(ship);
+Game.nameEntity("ship", ship);
 
 var stats = new Stats();
 stats.setMode(0);
@@ -59465,4 +59919,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 Game.setStats(stats);
-},{"./commands/addcommand":3,"./commands/aligncommand":4,"./commands/attackcommand":5,"./commands/destroycommand":6,"./commands/listcommand":7,"./commands/movecommand":8,"./commands/orbitcommand":9,"./commands/selectcommand":10,"./commands/stopcommand":11,"./console":18,"./game.js":31,"jquery":37}]},{},[40]);
+},{"./blueprints/blockshipblueprint":6,"./commands/addcommand":10,"./commands/aligncommand":11,"./commands/attackcommand":12,"./commands/destroycommand":13,"./commands/listcommand":14,"./commands/movecommand":15,"./commands/orbitcommand":16,"./commands/selectcommand":17,"./commands/stopcommand":18,"./console":25,"./entities/ship":33,"./game.js":38,"jquery":44}]},{},[47]);

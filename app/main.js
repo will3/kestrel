@@ -19,18 +19,30 @@ Console.setCommandMapping({
 		"stop": 	require('./commands/stopcommand'),
 	});
 
+// Console.runScenario(
+// 		[
+// 			"add ship",
+// 			"add ship 150 0 150",
+// 			"select ship1",
+// 			"orbit ship0 150",
+// 			"attack ship0",
+// 			// "select ship0",
+// 			// "orbit ship1 100",
+// 			// "attack ship1",
+// 		]
+// 	);
+
 Console.runScenario(
-		[
-			"add ship",
-			"add ship 150 0 150",
-			"select ship1",
-			"orbit ship0 150",
-			"attack ship0",
-			// "select ship0",
-			// "orbit ship1 100",
-			// "attack ship1",
-		]
-	);
+	[
+		"add ship 50 0 0"
+	]
+);
+
+var BlockShipBluePrint = require("./blueprints/blockshipblueprint");
+var Ship = require("./entities/ship");
+var ship = new Ship(new BlockShipBluePrint());
+Game.addEntity(ship);
+Game.nameEntity("ship", ship);
 
 var stats = new Stats();
 stats.setMode(0);

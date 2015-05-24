@@ -2,6 +2,7 @@ var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Game = require("../game");
+var _ = require("lodash");
 
 var RenderComponent = function(){
 	var innerObject = null;
@@ -30,13 +31,9 @@ var RenderComponent = function(){
 	var renderComponent = {
 		setGame: function(value){ game = value; },
 		getGame: function() { if(game == null){ game = Game; } return game; },
-		getInnerObject: function(){ return innerObject; },
-		setInnerObject: function(value){ innerObject = value; },
 
 		start: function(){
-			var geometry = this.initGeometry();
-			var material = this.initMaterial();
-			innerObject = this.initObject(geometry, material);
+			innerObject = this.initObject();
 			this.getGame().getScene().add(innerObject);
 			this.updateTransform(this.getEntity());
 		},
@@ -51,16 +48,8 @@ var RenderComponent = function(){
 			this.getGame().getScene().remove(innerObject);
 		},
 
-		initGeometry: function(){ throw "must override"; },
-
-		initMaterial: function(){ throw "must override"; },
-
-		initObject: function(geometry, material){
-			geometry.mergeVertices();
-			return new THREE.Mesh(
-				geometry,
-				material
-				);
+		initObject: function(){
+			throw "must override";
 		}
 	};
 

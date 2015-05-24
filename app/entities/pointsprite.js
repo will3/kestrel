@@ -108,6 +108,19 @@ var PointSpriteRenderComponent = function(){
 	var color = null;
 	var opacity = 1.0;
 
+	var getMatrial = function(){
+		var map = texture == null ? TextureLoader.getDefault() : texture;
+		map.minFilter = THREE.NearestFilter;
+		var material = new THREE.SpriteMaterial({ 
+			map: map,
+			color: color || 0xffffff, 
+			fog:true 
+		});
+		material.opacity = opacity;
+
+		return material;
+	}
+
 	var pointSpriteRenderComponent = {
 		initGeometry: function(){
 			return null;
@@ -118,22 +131,9 @@ var PointSpriteRenderComponent = function(){
 		setOpacity: function(value){ opacity = value; },
 		getOpacity: function(){ return opacity; },
 
-		initMaterial: function(){
-			var map = texture == null ? TextureLoader.getDefault() : texture;
-			map.minFilter = THREE.NearestFilter;
-			var material = new THREE.SpriteMaterial({ 
-				map: map,
-				color: color || 0xffffff, 
-				fog:true 
-			});
-			material.opacity = opacity;
-
-			return material;
-		},
-
-		initObject: function(geometry, material){
-			return new THREE.Sprite(material);
-		},
+		initObject: function(){
+			return new THREE.Sprite(getMatrial());
+		}
 	};
 
 	pointSpriteRenderComponent.__proto__ = RenderComponent();
