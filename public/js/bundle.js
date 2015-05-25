@@ -1,46 +1,18 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var THREE = require("THREE");
-var CubeMaker = require("./cubemaker");
-
 var Block = function(){
-	var size = 2;
-	var grid = new THREE.Vector3(0, 0, 0);
-	var scale = new THREE.Vector3(1.0, 1.0, 1.0);
-	var cubeMaker = new CubeMaker();
-	var geometry = null;
-
 	var block = {
-		getSize: function(){ return size; },
-		setSize: function(value){ size = value; },
-		getGrid: function(){ return grid; },
-		setGrid: function(value){ grid = value; },
-		getScale: function(){ return scale; },
-		setScale: function(value){ scale = value; },
-
-		getGeometry: function(){
-			if(geometry == null){
-				geometry = cubeMaker.make().configure(size, grid, scale).build();
-			}
-			return geometry;
-		},
-
-		setGeometry: function(value){
-			geometry = value;
-		}
+		type: "Block",
 	}
 
 	return block;
 }
 
 module.exports = Block;
-},{"./cubemaker":5,"THREE":42}],2:[function(require,module,exports){
-var Entity = require("../entity");
-var MaterialLoader = require("../materialloader");
+},{}],2:[function(require,module,exports){
 var THREE = require("THREE");
 var Block = require("./block");
 
 var BlockCollection = function(){
-	var renderComponent = null;
 	var size = 1;
 	var map = [[[
 		//object at 0 0 0
@@ -54,6 +26,7 @@ var BlockCollection = function(){
 
 	var min = new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
 	var max = new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+	var boundingBox = null;
 
 	var visitCoords = function(callback){
 		Object.keys(map).forEach(function(x){
@@ -91,15 +64,18 @@ var BlockCollection = function(){
 				if(y < min.y){ min.setY(y); }
 				if(z < min.z){ min.setZ(z); }
 			})
-		},
 
-		getBoundingBox: function(){
 			var center = new THREE.Vector3().copy(min).add(max).multiplyScalar(0.5);
-			return {
+			
+			boundingBox = {
 				min: min,
 				center: center,
 				max: max
-			}
+			};
+		},
+
+		getBoundingBox: function(){
+			return boundingBox;
 		},
 
 		addBlock: function(x, y, z){
@@ -158,11 +134,6 @@ var BlockCollection = function(){
 			});
 
 			return geometry;
-		},
-
-		getMaterial: function(){
-			var material = MaterialLoader.getMeshFaceMaterial("cube");
-			return material;
 		}
 	}
 
@@ -171,7 +142,7 @@ var BlockCollection = function(){
 
 module.exports = BlockCollection;
 
-},{"../entity":36,"../materialloader":39,"./block":1,"THREE":42}],3:[function(require,module,exports){
+},{"./block":1,"THREE":41}],3:[function(require,module,exports){
 var BlockCollection = require("./blockcollection");
 var _ = require("lodash");
 
@@ -251,7 +222,7 @@ var BlockMaker = function(){
 }
 
 module.exports = BlockMaker;
-},{"./blockcollection":2,"lodash":46}],4:[function(require,module,exports){
+},{"./blockcollection":2,"lodash":45}],4:[function(require,module,exports){
 var THREE = require("THREE");
 
 var CubeMaker = function(){
@@ -334,9 +305,7 @@ var CubeMaker = function(){
 };
 
 module.exports = CubeMaker;
-},{"THREE":42}],5:[function(require,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"THREE":42,"dup":4}],6:[function(require,module,exports){
+},{"THREE":41}],5:[function(require,module,exports){
 var BlockMaker = require("../blockengine/blockmaker");
 var THREE = require("THREE");
 var CubeMaker = require("../blockengine/cubeMaker");
@@ -420,7 +389,7 @@ var BlockShipBluePrint = function(){
 }
 
 module.exports = BlockShipBluePrint;
-},{"../blockengine/blockmaker":3,"../blockengine/cubeMaker":4,"THREE":42}],7:[function(require,module,exports){
+},{"../blockengine/blockmaker":3,"../blockengine/cubeMaker":4,"THREE":41}],6:[function(require,module,exports){
 var THREE = require("THREE");
 var Beam = require("../entities/beam");
 var extend = require("extend");
@@ -488,7 +457,7 @@ var ShipBluePrint = function(){
 }
 
 module.exports = ShipBluePrint;
-},{"../entities/beam":29,"THREE":42,"extend":43}],8:[function(require,module,exports){
+},{"../entities/beam":28,"THREE":41,"extend":42}],7:[function(require,module,exports){
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
@@ -571,7 +540,7 @@ var Collision = function(){
 
 module.exports = Collision;
 
-},{"./entity":36,"THREE":42,"lodash":46}],9:[function(require,module,exports){
+},{"./entity":35,"THREE":41,"lodash":45}],8:[function(require,module,exports){
 var Command = function(){
 	var actor = null;
 	var params = null;
@@ -598,7 +567,7 @@ var Command = function(){
 }
 
 module.exports = Command;
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -649,7 +618,7 @@ var AddCommand = function(){
 }
 
 module.exports = AddCommand;
-},{"../command":9,"../entities/ship":33,"THREE":42}],11:[function(require,module,exports){
+},{"../command":8,"../entities/ship":32,"THREE":41}],10:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -682,7 +651,7 @@ var AlignCommand = function(){
 }
 
 module.exports = AlignCommand;
-},{"../command":9,"THREE":42}],12:[function(require,module,exports){
+},{"../command":8,"THREE":41}],11:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -722,7 +691,7 @@ var AttackCommand = function(){
 }
 
 module.exports = AttackCommand;
-},{"../command":9,"../game":38,"THREE":42}],13:[function(require,module,exports){
+},{"../command":8,"../game":37,"THREE":41}],12:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -762,7 +731,7 @@ var DestroyCommand = function(){
 
 module.exports = DestroyCommand;
 
-},{"../command":9,"../game":38,"lodash":46}],14:[function(require,module,exports){
+},{"../command":8,"../game":37,"lodash":45}],13:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -787,7 +756,7 @@ var ListCommand = function(){
 }
 
 module.exports = ListCommand;
-},{"../command":9,"../game":38,"lodash":46}],15:[function(require,module,exports){
+},{"../command":8,"../game":37,"lodash":45}],14:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 
@@ -822,7 +791,7 @@ var MoveCommand = function(){
 }
 
 module.exports = MoveCommand;
-},{"../command":9,"THREE":42}],16:[function(require,module,exports){
+},{"../command":8,"THREE":41}],15:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -906,7 +875,7 @@ var OrbitCommand = function(){
 }
 
 module.exports = OrbitCommand;
-},{"../command":9,"../debug":27,"../entity":36,"../mathutils":40,"THREE":42}],17:[function(require,module,exports){
+},{"../command":8,"../debug":26,"../entity":35,"../mathutils":39,"THREE":41}],16:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
 
@@ -925,7 +894,7 @@ var SelectCommand = function(){
 }
 
 module.exports = SelectCommand;
-},{"../command":9,"../console":25}],18:[function(require,module,exports){
+},{"../command":8,"../console":24}],17:[function(require,module,exports){
 var Command = require('../command');
 
 var StopCommand = function(){
@@ -945,7 +914,7 @@ var StopCommand = function(){
 }
 
 module.exports = StopCommand;
-},{"../command":9}],19:[function(require,module,exports){
+},{"../command":8}],18:[function(require,module,exports){
 var klass = require("klass");
 
 var Component = function(){
@@ -982,7 +951,7 @@ var Component = function(){
 }
 
 module.exports = Component;
-},{"klass":45}],20:[function(require,module,exports){
+},{"klass":44}],19:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1044,7 +1013,7 @@ var RenderComponent = function(){
 }
 
 module.exports = RenderComponent;
-},{"../component":19,"../game":38,"../mathutils":40,"THREE":42,"lodash":46}],21:[function(require,module,exports){
+},{"../component":18,"../game":37,"../mathutils":39,"THREE":41,"lodash":45}],20:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1101,7 +1070,7 @@ var RigidBody = function(){
 }
 
 module.exports = RigidBody;
-},{"../component":19,"THREE":42}],22:[function(require,module,exports){
+},{"../component":18,"THREE":41}],21:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1340,7 +1309,7 @@ ShipController.Pitch = Pitch;
 ShipController.Yaw = Yaw;
 
 module.exports = ShipController;
-},{"../component":19,"../mathutils":40,"THREE":42}],23:[function(require,module,exports){
+},{"../component":18,"../mathutils":39,"THREE":41}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1364,7 +1333,7 @@ var TransformComponent = function(){
 }
 
 module.exports = TransformComponent;
-},{"../component":19,"THREE":42}],24:[function(require,module,exports){
+},{"../component":18,"THREE":41}],23:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -1401,7 +1370,7 @@ var WeaponController = function(){
 }
 
 module.exports = WeaponController;
-},{"../component":19,"../debug":27,"../game":38,"THREE":42}],25:[function(require,module,exports){
+},{"../component":18,"../debug":26,"../game":37,"THREE":41}],24:[function(require,module,exports){
 var Console = function(){
 	var input;
 	var displayResult = false;
@@ -1511,7 +1480,7 @@ var Console = function(){
 }();
 
 module.exports = Console;
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 function Control()
 {
 	var lastX;
@@ -1568,7 +1537,7 @@ var KeyMap = (function(){
 Control.KeyMap = KeyMap;
 
 module.exports = Control;
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var PointSprite = require("./entities/pointsprite");
 
 var Debug = function(){
@@ -1591,7 +1560,7 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/pointsprite":32}],28:[function(require,module,exports){
+},{"./entities/pointsprite":31}],27:[function(require,module,exports){
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
@@ -1618,7 +1587,7 @@ var Ammo = function(){
 }
 
 module.exports = Ammo;
-},{"../entity.js":36,"THREE":42}],29:[function(require,module,exports){
+},{"../entity.js":35,"THREE":41}],28:[function(require,module,exports){
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 
@@ -1887,7 +1856,7 @@ function Beam(segments, sides){
 }
 
 module.exports = Beam;
-},{"../mathutils":40,"THREE":42}],30:[function(require,module,exports){
+},{"../mathutils":39,"THREE":41}],29:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
@@ -1999,7 +1968,7 @@ var Laser = function() {
 }
 
 module.exports = Laser;
-},{"../components/rigidbody":21,"./ammo":28,"./pointsprite":32,"THREE":42}],31:[function(require,module,exports){
+},{"../components/rigidbody":20,"./ammo":27,"./pointsprite":31,"THREE":41}],30:[function(require,module,exports){
 var THREE = require("THREE");
 var RigidBody = require("../components/rigidbody");
 var Ammo = require("./ammo");
@@ -2087,7 +2056,7 @@ var Missile = function(){
 }
 
 module.exports = Missile;
-},{"../components/rigidbody":21,"../mathutils":40,"./ammo":28,"./pointsprite":32,"THREE":42}],32:[function(require,module,exports){
+},{"../components/rigidbody":20,"../mathutils":39,"./ammo":27,"./pointsprite":31,"THREE":41}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var TextureLoader = require("../textureloader");
@@ -2232,7 +2201,7 @@ var PointSpriteRenderComponent = function(){
 }
 
 module.exports = PointSprite;
-},{"../components/rendercomponent":20,"../components/rigidbody":21,"../entity":36,"../textureloader":41,"THREE":42,"extend":43}],33:[function(require,module,exports){
+},{"../components/rendercomponent":19,"../components/rigidbody":20,"../entity":35,"../textureloader":40,"THREE":41,"extend":42}],32:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var Beam = require("./beam");
@@ -2381,7 +2350,7 @@ var ShipRenderComponent = function(product){
 }
 
 module.exports = Ship;
-},{"../blueprints/shipblueprint":7,"../components/rendercomponent":20,"../components/rigidbody":21,"../components/shipcontroller":22,"../components/weaponcontroller":24,"../entity":36,"../materialloader":39,"./beam":29,"./laser":30,"./missile":31,"./smoketrail":34,"./weapon":35,"THREE":42}],34:[function(require,module,exports){
+},{"../blueprints/shipblueprint":6,"../components/rendercomponent":19,"../components/rigidbody":20,"../components/shipcontroller":21,"../components/weaponcontroller":23,"../entity":35,"../materialloader":38,"./beam":28,"./laser":29,"./missile":30,"./smoketrail":33,"./weapon":34,"THREE":41}],33:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2443,7 +2412,7 @@ var SmokeTrail = function(){
 			var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
 			vector.setLength(-1);
 
-			emit(this.getWorldPosition(), ship.getHull().cargo2.getBottomPoint(), vector, 3, 8);
+			emit(this.getWorldPosition(), ship.getHull().getEngineEmissionPoint(), vector, 3, 8);
 		}
 	}
 
@@ -2453,7 +2422,7 @@ var SmokeTrail = function(){
 }
 
 module.exports = SmokeTrail;
-},{"../debug":27,"../entity":36,"../mathutils":40,"./pointsprite":32,"THREE":42}],35:[function(require,module,exports){
+},{"../debug":26,"../entity":35,"../mathutils":39,"./pointsprite":31,"THREE":41}],34:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -2514,7 +2483,7 @@ var Weapon = function(ammo){
 }
 
 module.exports = Weapon;
-},{"../entity":36,"THREE":42,"extend":43}],36:[function(require,module,exports){
+},{"../entity":35,"THREE":41,"extend":42}],35:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -2671,7 +2640,7 @@ var Entity = function(){
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":23,"./mathutils":40,"THREE":42,"lodash":46}],37:[function(require,module,exports){
+},{"./components/transformcomponent":22,"./mathutils":39,"THREE":41,"lodash":45}],36:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function(){
@@ -2738,7 +2707,7 @@ var EntityRunner = function(){
 }
 
 module.exports = EntityRunner;
-},{"lodash":46}],38:[function(require,module,exports){
+},{"lodash":45}],37:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -2965,7 +2934,7 @@ Game = function(entityRunner){
 }();
 
 module.exports = Game;
-},{"./collision":8,"./console":25,"./control":26,"./entityrunner":37,"./mathutils":40,"THREE":42,"lodash":46}],39:[function(require,module,exports){
+},{"./collision":7,"./console":24,"./control":25,"./entityrunner":36,"./mathutils":39,"THREE":41,"lodash":45}],38:[function(require,module,exports){
 var THREE = require("THREE");
 var TextureLoader = require("./textureloader");
 
@@ -3020,7 +2989,7 @@ var MaterialLoader = function(flag) {
 }();
 
 module.exports = MaterialLoader;
-},{"./textureloader":41,"THREE":42}],40:[function(require,module,exports){
+},{"./textureloader":40,"THREE":41}],39:[function(require,module,exports){
 var THREE = require('THREE');
 
 var MathUtils = (function(){
@@ -3114,7 +3083,7 @@ var MathUtils = (function(){
 })();
 
 module.exports = MathUtils;
-},{"THREE":42}],41:[function(require,module,exports){
+},{"THREE":41}],40:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -3139,7 +3108,7 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":42}],42:[function(require,module,exports){
+},{"THREE":41}],41:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -38287,7 +38256,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],43:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -38378,7 +38347,7 @@ module.exports = function extend() {
 };
 
 
-},{}],44:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -47590,7 +47559,7 @@ return jQuery;
 
 }));
 
-},{}],45:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -47683,7 +47652,7 @@ return jQuery;
   return klass
 });
 
-},{}],46:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -59862,7 +59831,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],47:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
@@ -59919,4 +59888,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 Game.setStats(stats);
-},{"./blueprints/blockshipblueprint":6,"./commands/addcommand":10,"./commands/aligncommand":11,"./commands/attackcommand":12,"./commands/destroycommand":13,"./commands/listcommand":14,"./commands/movecommand":15,"./commands/orbitcommand":16,"./commands/selectcommand":17,"./commands/stopcommand":18,"./console":25,"./entities/ship":33,"./game.js":38,"jquery":44}]},{},[47]);
+},{"./blueprints/blockshipblueprint":5,"./commands/addcommand":9,"./commands/aligncommand":10,"./commands/attackcommand":11,"./commands/destroycommand":12,"./commands/listcommand":13,"./commands/movecommand":14,"./commands/orbitcommand":15,"./commands/selectcommand":16,"./commands/stopcommand":17,"./console":24,"./entities/ship":32,"./game.js":37,"jquery":43}]},{},[46]);

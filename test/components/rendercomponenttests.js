@@ -45,20 +45,8 @@ describe("Render Component", function(){
 	})
 
 	describe("#start", function(){
-		it("should initialize geometry", function(){
-			mockRenderComponent.expects("initGeometry");
-			renderComponent.start();
-			mockRenderComponent.verify();
-		})
-
-		it("should initialize material", function(){
-			mockRenderComponent.expects("initMaterial");
-			renderComponent.start();
-			mockRenderComponent.verify();
-		})
-
 		it("should initialize inner object", function(){
-			mockRenderComponent.expects("initObject").withArgs(geometry, material);
+			mockRenderComponent.expects("initObject");
 			renderComponent.start();
 			mockRenderComponent.verify();
 		})
@@ -73,14 +61,16 @@ describe("Render Component", function(){
 	describe("#update transform", function(){
 		it("should update inner object position", function(){
 			entity.setPosition(new THREE.Vector3(100, 100, 100));
-			renderComponent.setInnerObject(innerObject);
+			renderComponent.initObject = function(){ return innerObject; };
+			renderComponent.start();
 			renderComponent.updateTransform(entity);
 			expect(innerObject.position.equals(new THREE.Vector3(100, 100, 100))).to.equal(true);
 		})
 
 		it("should update inner object rotation", function(){
 			entity.setRotation(new THREE.Vector3(1, 1, 1));
-			renderComponent.setInnerObject(innerObject);
+			renderComponent.initObject = function(){ return innerObject; };
+			renderComponent.start();
 			renderComponent.updateTransform(entity);
 			
 			expectFloatEquals(innerObject.rotation.x, 1.2368);
@@ -91,7 +81,8 @@ describe("Render Component", function(){
 
 		it("should update inner object scale", function(){
 			entity.setScale(new THREE.Vector3(4, 4, 4));
-			renderComponent.setInnerObject(innerObject);
+			renderComponent.initObject = function(){ return innerObject; };
+			renderComponent.start();
 			renderComponent.updateTransform(entity);
 			expect(innerObject.scale.equals(new THREE.Vector3(4, 4, 4)));
 		})

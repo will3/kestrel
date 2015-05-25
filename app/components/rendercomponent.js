@@ -31,7 +31,6 @@ var RenderComponent = function(){
 	var renderComponent = {
 		setGame: function(value){ game = value; },
 		getGame: function() { if(game == null){ game = Game; } return game; },
-
 		start: function(){
 			innerObject = this.initObject();
 			this.getGame().getScene().add(innerObject);
