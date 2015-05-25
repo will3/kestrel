@@ -1,36 +1,32 @@
 var klass = require("klass");
 
 var Component = function(){
-	var entity = null;
-	var started = false;
-	
-	var component = {
-		setEntity: function(value){ entity = value; },
-		getEntity: function(){ return entity; },
-		getName:function(){
-			throw "must override getName";
-		},
-		getStarted: function(){ return started; },
-		setStarted: function(value){ started = value; },
+	this.entity = null;
+	this.started = false;
+}
 
-		start: function(){
+Component.prototype = {
+	constructor: Component,
 
-		},
+	getName:function(){
+		throw "must override getName";
+	},
 
-		update: function(){
+	start: function(){
 
-		},
+	},
 
-		destroy: function(){
+	update: function(){
 
-		},
+	},
 
-		getTransform: function(){
-			return entity.getTransform();
-		}
+	destroy: function(){
+
+	},
+
+	get transform(){
+		return this.entity.getTransform();
 	}
-
-	return component;
 }
 
 module.exports = Component;

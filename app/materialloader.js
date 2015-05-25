@@ -30,25 +30,9 @@ var MaterialLoader = function(flag) {
 		});
 	}
 
-	var getMeshFaceMaterial = function(name){
-		var material = new THREE.MeshLambertMaterial({
-			map: TextureLoader.loadTexture("cube")
-		});
-
-		return new THREE.MeshFaceMaterial([
-			material, 
-			material, 
-			material, 
-			material, 
-			material, 
-			material, 
-			])
-	}
-
 	return{
-		getSolidMaterial: getSolidMaterial,
-		getMeshFaceMaterial: getMeshFaceMaterial
-	};
+		getSolidMaterial: getSolidMaterial
+	}
 }();
 
 module.exports = MaterialLoader;

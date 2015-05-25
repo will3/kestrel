@@ -38,24 +38,10 @@ describe("Render Component", function(){
 			}
 		};
 		mockGame = sinon.mock(game);
-		renderComponent.setGame(game);
+		renderComponent.game = game;
 		entity = new Entity();
-		renderComponent.setEntity(entity);
+		renderComponent.entity = entity;
 		mockRenderComponent = sinon.mock(renderComponent);
-	})
-
-	describe("#start", function(){
-		it("should initialize inner object", function(){
-			mockRenderComponent.expects("initObject");
-			renderComponent.start();
-			mockRenderComponent.verify();
-		})
-
-		it("should update transform", function(){
-			mockRenderComponent.expects("updateTransform");
-			renderComponent.start();
-			mockRenderComponent.verify();
-		})
 	})
 
 	describe("#update transform", function(){

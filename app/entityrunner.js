@@ -1,66 +1,67 @@
 var _ = require("lodash");
 
-var EntityRunner = function(){
-	var entities = [];
+var EntityRunner = function() {
+    this.entities = [];
 
-	var runEntity = function(entity){
-		if(entity.getLife() != -1){
-			if(entity.getFrameAge() == entity.getLife()){
-				entity.removeFromParent();
-			}
-		}
+}
 
-		if(!entity.getStarted()){
-			entity.start();
-			entity.setStarted(true);
-		}
-		entity.update();
+EntityRunner.prototype = {
+    constructor: EntityRunner,
 
-		entity.getComponents().forEach(function(component){
-			if(!component.getStarted()){
-				component.start();
-				component.setStarted(true);
-			}
-			component.update();
-		});
+    runEntity: function(entity) {
+        if (entity.life != -1) {
+            if (entity.frameAge == entity.life) {
+                entity.removeFromParent();
+            }
+        }
 
-		entity.getChildEntities().forEach(function(childEntity){
-			runEntity(childEntity);
-		});
+        if (!entity.started) {
+            entity.start();
+            entity.started = true;
+        }
+        entity.update();
 
-		//increment frame age
-		entity.setFrameAge(entity.getFrameAge() + 1);
-	}
+        entity.components.forEach(function(component) {
+            if (!component.started) {
+                component.start();
+                component.started = true;
+            }
+            component.update();
+        });
 
-	return {
-		getEntities: function(){
-			return entities;
-		},
+        entity.childEntities.forEach(function(childEntity) {
+            this.runEntity(childEntity);
+        }.bind(this));
 
-		addEntity: function(entity){
-			entities.push(entity);
-		},
+        //increment frame age
+        entity.frameAge += 1;
+    },
 
-		removeEntity: function(entity){
-			entity.getChildEntities().forEach(function(childEntity){
-				this.removeEntity(childEntity);
-			}.bind(this));
+    addEntity: function(entity) {
+        this.entities.push(entity);
+    },
 
-			_.remove(entities, entity);
-			entity.getComponents().forEach(function(c){ c.destroy(); });
-			entity.destroy();
-		},
+    removeEntity: function(entity) {
+        entity.childEntities.forEach(function(childEntity) {
+            this.removeEntity(childEntity);
+        }.bind(this));
 
-		run: function(){
-			entities.forEach(function(entity){
-				runEntity(entity);
-			});
-		},
+        _.remove(this.entities, entity);
+        entity.components.forEach(function(c) {
+            c.destroy();
+        });
+        entity.destroy();
+    },
 
-		getEntityCount: function(){
-			return entities.length;
-		}
-	}
+    run: function() {
+        this.entities.forEach(function(entity) {
+            this.runEntity(entity);
+        }.bind(this));
+    },
+
+    getEntityCount: function() {
+        return this.entities.length;
+    }
 }
 
 module.exports = EntityRunner;

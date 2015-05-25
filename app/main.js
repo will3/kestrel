@@ -1,6 +1,12 @@
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
+var injector = require('./injector');
+var appmodule = require('./appmodule');
+
+injector.loadDependencies({
+	appmodule
+});
 
 var container = $('#container');
 
@@ -34,15 +40,9 @@ Console.setCommandMapping({
 
 Console.runScenario(
 	[
-		"add ship 50 0 0"
+		"add ship 0 0 0"
 	]
 );
-
-var BlockShipBluePrint = require("./blueprints/blockshipblueprint");
-var Ship = require("./entities/ship");
-var ship = new Ship(new BlockShipBluePrint());
-Game.addEntity(ship);
-Game.nameEntity("ship", ship);
 
 var stats = new Stats();
 stats.setMode(0);

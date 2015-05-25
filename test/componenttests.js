@@ -11,15 +11,16 @@ describe("Component", function(){
 
 	describe("#getTransform", function(){
 		it("returns entity's transform", function(){
-			var transform = {};
+			var transform = {}
 			var entity = {
 				getTransform: function(){
 					return transform;
 				}
-			};
-			component.setEntity(entity);
+			}
 
-			expect(component.getTransform()).to.equal(transform);
+			component.entity = entity;
+
+			expect(component.transform).to.equal(transform);
 		})
 	})
 })

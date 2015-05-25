@@ -5,222 +5,218 @@ var MathUtils = require("./mathutils");
 var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
+var injector = require("./injector");
 
-Game = function(entityRunner){
-	var scene;
-	var camera;
-	var renderer;
-	var control;
-	var target = new THREE.Vector3();
-	var cameraYawPitchRow = new THREE.Vector3();
-	var distance = 400.0;
-	var frameRate = 60.0;
-	var keyboard;
-	var entityRunner = new EntityRunner();
-	var nameRegistry = {};
-	var collision = new Collision();
-	var stats = null;
+var Game = function() {
+    this.scene;
+    this.camera;
+    this.renderer;
+    this.control;
+    this.target = new THREE.Vector3();
+    //yaw pitch roll
+    this.cameraRotation = new THREE.Vector3();
+    this.distance = 400.0;
+    this.frameRate = 60.0;
+    this.keyboard;
+    this.entityRunner = injector.get("entityRunner");
+    this.nameRegistry = {};
+    this.collision = injector.get("collision");
+    this.stats = null;
+}
 
-	var onEnterFrame = function(){ 
-		entityRunner.run();
-	}
+Game.prototype = {
+    constructor: Game,
 
-	var updateCamera = function(){
-		var yaw = cameraYawPitchRow.x;
-		var pitch = cameraYawPitchRow.y;
-		var roll = cameraYawPitchRow.z;
-		var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll); 
-		var unitZ = new THREE.Vector3(0, 0, 1);
-		unitZ.applyMatrix4(matrix);
-		unitZ.setLength(distance);
+    onEnterFrame: function() {
+        this.entityRunner.run();
+    },
 
-		var position = new THREE.Vector3();
-		position.subVectors(target, unitZ);
+    updateCamera: function() {
+        var yaw = this.cameraRotation.x;
+        var pitch = this.cameraRotation.y;
+        var roll = this.cameraRotation.z;
+        var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
+        var unitZ = new THREE.Vector3(0, 0, 1);
+        unitZ.applyMatrix4(matrix);
+        unitZ.setLength(distance);
 
-		camera.position.set(position.x, position.y, position.z);
-		camera.lookAt(target);
-		camera.updateMatrix();
-	}
+        var position = new THREE.Vector3();
+        position.subVectors(target, unitZ);
 
-	var initScene = function(){
-		var WIDTH = container.clientWidth,
-		    HEIGHT = container.clientHeight;
+        this.camera.position.set(position.x, position.y, position.z);
+        this.camera.lookAt(target);
+        this.camera.updateMatrix();
+    },
 
-		var VIEW_ANGLE = 45,
-		    ASPECT = WIDTH / HEIGHT,
-		    NEAR = 0.1,
-		    FAR = 10000;
+    initScene: function() {
+        var WIDTH = container.clientWidth,
+            HEIGHT = container.clientHeight;
 
-		renderer = new THREE.WebGLRenderer();
-		camera = new THREE.PerspectiveCamera(  VIEW_ANGLE,
-	                                ASPECT,
-	                                NEAR,
-	                                FAR  );
+        var VIEW_ANGLE = 45,
+            ASPECT = WIDTH / HEIGHT,
+            NEAR = 0.1,
+            FAR = 10000;
 
-		scene = new THREE.Scene();
+        renderer = new THREE.WebGLRenderer();
+        camera = new THREE.PerspectiveCamera(VIEW_ANGLE,
+            ASPECT,
+            NEAR,
+            FAR);
 
-		renderer.setSize(WIDTH, HEIGHT);
+        scene = new THREE.Scene();
 
-		container.appendChild(renderer.domElement);
+        renderer.setSize(WIDTH, HEIGHT);
 
-		render();
+        container.appendChild(renderer.domElement);
 
-		cameraYawPitchRow.set(Math.PI / 4.0, Math.PI / 4.0);
+        render();
 
-		updateCamera();
+        this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0);
 
-		scene.add(camera);
+        updateCamera();
 
-		THREEx.WindowResize(renderer, camera);
+        scene.add(camera);
 
-		keyboard = new THREEx.KeyboardState(renderer.domElement);
-		renderer.domElement.setAttribute("tabIndex", "0");
-		renderer.domElement.focus();
+        THREEx.WindowResize(renderer, camera);
 
-		// only on keyup
-		var KeyMap = Control.KeyMap;
-		keyboard.domElement.addEventListener('keyup', function(event){
-			if(keyboard.eventMatches(event, KeyMap.console)){
-				Console.focus();
-			}else if(keyboard.eventMatches(event, KeyMap.zoomIn)){
-				zoomIn();
-			}else if(keyboard.eventMatches(event, KeyMap.zoomOut)){
-				zoomOut();
-			}
-		});
-	}
+        keyboard = new THREEx.KeyboardState(renderer.domElement);
+        renderer.domElement.setAttribute("tabIndex", "0");
+        renderer.domElement.focus();
 
-	var zoomIn = function(){
-		distance /= 1.2;
-		updateCamera();
-	}
+        // only on keyup
+        var KeyMap = Control.KeyMap;
+        keyboard.domElement.addEventListener('keyup', function(event) {
+            if (keyboard.eventMatches(event, KeyMap.console)) {
+                Console.focus();
+            } else if (keyboard.eventMatches(event, KeyMap.zoomIn)) {
+                zoomIn();
+            } else if (keyboard.eventMatches(event, KeyMap.zoomOut)) {
+                zoomOut();
+            }
+        });
+    },
 
-	var zoomOut = function(){
-		distance *= 1.2;
-		updateCamera();
-	}
+    zoomIn: function() {
+        distance /= 1.2;
+        updateCamera();
+    },
 
-	var mouseMove = function(xDiff, yDiff){
-		var yVector = new THREE.Vector3(target.x - camera.position.x, 0, target.z - camera.position.z);
-		var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
-		var xVector = new THREE.Vector3();
-		xVector.copy(yVector);
-		xVector.applyMatrix4(m);
+    zoomOut: function() {
+        distance *= 1.2;
+        updateCamera();
+    },
 
-		xVector.normalize();
-		yVector.normalize();
+    mouseMove: function(xDiff, yDiff) {
+        var yVector = new THREE.Vector3(target.x - camera.position.x, 0, target.z - camera.position.z);
+        var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
+        var xVector = new THREE.Vector3();
+        xVector.copy(yVector);
+        xVector.applyMatrix4(m);
 
-		target.addVectors(target, xVector.multiplyScalar(xDiff / 2.0));
-		target.addVectors(target, yVector.multiplyScalar(yDiff / 2.0));
+        xVector.normalize();
+        yVector.normalize();
 
-		updateCamera();
-	}
+        target.addVectors(target, xVector.multiplyScalar(xDiff / 2.0));
+        target.addVectors(target, yVector.multiplyScalar(yDiff / 2.0));
 
-	var mouseRotate = function(xDiff, yDiff){
-		cameraYawPitchRow.x += - xDiff / 100.0;
-		cameraYawPitchRow.y += yDiff / 100.0;
+        updateCamera();
+    },
 
-		if(cameraYawPitchRow.y > Math.PI / 2.0){
-			cameraYawPitchRow.y = Math.PI / 2.0;
-		}else if(cameraYawPitchRow.y < -Math.PI / 2.0){
-			cameraYawPitchRow.y = - Math.PI / 2.0;
-		}
+    mouseRotate: function(xDiff, yDiff) {
+        this.cameraRotation.x += -xDiff / 100.0;
+        this.cameraRotation.y += yDiff / 100.0;
 
-		updateCamera();
-	}
+        if (this.cameraRotation.y > Math.PI / 2.0) {
+            this.cameraRotation.y = Math.PI / 2.0;
+        } else if (this.cameraRotation.y < -Math.PI / 2.0) {
+            this.cameraRotation.y = -Math.PI / 2.0;
+        }
 
-	var initControl = function(){
-		control = new Control();
-		control.hookContainer(container);
+        updateCamera();
+    },
 
-		control.mousemove(function(xDiff, yDiff){
-			mouseRotate(xDiff, yDiff);
-		});
-	}
+    initControl: function() {
+        control = new Control();
+        control.hookContainer(container);
 
-	var render = function(){
-		if(stats != null){
-			stats.begin();
-		}
-		renderer.render(scene, camera);
-		if(stats != null){
-	    	stats.end();
-		}
-		requestAnimationFrame(render);
-	}
+        control.mousemove(function(xDiff, yDiff) {
+            mouseRotate(xDiff, yDiff);
+        });
+    },
 
-	return{
-		setStats: function(value){
-			stats = value;
-		},
+    render: function() {
+        if (stats != null) {
+            stats.begin();
+        }
+        renderer.render(scene, camera);
+        if (stats != null) {
+            stats.end();
+        }
+        requestAnimationFrame(render);
+    },
 
-		initialize: function(container) {
-			initScene();
-			initControl();
-			this.addEntity(collision);
-			setInterval(onEnterFrame, 1000 / frameRate);
-		},
+    initialize: function(container) {
+        initScene();
+        initControl();
+        this.addEntity(collision);
+        setInterval(onEnterFrame, 1000 / frameRate);
+    },
 
-		addEntity: function(entity, position){
-			if(position != null){
-				entity.setPosition(position);
-			}
+    addEntity: function(entity, position) {
+        if (position != null) {
+            entity.setPosition(position);
+        }
 
-			entityRunner.addEntity(entity);
-		},
+        this.entityRunner.addEntity(entity);
+    },
 
-		removeEntity: function(entity){
-			entity.destroy();
-			entityRunner.removeEntity(entity);
-		},
+    removeEntity: function(entity) {
+        entity.destroy();
+        this.entityRunner.removeEntity(entity);
+    },
 
-		getScene: function(){
-			return scene;
-		},
+    getEntity: function(name) {
+        var entities = this.getEntities({
+            name: name
+        });
+        if (entities == null || entities.length == 0) {
+            throw "cannot find entity with name: " + name;
+        }
 
-		getEntity: function(name){
-			var entities = this.getEntities( {name: name} );
-			if(entities == null || entities.length == 0){
-				throw "cannot find entity with name: " + name;
-			}
+        if (entities.length > 1) {
+            throw "more than one entity with name: " + name + " found";
+        }
 
-			if(entities.length > 1){
-				throw "more than one entity with name: " + name + " found";
-			}
+        return entities[0];
+    },
 
-			return entities[0];
-		},
+    getEntities: function(params) {
+        var entities = this.entityRunner.getEntities();
 
-		getEntities: function(params){
-			var entities = entityRunner.getEntities();
+        if (params == null) {
+            return entities;
+        }
 
-			if(params == null){
-				return entities;
-			}
+        var name = params == null ? null : params.name;
 
-			var name = params == null ? null : params.name;
+        if (name != null) {
+            entities = _.filter(entities, function(e) {
+                return e.name == name;
+            });
+        }
 
-			if(name != null){
-				entities = _.filter(entities, function(e) { return e.name == name; });
-			}
+        return entities;
+    },
 
-			return entities;
-		},
+    nameEntity: function(name, entity) {
+        if (this.nameRegistry[name] == undefined) {
+            this.nameRegistry[name] = 0;
+        } else {
+            this.nameRegistry[name] = this.nameRegistry[name] + 1;
+        }
 
-		nameEntity: function(name, entity){
-			if(nameRegistry[name] == undefined){
-				nameRegistry[name] = 0;
-			}else{
-				nameRegistry[name] = nameRegistry[name] + 1;
-			}
-
-			entity.name = name + nameRegistry[name];
-		},
-
-		setEntityRunner: function(value){
-			entityRunner = value;
-		},
-	};
-}();
+        entity.name = name + this.nameRegistry[name];
+    }
+}
 
 module.exports = Game;

@@ -1,56 +1,37 @@
 var Component = require("../component");
 var THREE = require("THREE");
 
-var RigidBody = function(){
-	var velocity = new THREE.Vector3();
-	var acceleration = new THREE.Vector3();
-	var friction = 0.98;
-	var defaultFriction = 0.98;
-	var collisionRadius = null;
+var RigidBody = function() {
+    this.velocity = new THREE.Vector3();
+    this.acceleration = new THREE.Vector3();
+    this.defaultFriction = 0.98;
+       this.friction = 0.98;
+    this.collisionRadius = null;
+};
 
-	var rigidBody = {
-		getCollisionRadius: function(){ return collisionRadius; },
-		setCollisionRadius: function(value){ collisionRadius = value; },
-		getVelocity: function(){ return velocity; },
-		setVelocity: function(value){ velocity = value; },
-		getAcceleration: function(){ return acceleration; },
-		setAcceleration: function(value){ acceleration = value; },
-		setDefaultFriction: function(value){ 
-			defaultFriction = value;
-			friction = value;
-		},
-		getDefaultFriction: function(){ return defaultFriction; },
-		getFriction: function(){ return friction; },
+RigidBody.prototype = Object.create(Component);
 
-		start: function(){
-			friction = defaultFriction;
-		},
+RigidBody.prototype.constructor = RigidBody;
 
-		update: function(){
-			this.updatePosition();
-		},
+RigidBody.prototype.start = function() {
+    this.friction = this.defaultFriction;
+};
 
-		updatePosition: function(){
-			velocity.add(acceleration);
-			velocity.multiplyScalar(friction);
-			this.getTransform().getPosition().add(velocity);
+RigidBody.prototype.update = function() {
+    this.velocity.add(this.acceleration);
+    this.velocity.multiplyScalar(this.friction);
+    this.transform.position.add(this.velocity);
 
-			acceleration.set(0, 0, 0);
-			friction = defaultFriction;
-		},
+    this.acceleration.set(0, 0, 0);
+    this.friction = this.defaultFriction;
+};
 
-		applyForce: function(force){
-			acceleration.add(force);
-		},
+RigidBody.prototype.applyForce = function(force) {
+    this.acceleration.add(force);
+};
 
-		applyFriction: function(frictionToApply){
-			friction *= frictionToApply;
-		}
-	};
-
-	rigidBody.__proto__ = Component();
-
-	return rigidBody;
-}
+RigidBody.prototype.applyFriction = function(friction) {
+    this.friction *= friction;
+};
 
 module.exports = RigidBody;

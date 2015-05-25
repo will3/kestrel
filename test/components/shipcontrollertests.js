@@ -8,30 +8,21 @@ var THREE = require("THREE");
 var MathUtils = require("../../app/mathutils");
 
 describe("ShipController", function(){
-	var shipController, entity, rigidBody, mockRigidBody, mockShipController,
-	roll, mockRoll, pitch, mockPitch, yaw, mockYaw;
+	var shipController, entity, rigidBody, mockRigidBody, mockShipController;
 
 	beforeEach(function(){
-		roll = new ShipController.Roll();
-		mockRoll = sinon.mock(roll);
-		pitch = new ShipController.Pitch();
-		mockPitch = sinon.mock(pitch);
-		yaw = new ShipController.Yaw(roll);
-		mockYaw = sinon.mock(yaw);
-		shipController = new ShipController(yaw, pitch, roll);
+		shipController = new ShipController();
 		entity = new Entity();
 		rigidBody = new RigidBody();
-		entity.getRigidBody = function(){
-			return rigidBody;
-		}
+		entity.rigidBody = rigidBody;
 		mockRigidBody = sinon.mock(rigidBody);
-		shipController.setEntity(entity);
+		shipController.entity = entity;
 		mockShipController = sinon.mock(shipController);
 	})
 
 	describe("get rigid body", function(){
 		it("should return rigid body of entity", function(){
-			expect(shipController.getRigidBody()).to.equal(rigidBody);
+			expect(shipController.rigidBody).to.equal(rigidBody);
 		})
 	})
 
@@ -39,38 +30,20 @@ describe("ShipController", function(){
 		it("should destroy previous command", function(){
 			var command = new Command();
 			var mockCommand = sinon.mock(command);
-			shipController.setCommand(command);
+			shipController.command = command;
 			mockCommand.expects("destroy");
 
-			shipController.setCommand(new Command());
+			shipController.command = new Command();
 
 			mockCommand.verify();
 		})
 	})
 
 	describe("update", function(){
-		it("should update roll", function(){
-			mockRoll.expects("update");
-			shipController.update();
-			mockRoll.verify();
-		})
-
-		it("should update yaw", function(){
-			mockYaw.expects("update");
-			shipController.update();
-			mockYaw.verify();
-		})
-
-		it("should update pitch", function(){
-			mockPitch.expects("update");
-			shipController.update();
-			mockPitch.verify();
-		})
-
 		it("should update command", function(){
 			var command = new Command();
 			var mockCommand = sinon.mock(command);
-			shipController.setCommand(command);
+			shipController.command = command;
 			mockCommand.expects("update");
 
 			shipController.update();
@@ -91,32 +64,6 @@ describe("ShipController", function(){
 			}));
 			shipController.accelerate(1);
 			mockRigidBody.verify();
-		})
-	})
-})
-
-describe("Roll", function(){
-	it("should have axis Z", function(){
-		var roll = new ShipController.Roll();
-		expect(roll.getAxis()).to.equal("z");
-	})
-})
-
-describe("Pitch", function(){
-	it("should have axis Y", function(){
-		var pitch = new ShipController.Pitch();
-		expect(pitch.getAxis()).to.equal("y");
-	})
-})
-
-describe("Yaw", function(){
-	var roll = new ShipController.Roll();
-	var yaw = new ShipController.Yaw(roll);
-
-	describe("#update", function(){
-		it("should update from roll", function(){
-			var entity = new Entity();
-			
 		})
 	})
 })

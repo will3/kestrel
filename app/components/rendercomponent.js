@@ -4,57 +4,62 @@ var MathUtils = require("../mathutils");
 var Game = require("../game");
 var _ = require("lodash");
 
-var RenderComponent = function(){
-	var innerObject = null;
-	var game = null;
+var RenderComponent = function() {
+    this.innerObject = null;
+    this.game = Game;
+    this.geometry = null;
+    this.material = null;
+};
 
-	var updateTransform = function(entity){
-		var transform = entity.getTransform();
+RenderComponent.prototype = Object.create(Component);
+RenderComponent.prototype.constructor = RenderComponent;
 
-		if(innerObject == null){
-			return;
-		}
+RenderComponent.prototype.updateTransform = function() {
+    var transform = this.entity.getTransform();
 
-		var position = entity.getWorldPosition();
-		innerObject.position.set(position.x, position.y, position.z);
+    if (this.innerObject == null) {
+        return;
+    }
 
-		var rotation = transform.getRotation();
-		innerObject.rotation.setFromRotationMatrix(MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z));
+    var position = this.entity.getWorldPosition();
+    this.innerObject.position.set(position.x, position.y, position.z);
 
-		var scale = transform.getScale();
-		var actualScale = innerObject.scale;
-		if(!scale.equals(actualScale)){
-			innerObject.scale.set(scale.x, scale.y, scale.z);
-		}
-	};
+    var rotation = transform.rotation;
+    this.innerObject.rotation.setFromRotationMatrix(MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z));
 
-	var renderComponent = {
-		setGame: function(value){ game = value; },
-		getGame: function() { if(game == null){ game = Game; } return game; },
-		start: function(){
-			innerObject = this.initObject();
-			this.getGame().getScene().add(innerObject);
-			this.updateTransform(this.getEntity());
-		},
+    var scale = transform.scale;
+    var actualScale = this.innerObject.scale;
+    if (!scale.equals(actualScale)) {
+        this.innerObject.scale.set(scale.x, scale.y, scale.z);
+    }
+};
 
-		update: function(){
-			this.updateTransform(this.getEntity());
-		},
+RenderComponent.prototype.start = function() {
+    this.geometry = this.initGeometry();
+    this.material = this.initMaterial();
+    this.innerObject = this.initObject(this.geometry, this.material);
+    this.game.getScene().add(this.innerObject);
+    this.updateTransform(this.entity);
+};
 
-		updateTransform: updateTransform,
+RenderComponent.prototype.update = function() {
+    this.updateTransform(this.entity);
+};
 
-		destroy: function(){
-			this.getGame().getScene().remove(innerObject);
-		},
+RenderComponent.prototype.destroy = function() {
+    this.game.getScene().remove(this.innerObject);
+};
 
-		initObject: function(){
-			throw "must override";
-		}
-	};
+RenderComponent.prototype.initGeometry = function() {
+    throw "must override";
+};
 
-	renderComponent.__proto__ = Component();
+RenderComponent.prototype.initMaterial = function() {
+    throw "must override";
+};
 
-	return renderComponent;
-}
+RenderComponent.prototype.initObject = function(geometry, material) {
+    throw "must override";
+};
 
 module.exports = RenderComponent;

@@ -1,3 +1,5 @@
+var injector = require("../app/injector");
+injector.loadModule(require("./testmodule"));
 var Entity = require("../app/entity");
 var Component = require("../app/component");
 var expect = require("chai").expect;
@@ -7,75 +9,67 @@ var RigidBody = require("../app/components/rigidbody");
 
 describe('Entity', function(){
 	var entity = null;
-	var game = null;
 	
 	beforeEach(function(){
 		entity = new Entity();
-		game = {
-			removeEntity: function(entity){ }
-		}
+		game = injector.get("game");
 	})
 
 	describe('#getTransform', function(){
 		it('initialize with default if empty', function(){
 			entity = new Entity();
 
-			expect(entity.getTransform()).to.not.equal(null);
+			expect(entity.transform).to.not.equal(null);
 		})
 	})
 
 	describe('#hasCollision', function(){
-		it('returns no when collision radius is not defined', function(){
+		it('is false when collision radius is not defined', function(){
 			var rigidBody = new RigidBody();
 			entity.getRigidBody = function(){
 				return rigidBody;
 			}
-			rigidBody.setCollisionRadius(null);
+			rigidBody.collisionRadius = null;
 			expect(entity.hasCollision()).to.equal(false);
 		})
 
-		it('returns no when no rigid body', function(){
+		it('is false when no rigid body', function(){
 			entity.getRigidBody = null;
 			expect(entity.hasCollision()).to.equal(false);
 		})
 
-		it('returns yes when has collision radius and has rigid body', function(){
+		it('is true when has collision radius and has rigid body', function(){
 			var rigidBody = new RigidBody();
-			rigidBody.setCollisionRadius(10);
-			entity.getRigidBody = function(){ return rigidBody; }
+			rigidBody.collisionRadius = 10;
+			entity.rigidBody = rigidBody;
 			expect(entity.hasCollision()).to.equal(true);
-		})
-	})
-
-	describe('#setParentEntity', function(){
-		it('should throw if parent entity already exists', function(){
-			entity = new Entity();
-			var parent1 = new Entity();
-			var parent2 = new Entity();
-
-			entity.setParentEntity(parent1);
-
-			expect(function(){
-				entity.setParentEntity(parent2);
-			}).to.throw("entity already has a parent entity");
 		})
 	})
 
 	describe('#addEntity', function(){
 		it('should set parent', function(){
 			entity = new Entity();
-			var child = mockEntity();
-			child.expects("setParentEntity");
+			var child = new Entity();
 
-			entity.addEntity(child.object);
+			entity.addEntity(child);
 
-			child.verify();
+			expect(child.parentEntity).to.equal(entity);
 		})
 
 		it('should push child entity', function(){
 			entity = new Entity();
 			entity.addEntity(new Entity());
-			expect(entity.getChildEntities().length).to.equal(1);
+			expect(entity.childEntities.length).to.equal(1);
+		})
+
+		it('should throw if entity already has parent', function(){
+			entity = new Entity();
+			var child = new Entity();
+			var parent = new Entity();
+			parent.addEntity(child);
+			expect(function(){
+				entity.addEntity(child);
+			}).to.throw("entity already has a parent entity");
 		})
 	})
 
@@ -96,27 +90,27 @@ describe('Entity', function(){
 
 			entity.removeEntity(child.object);
 
-			expect(entity.getChildEntities().length).to.equal(0);
+			expect(entity.childEntities.length).to.equal(0);
 		})
 	})
 
 	describe('#addComponent', function(){
 		it('should set entity', function(){
-			var component = mockComponent();
+			var component = new Component();
 			var entity = new Entity();
 
-			entity.addComponent(component.object);
+			entity.addComponent(component);
 
-			expect(component.object.getEntity()).to.equal(entity);
+			expect(component.entity).to.equal(entity);
 		})
 
 		it('should add component', function(){
-			var component = mockComponent();
+			var component = new Component();
 			var entity = new Entity();
 
-			entity.addComponent(component.object);
+			entity.addComponent(component);
 
-			expect(entity.getComponents().length).to.equal(1);
+			expect(entity.components.length).to.equal(1);
 		})
 	})
 
@@ -137,7 +131,7 @@ describe('Entity', function(){
 
 			entity.removeComponent(component);
 
-			expect(entity.getComponents().length).to.equal(0);
+			expect(entity.components.length).to.equal(0);
 		})
 	})
 
@@ -174,8 +168,8 @@ describe('Entity', function(){
 	})
 
 	describe('#removeFromParent', function(){
-		context('has parent entity', function(){
-			it('removes from parent', function(){
+		context('when entity has parent', function(){
+			it('should removes from parent', function(){
 				var entity = new Entity();
 				var parent = mockEntity();
 				parent.object.addEntity(entity);
@@ -187,10 +181,9 @@ describe('Entity', function(){
 			})
 		})
 
-		context("doesn't have parent entity", function(){
-			it('removes from Game', function(){
+		context("when entity doesn't have parent", function(){
+			it('should removes from Game', function(){
 				var entity = new Entity();
-				entity.setGame(game);
 				var mockGame = sinon.mock(game);
 				mockGame.expects("removeEntity");
 
@@ -202,19 +195,19 @@ describe('Entity', function(){
 	})
 
 	describe("#getWorldPosition", function(){
-		it("increments from parent position", function(){
+		it("should increment from parent position", function(){
 			var entity = new Entity();
 			var parent = new Entity();
 			var grandparent = new Entity();
 			grandparent.addEntity(parent);
 			parent.addEntity(entity);
-			grandparent.setPosition(new THREE.Vector3(300, 300, 300));
-			parent.setPosition(new THREE.Vector3(20, 20, 20));
-			entity.setPosition(new THREE.Vector3(1, 1, 1));
+			grandparent.position = new THREE.Vector3(300, 300, 300);
+			parent.position = new THREE.Vector3(20, 20, 20);
+			entity.position = new THREE.Vector3(1, 1, 1);
 
 			var worldPosition = entity.getWorldPosition();
 
-			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321))).to.equal(true);
+			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321))).to.be.true;
 		})
 	})
 

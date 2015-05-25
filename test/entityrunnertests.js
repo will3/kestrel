@@ -3,6 +3,8 @@ var sinon = require("sinon");
 var expect = require("chai").expect;
 var Entity = require("../app/entity");
 var Component = require("../app/component");
+var injector = require("../app/injector");
+injector.loadModule(require("./testmodule"));
 
 describe("EntityRunner", function(){
 	var entityRunner, entity, mockEntity, component, mockComponent,
@@ -31,7 +33,7 @@ describe("EntityRunner", function(){
 	describe("#addEntity", function(){
 		it("should push entity", function(){
 			entityRunner.addEntity(entity);
-			expect(entityRunner.getEntities().length).to.equal(1);
+			expect(entityRunner.entities.length).to.equal(1);
 		})
 	})
 
@@ -39,7 +41,7 @@ describe("EntityRunner", function(){
 		it("should remove entity", function(){
 			entityRunner.addEntity(entity);
 			entityRunner.removeEntity(entity);
-			expect(entityRunner.getEntities().length).to.equal(0);
+			expect(entityRunner.entities.length).to.equal(0);
 		})
 
 		it("should destroy entity", function(){
@@ -53,9 +55,9 @@ describe("EntityRunner", function(){
 	describe("#run", function(){
 		it("should increment entity frame age", function(){
 			entityRunner.addEntity(entity);
-			entity.setFrameAge(99);
+			entity.frameAge = 99;
 			entityRunner.run();
-			expect(entity.getFrameAge()).to.equal(100);
+			expect(entity.frameAge).to.equal(100);
 		})
 
 		it("should start entity", function(){
@@ -102,9 +104,9 @@ describe("EntityRunner", function(){
 
 		it("should increment child entity frame age", function(){
 			entityRunner.addEntity(entity);
-			childEntity.setFrameAge(99);
+			childEntity.frameAge = 99;
 			entityRunner.run();
-			expect(childEntity.getFrameAge()).to.equal(100);
+			expect(childEntity.frameAge).to.equal(100);
 		})
 
 		it("should update child entity", function(){

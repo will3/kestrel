@@ -202,6 +202,8 @@ var BlockChunk = function(origin, chunkSize){
 			})
 		},
 
+		visitBlocks: visitBlocks,
+
 		visitMap: visitMap
 	}
 
