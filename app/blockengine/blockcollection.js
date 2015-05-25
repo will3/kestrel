@@ -1,10 +1,7 @@
-var Entity = require("../entity");
-var MaterialLoader = require("../materialloader");
 var THREE = require("THREE");
 var Block = require("./block");
 
 var BlockCollection = function(){
-	var renderComponent = null;
 	var size = 1;
 	var map = [[[
 		//object at 0 0 0
@@ -18,6 +15,7 @@ var BlockCollection = function(){
 
 	var min = new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
 	var max = new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+	var boundingBox = null;
 
 	var visitCoords = function(callback){
 		Object.keys(map).forEach(function(x){
@@ -55,15 +53,18 @@ var BlockCollection = function(){
 				if(y < min.y){ min.setY(y); }
 				if(z < min.z){ min.setZ(z); }
 			})
-		},
 
-		getBoundingBox: function(){
 			var center = new THREE.Vector3().copy(min).add(max).multiplyScalar(0.5);
-			return {
+			
+			boundingBox = {
 				min: min,
 				center: center,
 				max: max
-			}
+			};
+		},
+
+		getBoundingBox: function(){
+			return boundingBox;
 		},
 
 		addBlock: function(x, y, z){
@@ -122,11 +123,6 @@ var BlockCollection = function(){
 			});
 
 			return geometry;
-		},
-
-		getMaterial: function(){
-			var material = MaterialLoader.getMeshFaceMaterial("cube");
-			return material;
 		}
 	}
 
