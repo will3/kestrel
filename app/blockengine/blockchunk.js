@@ -1,213 +1,251 @@
 var BlockCoord = require("./blockcoord");
+
 var _ = require("lodash");
 
-var BlockChunk = function(origin, chunkSize){
-	var params = params || {}
-	var map = {}
+var BlockChunk = function(origin, chunkSize) {
+    this.type = "BlockChunk";
+    this.map = {};
+    this.origin = origin || null;
+    this.chunkSize = chunkSize || null;
+    this.minChunkSize = 8;
+    this.children = [];
+    this.lowerBound = null;
+    this.higherBound = null;
+};
 
-	var visitMap = function(callback){
-		Object.keys(map).forEach(function(x){
-			Object.keys(map[x]).forEach(function(y){
-				Object.keys(map[x][y]).forEach(function(z){
-					callback(parseInt(x), parseInt(y), parseInt(z));
-				})
-			})
-		})
-	}
+BlockChunk.prototype = {
+    constructor: BlockChunk,
 
-	var visitBlocks = function(callback){
-		visitMap(function(x, y, z){
-			callback(map[x][y][z], x, y, z);
-		})
-	}
+    visitMap: function(callback) {
+        for(x in this.map){
+            for(y in this.map[x]){
+                for(z in this.map[x][y]){
+                    callback(parseInt(x), parseInt(y), parseInt(z));
+                }
+            }
+        }
+    },
 
-	var clearMap = function(){
-		map = {}
-	}
+    visitBlocks: function(callback) {
+        this.visitMap(function(x, y, z) {
+            callback(this.map[x][y][z], x, y, z);
+        }.bind(this));
+    },
 
-	var blockChunk = {
-		minChunkSize: 4,
-		type: "BlockChunk",
-		origin: origin || null,
-		chunkSize: chunkSize || null,
-		children: [],
+    visitLeafs: function(callback){
+        if(this.children.length == 0){
+            callback(this);
+            return;
+        }
 
-		hasBounds: function(){
-			return this.origin != null && this.chunkSize != null;
-		},
+        for(var i in this.children){
+            this.children[i].visitLeafs(callback);
+        }
+    },
 
-		getChildrenCount: function(){
-			return this.children.length;
-		},
+    clearMap: function() {
+        this.map = {}
+    },
 
-		getBlockCount: function(){
-			var count = 0;
-			visitMap(function(x, y, z){
-				count ++;
-			})
+    hasBounds: function() {
+        return this.origin != null && this.chunkSize != null;
+    },
 
-			this.children.forEach(function(child){
-				count += child.getBlockCount();
-			})
+    getChildrenCount: function() {
+        return this.children.length;
+    },
 
-			return count;
-		},
+    getBlockCount: function() {
+        var count = 0;
+        this.visitMap(function(x, y, z) {
+            count++;
+        })
 
-		inBound: function(coord){
-			return ( 
-				coord.x >= this.origin.x &&
-				coord.y >= this.origin.y &&
-				coord.z >= this.origin.z &&
-				coord.x < this.origin.x + this.chunkSize &&
-				coord.y < this.origin.y + this.chunkSize &&
-				coord.z < this.origin.z + this.chunkSize
-				);
-		},
+        this.children.forEach(function(child) {
+            count += child.getBlockCount();
+        })
 
-		addBlock: function(coord, block){
-			if(this.hasBounds()){
-				if(!this.inBound(coord)){
-					throw "out of bounds";
-				}
-			}
+        return count;
+    },
 
-			if(block == null){
-				throw "block cannot be empty";
-			}
+    inBound: function(x, y, z) {
+        return (
+            x >= this.origin.x &&
+            y >= this.origin.y &&
+            z >= this.origin.z &&
+            x < this.origin.x + this.chunkSize &&
+            y < this.origin.y + this.chunkSize &&
+            z < this.origin.z + this.chunkSize
+        );
+    },
 
-			var x = coord.x;
-			var y = coord.y;
-			var z = coord.z;
-			if(block.type != "Block"){
-				throw "must add block";
-			}
+    addBlock: function(x, y, z, block) {
+        if (this.hasBounds()) {
+            if (!this.inBound(x, y, z)) {
+                throw "out of bounds";
+            }
+        }
 
-			if(map[x] == null){
-				map[x] = {};
-			}
+        if (block == null) {
+            throw "block cannot be empty";
+        }
 
-			if(map[x][y] == null){
-				map[x][y] = {};
-			}
+        if (block.type != "Block") {
+            throw "must add block";
+        }
 
-			if(map[x][y][z] != null){
-				throw "something already here!";
-			}
+        if (this.map[x] == null) {
+            this.map[x] = {};
+        }
 
-			map[x][y][z] = block;
-		},
+        if (this.map[x][y] == null) {
+            this.map[x][y] = {};
+        }
 
-		removeBlock: function(coord, block){
-			if(this.hasBounds()){
-				if(!this.inBound(coord)){
-					throw "out of bounds";
-				}
-			}
+        if (this.map[x][y][z] != null) {
+            throw "something already here!";
+        }
 
-			var existing = this.getBlockOrEmpty(coord);
-			if(existing == null){
-				throw "nothing found!";
-			}
+        this.map[x][y][z] = block;
+    },
 
-			map[coord.x][coord.y][coord.z] = null;
-		},
+    removeBlock: function(x, y, z) {
+        if (this.hasBounds()) {
+            if (!this.inBound(x, y, z)) {
+                throw "out of bounds";
+            }
+        }
 
-		getBlock: function(coord){
-			var block = this.getBlockOrEmpty(coord);
-			if(block == null){
-				throw "nothing found!";
-			}
-			return block;
-		},
+        var existing = this.getBlockOrEmpty(x, y, z);
+        if (existing == null) {
+            throw "nothing found!";
+        }
 
-		getBlockOrEmpty: function(coord){
-			var x = coord.x;
-			var y = coord.y;
-			var z = coord.z;
-			if(map[x] == null){
-				return null;
-			}
-			if(map[x][y] == null){
-				return null;
-			}
-			return map[x][y][z] || null;
-		},
+        this.map[x][y][z] = null;
+    },
 
-		shrink: function(){
-			var min = null;
-			var max = null;
-			visitMap(function(x, y, z){
-				if(min == null){
-					min = new BlockCoord(x, y, z);
-				}
-				if(max == null){
-					max = new BlockCoord(x, y, z);
-				}
-				if(x > max.x){ max.x = x; }
-				if(y > max.y){ max.y = y; }
-				if(z > max.z){ max.z = z; }
+    getBlock: function(x, y, z) {
+        var block = this.getBlockOrEmpty(x, y, z);
+        if (block == null) {
+            throw "nothing found!";
+        }
+        return block;
+    },
 
-				if(x < min.x){ min.x = x; }
-				if(y < min.y){ min.y = y; }
-				if(z < min.z){ min.z = z; }
-			}.bind(this));
+    getBlockOrEmpty: function(x, y, z) {
+        if (this.map[x] == null) {
+            return null;
+        }
+        if (this.map[x][y] == null) {
+            return null;
+        }
+        return this.map[x][y][z] || null;
+    },
 
-			this.origin = min.copy();
-			var size = _.max([max.x - min.x, max.y - min.y, max.z - min.z]);
-			var chunkSize = this.minChunkSize;
-			while(chunkSize < size){
-				chunkSize *= 2;
-			}
-			this.chunkSize = chunkSize;
-		},
+    getChunk: function(x, y, z){
+        if(!this.inBound(x, y, z)){
+            return null;
+        }
 
-		subdivide: function(){
-			if(!this.hasBounds()){
-				throw "origin or chunkSize not initialized, try |shrink chunk first";
-			}
+        if(this.children.length == 0){
+            return this;
+        }
 
-			if(this.chunkSize == this.minChunkSize){
-				return;
-			}
+        for(var index in this.children){
+            var child = this.children[index];
+            var chunk = child.getChunk(x, y, z);
+            if(chunk != null){
+                return chunk;
+            }
+        }
 
-			var x = this.origin.x;
-			var y = this.origin.y;
-			var z = this.origin.z;
-			var chunkSize_half = this.chunkSize / 2.0;
+        return null;
+    },
 
-			this.children.push(new BlockChunk(new BlockCoord(x, y, z), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y, z), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y, z + chunkSize_half), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x, y, z + chunkSize_half), chunkSize_half));
-			
-			this.children.push(new BlockChunk(new BlockCoord(x, y + chunkSize_half, z), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y + chunkSize_half, z), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y + chunkSize_half, z + chunkSize_half), chunkSize_half));
-			this.children.push(new BlockChunk(new BlockCoord(x, y + chunkSize_half, z + chunkSize_half), chunkSize_half));
-			
-			//delegate blocks down
-			visitBlocks(function(block, x, y, z){
-				this.children.forEach(function(child){
-					var coord = new BlockCoord(x, y, z);
-					if(child.inBound(coord)){
-						child.addBlock(coord, block);
-					}
-				})
-			}.bind(this));
+    shrink: function() {
+        var min = null;
+        var max = null;
+        this.visitMap(function(x, y, z) {
+            if (min == null) {
+                min = new BlockCoord(x, y, z);
+            }
+            if (max == null) {
+                max = new BlockCoord(x, y, z);
+            }
+            if (x > max.x) {
+                max.x = x;
+            }
+            if (y > max.y) {
+                max.y = y;
+            }
+            if (z > max.z) {
+                max.z = z;
+            }
 
-			clearMap();
+            if (x < min.x) {
+                min.x = x;
+            }
+            if (y < min.y) {
+                min.y = y;
+            }
+            if (z < min.z) {
+                min.z = z;
+            }
+        }.bind(this));
 
-			this.children.forEach(function(child){
-				child.subdivide();
-			})
-		},
+        this.lowerBound = min;
+        this.higherBound = max;
 
-		visitBlocks: visitBlocks,
+        this.origin = min.copy();
+        var size = _.max([max.x - min.x, max.y - min.y, max.z - min.z]);
+        var chunkSize = this.minChunkSize;
+        while (chunkSize < size) {
+            chunkSize *= 2;
+        }
+        this.chunkSize = chunkSize;
+    },
 
-		visitMap: visitMap
-	}
+    subdivide: function() {
+        if (!this.hasBounds()) {
+            throw "origin or chunkSize not initialized, try |shrink chunk first";
+        }
 
-	return blockChunk;
-}
+        if (this.chunkSize == this.minChunkSize) {
+            return;
+        }
+
+        var x = this.origin.x;
+        var y = this.origin.y;
+        var z = this.origin.z;
+        var chunkSize_half = this.chunkSize / 2.0;
+
+        this.children.push(new BlockChunk(new BlockCoord(x, y, z), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y, z), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y, z + chunkSize_half), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x, y, z + chunkSize_half), chunkSize_half));
+
+        this.children.push(new BlockChunk(new BlockCoord(x, y + chunkSize_half, z), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y + chunkSize_half, z), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x + chunkSize_half, y + chunkSize_half, z + chunkSize_half), chunkSize_half));
+        this.children.push(new BlockChunk(new BlockCoord(x, y + chunkSize_half, z + chunkSize_half), chunkSize_half));
+
+        this.children.forEach(function(child) {
+            child.subdivide();
+        })
+    },
+
+    reallocate: function(){
+        this.visitBlocks(function(block, x, y, z){
+            var chunk = this.getChunk(x, y, z);
+            if(chunk == null){
+                throw "cannot allocate block";
+            }
+
+            chunk.addBlock(x, y, z, block);
+        }.bind(this));
+
+        this.clearMap();
+    }
+};
 
 module.exports = BlockChunk;

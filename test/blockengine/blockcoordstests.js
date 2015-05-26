@@ -40,4 +40,16 @@ describe("BlockCoords", function(){
 			}).to.throw("must compare with BlockCoord");
 		})
 	})
+
+	describe("#copy", function(){
+		it("should create another instance with same coords", function(){
+			var coords1 = new BlockCoord(1, 2, 3);
+			var coords2 = coords1.copy();
+
+			expect(coords1).to.not.equal(coords2);
+			expect(coords2.x).to.equal(1);
+			expect(coords2.y).to.equal(2);
+			expect(coords2.z).to.equal(3);
+		})
+	})
 })

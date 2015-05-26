@@ -12,7 +12,7 @@ var Ship = function() {
     // model: new ShipModel(),
 }
 
-Ship.prototype = Object.create(Component);
+Ship.prototype = Object.create(Entity);
 
 Ship.prototype.start = function() {
     Ship.id++;

@@ -1,9 +1,9 @@
 var Block = function(){
-	var block = {
-		type: "Block",
-	}
+	this.type = "Block";
+};
 
-	return block;
-}
+Block.prototype = {
+	constructor: Block
+};
 
 module.exports = Block;
