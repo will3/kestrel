@@ -1,25 +1,24 @@
-var BlockCoord = function(x, y, z){
+var BlockCoord = function(x, y, z) {
+    this.type = "BlockCoord";
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
+}
 
-	var blockCoord = {
-		type : "BlockCoord",
-		x : x || 0,
-		y : y || 0,
-		z : z || 0,
-		
-		equals: function(coord){
-			if(coord.type != "BlockCoord"){
-				throw "must compare with BlockCoord";
-			}
+BlockCoord.prototype = {
+    constructor: BlockCoord,
 
-			return this.x == coord.x && this.y == coord.y && this.z == coord.z;
-		},
+    equals: function(coord) {
+        if (coord.type != "BlockCoord") {
+            throw "must compare with BlockCoord";
+        }
 
-		copy: function(){
-			return new BlockCoord(this.x, this.y, this.z);
-		}
-	}
+        return this.x == coord.x && this.y == coord.y && this.z == coord.z;
+    },
 
-	return blockCoord;
+    copy: function() {
+        return new BlockCoord(this.x, this.y, this.z);
+    }
 }
 
 module.exports = BlockCoord;
