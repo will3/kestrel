@@ -25,7 +25,7 @@ Component.prototype = {
 	},
 
 	get transform(){
-		return this.entity.getTransform();
+		return this.entity.transform;
 	}
 }
 

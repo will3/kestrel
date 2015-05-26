@@ -8,14 +8,16 @@ var Injector = function() {
         },
 
         get: function(key, tag) {
-        	if(this.module == null){
-        		throw "no modules loaded for " + key + ((tag != null) ? (" " + tag) : "");
-        	}
+            if(this.module == null){
+                throw "no modules loaded";
+            }
+
+            var desc = key + ((tag != null) ? (" " + tag) : "");
 
         	var object = this.module.get(key, tag);
 
         	if(object == null){
-        		throw "failed to load dependency " + key;
+        		throw "failed to get " + desc;
         	}
 
         	return object;

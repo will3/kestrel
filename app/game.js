@@ -5,7 +5,7 @@ var MathUtils = require("./mathutils");
 var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
-var injector = require("./injector");
+var assert = require("assert");
 
 var Game = function() {
     this.scene;
@@ -18,10 +18,11 @@ var Game = function() {
     this.distance = 400.0;
     this.frameRate = 60.0;
     this.keyboard;
-    this.entityRunner = injector.get("entityRunner");
     this.nameRegistry = {};
-    this.collision = injector.get("collision");
     this.stats = null;
+
+    this.entityRunner = null;
+    this.collision = null;
 }
 
 Game.prototype = {
@@ -156,6 +157,9 @@ Game.prototype = {
     },
 
     initialize: function(container) {
+        assert(this.entityRunner != null, "entityRunner cannot be empty");
+        assert(this.collision != null, "collision cannot be empty");
+
         initScene();
         initControl();
         this.addEntity(collision);
@@ -191,7 +195,7 @@ Game.prototype = {
     },
 
     getEntities: function(params) {
-        var entities = this.entityRunner.getEntities();
+        var entities = this.entityRunner.entities;
 
         if (params == null) {
             return entities;

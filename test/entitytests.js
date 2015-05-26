@@ -1,5 +1,3 @@
-var injector = require("../app/injector");
-injector.loadModule(require("./testmodule"));
 var Entity = require("../app/entity");
 var Component = require("../app/component");
 var expect = require("chai").expect;
@@ -12,7 +10,6 @@ describe('Entity', function(){
 	
 	beforeEach(function(){
 		entity = new Entity();
-		game = injector.get("game");
 	})
 
 	describe('#getTransform', function(){
@@ -164,33 +161,6 @@ describe('Entity', function(){
 
 			entity1.verify();
 			entity2.verify();
-		})
-	})
-
-	describe('#removeFromParent', function(){
-		context('when entity has parent', function(){
-			it('should removes from parent', function(){
-				var entity = new Entity();
-				var parent = mockEntity();
-				parent.object.addEntity(entity);
-				parent.expects("removeEntity").withArgs(entity);
-
-				entity.removeFromParent();
-
-				parent.verify();
-			})
-		})
-
-		context("when entity doesn't have parent", function(){
-			it('should removes from Game', function(){
-				var entity = new Entity();
-				var mockGame = sinon.mock(game);
-				mockGame.expects("removeEntity");
-
-				entity.removeFromParent();
-
-				mockGame.verify();
-			})
 		})
 	})
 

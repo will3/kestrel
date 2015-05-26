@@ -1,32 +1,28 @@
 var Command = require('../command');
 var THREE = require("THREE");
 
-var AlignCommand = function(){
-	var target = null;
+var AlignCommand = function() {
+    Command.call(this);
 
-	var alignCommand = {
-		getTarget: function(){
-			return target;
-		},
-		execute: function(){
-			var params = this.getParams();
-			var x = parseInt(params[0]);
-			var y = parseInt(params[1]);
-			var z = parseInt(params[2]);
-
-			target = new THREE.Vector3(x, y, z);
-
-			this.getActor().getShipController().setCommand(this);
-		},
-		update: function(){		
-			var shipController = this.getActor().getShipController();
-			shipController.align(target);
-		},
-	};
-
-	alignCommand.__proto__ = Command();
-
-	return alignCommand;
+    this.target = null;
 }
+
+AlignCommand.prototype = Object.create(Command.prototype);
+AlignCommand.constructor = AlignCommand;
+
+AlignCommand.prototype.execute = function() {
+    var x = parseInt(this.params[0]);
+    var y = parseInt(this.params[1]);
+    var z = parseInt(this.params[2]);
+
+    this.target = new THREE.Vector3(x, y, z);
+
+    this.actor.shipController.setCommand(this);
+};
+
+AlignCommand.prototype.update = function() {
+    var shipController = this.actor.shipController;
+    shipController.align(this.target);
+};
 
 module.exports = AlignCommand;

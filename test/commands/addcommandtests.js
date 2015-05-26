@@ -3,67 +3,73 @@ var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
 
-describe("Add Command", function(){
-	var addCommand = null;
-	var game = null;
-	var mockGame = null;
-	
-	beforeEach(function(){
-		addCommand = new AddCommand();
-		game = {
-			addEntity: function(){},
-			nameEntity: function(){},
-		};
-		mockGame = sinon.mock(game);
-		addCommand.setGame(game);
-	})
+describe("Add Command", function() {
+    var addCommand = null;
+    var game = null;
+    var mockGame = null;
 
-	describe("execute", function(){
-		it("should throw error when params empty", function(){
-			addCommand.setParams(null);
-			expect(function(){
-				addCommand.execute();
-			}).to.throw("must add something");
-		})
+    beforeEach(function() {
+        addCommand = new AddCommand();
+        game = {
+            addEntity: function() {},
+            nameEntity: function() {},
+        };
+        mockGame = sinon.mock(game);
+        addCommand.game = game;
+        addCommand.objectMapping = {};
+    })
 
-		it("throws error if object mapping", function(){
-			addCommand.setObjectMapping(null);
-			expect(function(){
-				addCommand.setParams(["test"]);
-				addCommand.execute();
-			}).to.throw("cannot add test");
-		})
+    describe("execute", function() {
+        it("should throw error when params empty", function() {
+            addCommand.params = null;
+            expect(function() {
+                addCommand.execute();
+            }).to.throw("must add something");
+        })
 
-		it("adds entity if has mapping", function(){
-			addCommand.setObjectMapping({"entity": require("../../app/entity")});
-			addCommand.setParams(["entity"]);
-			mockGame.expects("addEntity");
+        it("throws error if object mapping", function() {
+            expect(function() {
+                addCommand.params = ["test"];
+                addCommand.execute();
+            }).to.throw("cannot add test");
+        })
 
-			addCommand.execute();
+        it("adds entity if has mapping", function() {
+            addCommand.objectMapping = {
+                "entity": require("../../app/entity")
+            };
+            addCommand.params = ["entity"];
+            mockGame.expects("addEntity");
 
-			mockGame.verify();
-		})
+            addCommand.execute();
 
-		it("add entity if has mapping ignore case", function(){
-			addCommand.setObjectMapping({"entity": require("../../app/entity")});
-			addCommand.setParams(["ENTITY"]);
-			mockGame.expects("addEntity");
+            mockGame.verify();
+        })
 
-			addCommand.execute();
+        it("add entity if has mapping ignore case", function() {
+            addCommand.objectMapping = {
+                "entity": require("../../app/entity")
+            };
+            addCommand.params = ["ENTITY"];
+            mockGame.expects("addEntity");
 
-			mockGame.verify();
-		})
+            addCommand.execute();
 
-		it("adds entity at location if provided", function(){
-			addCommand.setObjectMapping({"entity": require("../../app/entity")});
-			addCommand.setParams(["entity", 100, 100, 100]);
-			mockGame.expects("addEntity").withArgs(sinon.match.any, sinon.match(function(location){
-				return location.equals(new THREE.Vector3(100, 100, 100));
-			}));
+            mockGame.verify();
+        })
 
-			addCommand.execute();
+        it("adds entity at location if provided", function() {
+            addCommand.objectMapping = {
+                "entity": require("../../app/entity")
+            };
+            addCommand.params = ["entity", 100, 100, 100];
+            mockGame.expects("addEntity").withArgs(sinon.match.any, sinon.match(function(location) {
+                return location.equals(new THREE.Vector3(100, 100, 100));
+            }));
 
-			mockGame.verify();
-		})
-	})
+            addCommand.execute();
+
+            mockGame.verify();
+        })
+    })
 })

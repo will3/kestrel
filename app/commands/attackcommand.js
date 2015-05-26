@@ -1,39 +1,26 @@
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
+var assert = require("assert");
 
-var AttackCommand = function(){
-	var target = null;
-	var game = null;
+var AttackCommand = function() {
+	Command.call(this);
 
-	var attackCommand = {
-		getGame: function(){
-			if(game == null){
-				game = Game;
-			}
-			return game;
-		},
-
-		setGame: function(value){
-			game = value;
-		},
-
-		getTarget: function(){
-			return target;
-		},
-
-		execute: function(){
-			var params = this.getParams();
-			var targetName = params[0];
-			target = this.getGame().getEntity(targetName);
-			
-			this.getActor().getWeaponController().setTarget(target);
-		},
-	};
-
-	attackCommand.__proto__ = Command();
-
-	return attackCommand;
+    this.target = null;
+    this.game = null;
 }
+
+AttackCommand.prototype = Object.create(Command.prototype);
+AttackCommand.prototype.constructor = AttackCommand;
+
+AttackCommand.prototype.execute = function() {
+    assert(this.game != null, "game cannot be empty");
+	assert(this.actor != null, "actor cannot be empty");
+
+    var targetName = this.params[0];
+    this.target = this.game.getEntity(targetName);
+
+    this.actor.weaponController.setTarget(this.target);
+};
 
 module.exports = AttackCommand;

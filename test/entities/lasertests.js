@@ -3,7 +3,6 @@ var expect = require("chai").expect;
 var sinon = require("sinon");
 var THREE = require("THREE");
 var _ = require("lodash");
-var Entity = require("../../app/entity");
 
 describe("Laser", function(){
 	var laser = null;

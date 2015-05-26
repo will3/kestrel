@@ -4,141 +4,99 @@ var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
 var extend = require("extend");
 var RigidBody = require("../components/rigidbody");
+var assert = require("assert");
 
-var PointSprite = function(){
-	var texture = null;
-	var size = 4;
-	var sizeOverTimeFunc = null;
-	var velocityOverTimeFunc = null;
+var PointSprite = function() {
+    Entity.call(this);
 
-	var renderComponent = null;
-	var rigidBody = null;
-	var transform = null;
+    this.renderComponent = null;
+    this.rigidBody = null;
 
-	var updateSize = function(){
-		transform.getScale().set(size, size, size);
-	}
-
-	var pointSprite = {
-		setTexture: function(value){ texture = value; },
-		getTexture: function(){ return texture; },
-		setSize: function(value){ size = value; },
-		getSize: function(){ return size; },
-		setVelocity: function(value){ this.getRigidBody().setVelocity(value); },
-		getVelocity: function(){ return this.getRigidBody().getVelocity(); },
-		setColor: function(value){ color = value; },
-		getColor: function(){ return color; },
-		setOpacity: function(value){ opacity = value; },
-		getOpacity: function(){ return opacity; },
-		getRigidBody:  function(){
-			if(rigidBody == null){
-				rigidBody = new RigidBody();
-				rigidBody.setDefaultFriction(1);
-			}
-			return rigidBody;
-		},
-		setRigidBody: function(value){ rigidBody = value; },
-		sizeOverTime: function(func){
-			sizeOverTimeFunc = func;
-		},
-
-		velocityOverTime: function(func){
-			velocityOverTimeFunc = func;
-		},
-
-		setOpacity: function(value){ 
-			renderComponent.setOpacity(value); 
-		},
-		
-		getOpacity: function(){ 
-			return renderComponent.getOpacity(); 
-		},
-
-		setColor: function(value){ 
-			renderComponent.setColor(value);
-		},
-		getColor: function(){ 
-			return renderComponent.getColor();
-		},
-
-		setRenderComponent: function(value){
-			renderComponent = value;
-		},
-
-		getRenderComponent: function(value){
-			if(renderComponent == null){
-				renderComponent = new PointSpriteRenderComponent();
-			}
-			return renderComponent;
-		},
-
-		start: function(){
-			transform = this.getTransform();
-			this.addComponent(this.getRigidBody());
-			this.addComponent(this.getRenderComponent());
-
-			updateSize();
-		},
-
-		update: function(){
-			//update size over time
-			if(sizeOverTimeFunc != null){
-				var newSize = sizeOverTimeFunc(this.getFrameAge());
-				if(size != newSize){
-					size = newSize;
-					updateSize();
-				}
-			}
-
-			if(velocityOverTimeFunc != null){
-				var velocity = velocityOverTimeFunc(this.getFrameAge());
-				this.setVelocity(velocity);
-			}
-		}
-	};
-
-	pointSprite.__proto__ = Entity();
-
-
-	return pointSprite;
+    this.texture = null;
+    this.size = 4;
+    this.sizeOverTimeFunc = null;
+    this.velocityOverTimeFunc = null;
 }
 
-var PointSpriteRenderComponent = function(){
-	var texture = texture;
-	var color = null;
-	var opacity = 1.0;
+PointSprite.prototype = Object.create(Entity.prototype);
+PointSprite.constructor = PointSprite;
 
-	var getMatrial = function(){
-		var map = texture == null ? TextureLoader.getDefault() : texture;
-		map.minFilter = THREE.NearestFilter;
-		var material = new THREE.SpriteMaterial({ 
-			map: map,
-			color: color || 0xffffff, 
-			fog:true 
-		});
-		material.opacity = opacity;
+PointSprite.prototype.updateSize = function() {
+    this.transform.scale.set(this.size, this.size, this.size);
+};
 
-		return material;
-	}
+Object.defineProperty(PointSprite.prototype, 'velocity', {
+    get: function() {
+        return this.rigidBody.velocity;
+    },
 
-	var pointSpriteRenderComponent = {
-		initGeometry: function(){
-			return null;
-		},
+    set: function(value) {
+        this.rigidBody.velocity = value;
+    }
+});
 
-		setColor: function(value){ color = value; },
-		getColor: function(){ return color; },
-		setOpacity: function(value){ opacity = value; },
-		getOpacity: function(){ return opacity; },
+Object.defineProperty(PointSprite.prototype, 'color', {
+    get: function() {
+        return this.renderComponent.color;
+    },
 
-		initObject: function(){
-			return new THREE.Sprite(getMatrial());
-		}
-	};
+    set: function(value) {
+        this.renderComponent.color = value;
+    }
+});
 
-	pointSpriteRenderComponent.__proto__ = RenderComponent();
+PointSprite.prototype.start = function() {
+    assert(this.renderComponent != null, "renderComponent cannot be empty");
+    assert(this.rigidBody != null, "rigidBody cannot be empty");
 
-	return pointSpriteRenderComponent;
+    this.addComponent(this.rigidBody);
+    this.addComponent(this.renderComponent);
+
+    this.updateSize();
+};
+
+PointSprite.prototype.update = function() {
+    //update size over time
+    if (this.sizeOverTime != null) {
+        var newSize = this.sizeOverTime(this.frameAge);
+        if (size != newSize) {
+            size = newSize;
+            this.updateSize();
+        }
+    }
+
+    if (this.velocityOverTime != null) {
+        var velocity = this.velocityOverTime(this.frameAge);
+        this.velocity = velocity;
+    }
 }
+
+var PointSpriteRenderComponent = function() {
+    this.texture = null;
+    this.color = null;
+}
+
+PointSpriteRenderComponent.prototype = Object.create(RenderComponent.prototype);
+PointSpriteRenderComponent.prototype.constructor = PointSpriteRenderComponent;
+
+PointSpriteRenderComponent.prototype.getMatrial = function() {
+    var map = this.texture == null ? TextureLoader.getDefault() : this.texture;
+    map.minFilter = THREE.NearestFilter;
+    var material = new THREE.SpriteMaterial({
+        map: map,
+        color: this.color || 0xffffff,
+        fog: true
+    });
+
+    return material;
+};
+
+PointSpriteRenderComponent.prototype.initGeometry = function() {
+    return null;
+};
+
+PointSpriteRenderComponent.prototype.initObject = function() {
+    return new THREE.Sprite(this.getMatrial());
+};
 
 module.exports = PointSprite;

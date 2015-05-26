@@ -1,11 +1,6 @@
 var AttackCommand = require("../../app/commands/attackcommand");
 var expect = require("chai").expect;
 var sinon = require("sinon");
-var Ship = require("../../app/entities/ship");
-var ShipController = require("../../app/components/shipcontroller");
-var THREE = require("THREE");
-var Game = require("../../app/game");
-var Entity = require("../../app/entity");
 
 describe("Attack Command", function(){
 	var attackCommand, actor, game, mockGame, target, weaponController, mockWeaponController;
@@ -15,13 +10,14 @@ describe("Attack Command", function(){
 		actor = {};
 		game = {};
 		weaponController = {};
-		attackCommand.setActor(actor);
-		attackCommand.setGame(game);
+		attackCommand.actor = actor;
+		attackCommand.game = game;
 		mockGame = sinon.mock(game);
-		attackCommand.setActor(actor);
+		attackCommand.actor = actor;
 		weaponController = {
 			setTarget: function(){ }
 		}
+		actor.weaponController = weaponController;
 		mockWeaponController = sinon.mock(weaponController);
 		actor.getWeaponController = function(){
 			return weaponController;
@@ -31,14 +27,14 @@ describe("Attack Command", function(){
 	describe("execute", function(){
 		it("should parse target correctly", function(){
 			game.getEntity = sinon.stub().returns(target).withArgs("test");
-			attackCommand.setParams(["test"]);
+			attackCommand.params = ["test"];
 			attackCommand.execute();
-			expect(attackCommand.getTarget()).to.equal(target);
+			expect(attackCommand.target).to.equal(target);
 		})
 
 		it("should issue command", function(){
 			game.getEntity = sinon.stub().returns(target);
-			attackCommand.setParams(["test"]);
+			attackCommand.params = ["test"];
 			mockWeaponController.expects("setTarget").withArgs(target);
 			attackCommand.execute();
 			mockWeaponController.verify();

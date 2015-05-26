@@ -119,6 +119,8 @@ var Yaw = function() {
 }
 
 var ShipController = function() {
+    Component.call(this);
+
     this.force = 0.025;
 
     //engine
@@ -132,26 +134,12 @@ var ShipController = function() {
     this.engineAmount = 0.0;
 };
 
-ShipController.prototype = Object.create(Component);
+ShipController.prototype = Object.create(Component.prototype);
+ShipController.prototype.constructor = ShipController;
 
-Object.defineProperty(ShipController, 'rigidBody', {
+Object.defineProperty(ShipController.prototype, 'rigidBody', {
     get: function() {
         return this.entity.rigidBody;
-    }
-});
-
-Object.defineProperty(ShipController, 'command', {
-    get: function() {
-        return this.command;
-    },
-
-    set: function(value) {
-	    if (this.command != null) {
-	        this.command.destroy();
-	        this.command = null;
-	    }
-
-        this.command = value;
     }
 });
 
@@ -184,7 +172,6 @@ ShipController.prototype.updateYaw = function(transform) {
 };
 
 ShipController.prototype.update = function() {
-    var transform = this.transform;
     var entity = this.entity;
     this.roll.update(entity);
     this.pitch.update(entity);
@@ -198,10 +185,10 @@ ShipController.prototype.update = function() {
 
 ShipController.prototype.accelerate = function(amount) {
     engineAmount = amount;
-    var rotation = this.getTransform().getRotation();
+    var rotation = this.transform.rotation;
     var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
-    vector.multiplyScalar(amount * force);
-    this.getRigidBody().applyForce(vector);
+    vector.multiplyScalar(amount * this.force);
+    this.rigidBody.applyForce(vector);
 };
 
 ShipController.prototype.align = function(point) {

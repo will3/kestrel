@@ -11,7 +11,7 @@ EntityRunner.prototype = {
     runEntity: function(entity) {
         if (entity.life != -1) {
             if (entity.frameAge == entity.life) {
-                entity.removeFromParent();
+                this.removeEntity(entity);
             }
         }
 
@@ -46,11 +46,12 @@ EntityRunner.prototype = {
             this.removeEntity(childEntity);
         }.bind(this));
 
-        _.remove(this.entities, entity);
         entity.components.forEach(function(c) {
             c.destroy();
         });
+
         entity.destroy();
+        _.remove(this.entities, entity);
     },
 
     run: function() {

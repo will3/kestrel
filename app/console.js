@@ -1,109 +1,100 @@
-var Console = function(){
-	var input;
-	var displayResult = false;
-	var result = null;
-	var lastCommand = null;
-	var commandMapping = {};
-	var selectedEntity = null;
+ var Console = function() {
+    this.commandMapping = null;
+    
+    this.input = null;
+    this.displayResult = false;
+    this.result = null;
+    this.lastCommand = null;
+    this.selectedEntity = null;
+}
 
-	function onKeyDown(e){
-		if(displayResult){
-			input.value = "";
-			displayResult = false;
-			return;
-		}
+Console.prototype = {
+    constructor: Console,
 
-		if(e.keyIdentifier == "Enter"){
-			onEnterCommand(input.value);
-			if(displayResult){
-				input.value = result;
-			}else{
-				input.value = "";
-			}
-		}else if(e.keyIdentifier == "Up"){
-			if(lastCommand != null && lastCommand.length > 0){
-				input.value = lastCommand;
-				displayResult = false;
-			}
-		}
-	}
+    onKeyDown: function(e) {
+        if (this.displayResult) {
+            this.input.value = "";
+            this.displayResult = false;
+            return;
+        }
 
-	function showError(error){
-		alert(error);
-	}
+        if (e.keyIdentifier == "Enter") {
+            this.onEnterCommand(input.value);
+            if (this.displayResult) {
+                this.input.value = this.result;
+            } else {
+                this.input.value = "";
+            }
+        } else if (e.keyIdentifier == "Up") {
+            if (this.lastCommand != null && this.lastCommand.length > 0) {
+                this.input.value = this.lastCommand;
+                this.displayResult = false;
+            }
+        }
+    },
 
-	function onEnterCommand(command){
-		if(command.length == 0){
-			return;
-		}
+    onEnterCommand: function(command) {
+        if (command.length == 0) {
+            return;
+        }
 
-		lastCommand = command;
-		var params = command.split(" ");
-		
-		processCommand(params);
-	}
+        this.lastCommand = command;
+        var params = command.split(" ");
 
-	function getCommand(name){
-		var commandClass = commandMapping[name];
-		if(commandClass == null){
-			throw name + " is not a valid command";
-		}
+        this.processCommand(params);
+    },
 
-		var command = new commandMapping[name]();
+    getCommand: function(name) {
+        var commandClass = this.commandMapping[name];
+        if (commandClass == null) {
+            throw name + " is not a valid command";
+        }
 
-		return command;
-	}
+        var command = new this.commandMapping[name]();
 
-	function processCommand(params){
-		var command = getCommand(params[0]);
+        return command;
+    },
 
-		params.splice(0, 1);
+    processCommand: function(params) {
+        var command = this.getCommand(params[0]);
 
-		command.setActor(selectedEntity);
-		command.setParams(params);
-		var resultBack = command.execute();
-		
-		if(resultBack != null && resultBack.length > 0){
-			result = resultBack;
-			displayResult = true;
-		}
-	}
+        params.splice(0, 1);
 
-	return{
-		setInput: function(value){
-			input = value;
-			input.addEventListener('keydown', function(e){
-				onKeyDown(e);
-			}, false);
-		},
+        command.actor = this.selectedEntity;
+        command.params = this.params;
+        var resultBack = command.execute();
 
-		setSelectedEntity: function(value){
-			selectedEntity = value;
-		},
+        if (resultBack != null && resultBack.length > 0) {
+            result = resultBack;
+            this.displayResult = true;
+        }
+    },
 
-		focus: function(){
-			input.focus();
-		},
+    setInput: function(value) {
+        this.input = value;
+        this.input.addEventListener('keydown', function(e) {
+            this.onKeyDown(e);
+        }.bind(this), false);
+    },
 
-		write: function(value){
-			input.value = value;
-			displayResult = true;
-		},
+    focus: function() {
+        this.input.focus();
+    },
 
-		run: function(command){
-			onEnterCommand(command);
-		},
+    write: function(value) {
+        this.input.value = value;
+        this.displayResult = true;
+    },
 
-		runScenario: function(commands){
-			commands.forEach(function(command){
-				Console.run(command);
-			});
-		},
+    run: function(command) {
+        this.onEnterCommand(command);
+    },
 
-		setCommandMapping: function(value){
-			commandMapping = value;
-		},
-	}
-}();
+    runScenario: function(commands) {
+        commands.forEach(function(command) {
+            this.run(command);
+        }.bind(this));
+    }
+};
 
 module.exports = Console;

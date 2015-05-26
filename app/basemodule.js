@@ -1,34 +1,56 @@
 var _ = require("lodash");
+var extend = require("extend");
 
 var Bindable = function(key){
 	var instance = null; 
-	var func = null;
+	var properties = null;
+
+	var getInstance = function(instanceOrFunc){
+		if(_.isFunction(instanceOrFunc)){
+			return instanceOrFunc();
+		}
+
+		return instanceOrFunc;
+	};
 
 	return{
 		key: key,
 		tag: null,
-		to: function(instanceOrFunc){
-			if(_.isFunction(instanceOrFunc)){
-				func = instanceOrFunc;
-			}else{
-				instance = instanceOrFunc;
-			}
-
+	
+		to: function(instanceValue){
+			instance = instanceValue;
 			return this;
 		},
 
 		withTag: function(tag){
 			this.tag = tag;
+			return this;
+		},
 
+		withProperties: function(propertiesValue){
+			properties = propertiesValue;
 			return this;
 		},
 
 		get: function(){
-			if(instance != null){
-				return instance;
-			}else{
-				return func();
+			var object = getInstance(instance);
+
+			if(object == null){
+				throw "failed to initialize object";
 			}
+
+			if(properties != null){
+				for (var property in properties) {
+				  	if (properties.hasOwnProperty(property)) {
+				    	if(!object.hasOwnProperty(property)){
+				    		throw "attempt to inject " + property + " to " + object;
+				    	}	
+				  	}
+				}
+				object = extend(object, getInstance(properties));
+			}
+			
+			return object;
 		}
 	}
 }
@@ -44,7 +66,7 @@ BaseModule.prototype = {
 		throw "must override";
 	},
 
-	bind: function(key){
+	bindKey: function(key){
 		var binding = new Bindable(key);
 		this.bindings.push(binding);
 		return binding;

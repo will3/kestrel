@@ -7,36 +7,55 @@ var BaseModule = require("./basemodule");
 var Weapon = require("./entities/weapon");
 var SmokeTrail = require("./entities/smokeTrail");
 var BlockRenderComponent = require("./components/blockrendercomponent");
+var Ship = require("./entities/ship");
+var extend = require("extend");
+var RigidBody = require("./components/rigidbody");
+var Laser = require("./entities/laser");
+var RenderComponent = require("./components/rendercomponent");
+var AddCommand = require("./commands/addcommand");
+var Console = require("./console");
 
-var AppModule = function(){
-
+var AppModule = function() {
+    BaseModule.call(this);
 }
 
-AppModule.prototype = Object.create(BaseModule);
+AppModule.prototype = Object.create(BaseModule.prototype);
 AppModule.prototype.constructor = AppModule;
 
-AppModule.prototype.load = function(){
-	this.bind("game").to(new Game());
-	this.bind("entityRunner").to(new EntityRunner());
-	this.bind("collision").to(function(){
-		return new Collision();
-	});
+AppModule.prototype.load = function() {
+    this.bindKey("entityRunner").to(new EntityRunner());
+    this.bindKey("collision").to(function() {
+        return new Collision();
+    });
 
-	this.bind("shipController").to(function(){
-		return new ShipController();
-	});
+    this.bindKey("shipController").to(function() {
+        return new ShipController();
+    });
 
-	this.bind("weaponController").to(function(){
-		return new WeaponController();
-	});
+    this.bindKey("weaponController").to(function() {
+        return new WeaponController();
+    });
 
-	this.bind("rigidBody").withTag("ship").to(function(){
+    this.bindKey("rigidBody").withTag("ship").to(function() {
         var rigidBody = new RigidBody();
-        rigidBody.setCollisionRadius(9);
-		return rigidBody;
-	});
+        rigidBody.collisionRadius = 9;
+        return rigidBody;
+    });
 
-	this.bind("weapons").to(function(){
+    this.bindKey("rigidBody").withTag("laser").to(function() {
+        var rigidBody = new RigidBody();
+        rigidBody.defaultFriction = 1;
+        rigidBody.collisionRadius = 1;
+        return rigidBody;
+    });
+
+    this.bindKey("rigidBody").withTag("pointSprite").to(function(){
+        var rigidBody = new RigidBody();
+        rigidBody.defaultFriction = 1;
+        return rigidBody;
+    });
+
+    this.bindKey("weapons").to(function() {
         var laser = new Laser();
         // var missile = new Missile();
 
@@ -53,15 +72,84 @@ AppModule.prototype.load = function(){
         weapons.push(weapon2);
 
         return weapons;
-	});
+    });
 
-	this.bind("smokeTrail").to(function(){
-		return new SmokeTrail();
-	});
+    this.bindKey("laser").to(function(){
+        return new Laser();
+    }).withProperties(function(){
+        return {
+            rigidBody: this.get("rigidBody", "laser")
+        };
+    }.bind(this));
 
-	this.bind("renderComponent").withTag("ship").to(function(){
-		return new BlockRenderComponent();
-	});
+    this.bindKey("smokeTrail").to(function() {
+        return new SmokeTrail();
+    });
+
+    this.bindKey("renderComponent").withTag("ship").to(function() {
+        //todo
+        return new RenderComponent();
+    });
+
+    this.bindKey("ship").to(function() {
+        return new Ship();
+    }).withProperties(function() {
+        return {
+            shipController: this.get("shipController"),
+            rigidBody: this.get("rigidBody", "ship"),
+            weaponController: this.get("weaponController"),
+            weapons: this.get("weapons"),
+            smokeTrail: this.get("smokeTrail"),
+            renderComponent: this.get("renderComponent", "ship")
+        };
+    }.bind(this));
+
+    this.bindKey("game").to(new Game()).withProperties(function() {
+        return {
+            entityRunner: this.get("entityRunner"),
+            collision: this.get("collision")
+        };
+    }.bind(this));
+
+    this.bindKey("objectMapping").to(function() {
+        return {
+            ship: require("./entities/ship")
+        };
+    });
+
+    this.bindKey("addCommand").to(function() {
+        return new AddCommand();
+    }).withProperties(function() {
+        return {
+            objectMapping: this.get("objectMapping"),
+            game: this.get("game")
+        };
+    }.bind(this));
+
+    this.bindKey("input").to(function() {
+        return document.getElementById('console_text');
+    });
+
+    this.bindKey("commandMapping").to(function() {
+        return {
+            "add": require('./commands/addcommand'),
+            "attack": require('./commands/attackcommand'),
+            "list": require('./commands/listcommand'),
+            "remove": require('./commands/destroycommand'),
+            "move": require('./commands/movecommand'),
+            "orbit": require('./commands/orbitcommand'),
+            "select": require('./commands/selectcommand'),
+            "align": require('./commands/aligncommand'),
+            "stop": require('./commands/stopcommand'),
+        };
+    });
+
+    this.bindKey("console").to(new Console()).withProperties(function() {
+        return {
+            input: this.get("input"),
+            commandMapping: this.get("commandMapping")
+        };
+    }.bind(this));
 }
 
-module.exports = new AppModule();
+module.exports = AppModule;

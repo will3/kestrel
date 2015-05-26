@@ -1,5 +1,3 @@
-var injector = require("../../app/injector");
-injector.loadModule(require("../testmodule"));
 var Ship = require("../../app/entities/ship");
 var expect = require("chai").expect;
 var Component = require("../../app/component");
@@ -11,14 +9,12 @@ describe("Ship", function(){
 
 	beforeEach(function(){
 		ship = new Ship();
-		weapons = injector.get("weapons");
-	})
-
-	it("should initialize components", function(){
-		expect(ship.shipController).to.exist;
-		expect(ship.rigidBody).to.exist;
-		expect(ship.renderComponent).to.exist;
-		expect(ship.weaponController).to.exist;
+		ship.shipController = {};
+		ship.rigidBody = {};
+		ship.renderComponent = {};
+		ship.weaponController = {};
+		ship.weapons = [];
+		ship.smokeTrail = {};
 	})
 
 	describe("start", function(){
@@ -40,6 +36,15 @@ describe("Ship", function(){
 
 			expect(ship.childEntities).to.contain(weapon1);
 			expect(ship.childEntities).to.contain(weapon2);
+		})
+
+		it("should add smokeTrail", function(){
+			var smokeTrail = {};
+			ship.smokeTrail = smokeTrail;
+
+			ship.start();
+
+			expect(ship.childEntities).to.contain(smokeTrail);
 		})
 	})
 })

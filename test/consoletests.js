@@ -1,74 +1,78 @@
 var sinon = require("sinon");
 var chai = require("chai");
-var ListCommand = require("../app/commands/listcommand");
-var Command = require("../app/command");
 var expect = chai.expect;
+var Console = require("../app/console");
 
-describe('Console', function(){
-	var console = null;
+describe('Console', function() {
+    var console, input, mockInput, commandMapping;
 
-	beforeEach(function(){
-		console = require("../app/console");
-	});
+    beforeEach(function() {
+    	console = new Console();
+        input = {
+            addEventListener: function() {},
+            focus: function() {}
+        };
+        mockInput = sinon.mock(input);
+        commandMapping = {};
+        console.commandMapping = commandMapping;
+    });
 
-	describe('set Input', function(){
-		it('should add event listener to input', function(){
-			var mock = mockInput();
-		    mock.expects("addEventListener").once().withArgs("keydown");
+    describe('set Input', function() {
+        it('should add event listener to input', function() {
+            mockInput.expects("addEventListener").withArgs("keydown");
+            console.setInput(input);
+            mockInput.verify();
+        });
+    });
 
-		    console.setInput(mock.object);
-			
-			mock.verify();
-		});
-	});
+    describe('focus', function() {
+        it('should set focus on input', function() {
+            mockInput.expects("focus");
+            console.setInput(input);
+            console.focus();
+            mockInput.verify();
+        });
+    });
 
-	describe('focus', function(){
-		it('should set focus on input', function(){
-			var mock = mockInput();
-			mock.expects("focus");
+    describe('write', function() {
+        it('should print on input', function() {
+            console.setInput(input);
+            console.write("hi");
+            expect(input.value).to.equal("hi");
+        });
+    });
 
-			console.setInput(mock.object);
-			console.focus();
+    describe('run', function() {
+        it('should throw if invalid command', function() {
+            expect(function() {
+                    console.run("invalid_command");
+                })
+                .to
+                .throw("invalid_command is not a valid command");
+        });
 
-			mock.verify();
-		});
-	});
+        it('should not throw for valid command', function() {
+        	//mock command class
+        	var commandClass = function(){};
+        	commandClass.prototype = {
+        		constructor: commandClass,
+        		execute: function(){}
+        	};
 
-	describe('write', function(){
-		it('should print on input', function(){
-			var mock = mockInput();
+            console.commandMapping = {
+                "list": commandClass,
+            };
 
-			console.setInput(mock.object);
-			console.write("hi");
+            console.run("list");
+        });
+    });
 
-			expect(mock.object.value).to.equal("hi");
-		});
-	});
-
-	describe('run', function(){
-		it('should throw if invalid command', function(){
-			expect(function(){
-				console.run("invalid_command");
-			})
-			.to
-			.throw("invalid_command is not a valid command");
-		});
-
-		it('should not throw for list', function(){
-			console.setCommandMapping({
-				"list": 	ListCommand,
-			});
-
-			console.run("list");
-		});
-	});
-
-	function mockInput(){
-		var input = {
-			addEventListener: function(){},
-			focus: function(){},
-		};
-		input.type = "text";
-		return sinon.mock(input);
-	}
+    function mockInput() {
+        var input = {
+            addEventListener: function() {},
+            focus: function() {},
+        };
+        input.type = "text";
+        return sinon.mock(input);
+    }
 });

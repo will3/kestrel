@@ -3,8 +3,6 @@ var sinon = require("sinon");
 var expect = require("chai").expect;
 var Entity = require("../app/entity");
 var Component = require("../app/component");
-var injector = require("../app/injector");
-injector.loadModule(require("./testmodule"));
 
 describe("EntityRunner", function(){
 	var entityRunner, entity, mockEntity, component, mockComponent,

@@ -11,19 +11,6 @@ injector.loadDependencies({
 var container = $('#container');
 
 Game.initialize(container);
-Console.setInput(document.getElementById('console_text'));
-
-Console.setCommandMapping({
-		"add": 		require('./commands/addcommand'),
-		"attack": 	require('./commands/attackcommand'),
-		"list": 	require('./commands/listcommand'),
-		"remove": 	require('./commands/destroycommand'),
-		"move": 	require('./commands/movecommand'),
-		"orbit": 	require('./commands/orbitcommand'),
-		"select": 	require('./commands/selectcommand'),
-		"align": 	require('./commands/aligncommand'),
-		"stop": 	require('./commands/stopcommand'),
-	});
 
 // Console.runScenario(
 // 		[

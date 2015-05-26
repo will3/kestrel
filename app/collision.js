@@ -28,7 +28,7 @@ Collision.prototype.visitEntities = function(callback){
 
 Collision.prototype.hitTest = function(a, b){
 	var distanceVector = new THREE.Vector3();
-	distanceVector.subVectors(b.getPosition(), a.getPosition());
+	distanceVector.subVectors(b.position, a.position);
 	var distance = distanceVector.length();
 	if(distance == 0){
 		distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
@@ -36,7 +36,7 @@ Collision.prototype.hitTest = function(a, b){
 		distance = 1;
 	}
 
-	var collisionDistance = a.getRigidBody().getCollisionRadius() + b.getRigidBody().getCollisionRadius();
+	var collisionDistance = a.rigidBody.collisionRadius + b.rigidBody.collisionRadius;
 
 	return distance <= collisionDistance;
 };

@@ -1,7 +1,6 @@
 var DestroyCommand = require("../../app/commands/destroycommand");
 var sinon = require("sinon");
 var expect = require("chai").expect;
-var Entity = require("../../app/entity");
 
 describe("DestroyCommand", function(){
 	var destroyCommand, game, mockGame, entities;
@@ -13,17 +12,17 @@ describe("DestroyCommand", function(){
 			getEntities: function(){ return entities; },
 			removeEntity: function(entity){ }
 		};
-		destroyCommand.setGame(game);
+		destroyCommand.game = game;
 		mockGame = sinon.mock(game);
 	})
 
 	describe("#execute", function(){
 		context("destroy all", function(){
 			it("should remove destroyable entities", function(){
-				var entity = new Entity();
+				var entity = {};
 				entity.destroyable = true;
 				entities = [entity];
-				destroyCommand.setParams(["all"]);
+				destroyCommand.params = ["all"];
 				mockGame.expects("removeEntity").withArgs(entity);
 
 				destroyCommand.execute();
@@ -32,10 +31,10 @@ describe("DestroyCommand", function(){
 			})
 
 			it("should ignore non destroyable entities", function(){
-				var entity = new Entity();
+				var entity = {};
 				entity.destroyable = false;
 				entities = [entity];
-				destroyCommand.setParams(["all"]);
+				destroyCommand.params = ["all"];
 				mockGame.expects("removeEntity").never();
 
 				destroyCommand.execute();
@@ -46,9 +45,9 @@ describe("DestroyCommand", function(){
 
 		context("destroy specific", function(){
 			it("should remove entity with matching name", function(){
-				var entity = new Entity();
+				var entity = {};
 				game.getEntity = sinon.stub().returns(entity).withArgs("test");
-				destroyCommand.setParams(["test"]);
+				destroyCommand.params = ["test"];
 				mockGame.expects("removeEntity");
 
 				destroyCommand.execute();

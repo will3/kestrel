@@ -11,7 +11,6 @@ var Entity = function(){
 	this.childEntities = [];
 	this.frameAge = 0;
 	this.parentEntity = null;
-	this.game = injector.get("game");
 	this.started = false;
 	this.life = -1;
 	this.destroyable = false;
@@ -68,14 +67,6 @@ Entity.prototype = {
 		this.childEntities.forEach(function(childEntity){
 			childEntity.destroy();
 		});
-	},
-
-	removeFromParent: function(){
-		if(this.parentEntity != null){
-			this.parentEntity.removeEntity(this);
-		}else{
-			this.game.removeEntity(this);
-		}
 	},
 
 	get position(){

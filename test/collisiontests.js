@@ -17,7 +17,7 @@ describe("Collision", function(){
 				return entities;
 			}
 		};
-		collision.setGame(game);
+		collision.game = game;
 	})
 
 	describe("#update", function(){
@@ -85,12 +85,10 @@ describe("Collision", function(){
 		var entity = new Entity();
 		var rigidBody = new RigidBody();
 		if(position != null){
-			entity.setPosition(position);
+			entity.position = position;
 		}
-		entity.getRigidBody = function(){
-			return rigidBody;
-		}
-		rigidBody.setCollisionRadius(collisionRadius != null ? collisionRadius : 10);
+		entity.rigidBody = rigidBody;
+		rigidBody.collisionRadius = collisionRadius != null ? collisionRadius : 10;
 		if(!entity.hasCollision()){
 			throw "entity isn't colliable";
 		}

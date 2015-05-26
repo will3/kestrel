@@ -1,21 +1,31 @@
 var Entity = require("../entity");
-var injector = require("../injector");
+var assert = require("assert");
 
 var Ship = function() {
-    this.shipController = injector.get("shipController");
-    this.rigidBody = injector.get("rigidBody", "ship");
-    this.weaponController = injector.get("weaponController");
-    this.weapons = injector.get("weapons");
-    this.smokeTrail = injector.get("smokeTrail");
+    Entity.call(this);
+
+    this.shipController = null;
+    this.rigidBody = null;
+    this.weaponController = null;
+    this.weapons = null;
+    this.smokeTrail = null;
+    this.renderComponent = null;
+
     this.destroyable = true;
-    this.renderComponent = injector.get("renderComponent", "ship");	//todo
-    // model: new ShipModel(),
 }
 
-Ship.prototype = Object.create(Component);
+Ship.prototype = Object.create(Entity.prototype);
+Ship.prototype.constructor = Ship;
 
 Ship.prototype.start = function() {
     Ship.id++;
+
+    assert(this.shipController != null, "shipController cannot be empty");
+    assert(this.rigidBody != null, "rigidBody cannot be empty");
+    assert(this.weaponController != null, "weaponController cannot be empty");
+    assert(this.weapons != null, "weapons cannot be empty");
+    assert(this.smokeTrail != null, "smokeTrail cannot be empty");
+    assert(this.renderComponent != null, "renderComponent cannot be empty");
 
     this.addComponent(this.renderComponent);
     this.addComponent(this.rigidBody);

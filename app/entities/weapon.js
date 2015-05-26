@@ -2,59 +2,53 @@ var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
 
-var Weapon = function(ammo){
-	var fireInterval = 50;
-	var cooldown = 50;
-	var actor = null;
-	var game = null;
-	var ammo = ammo;
-	
-	var weapon = {
-		setDelta: function(value){ cooldown = value; },
-		getActor: function(){ return actor; },
-		setActor: function(value){ actor = value; },
-		setGame: function(value){ game = value; },
-		getGame: function(){ if(game == null){ game = Game; } return game; },
-		setAmmo: function(value){ ammo = value; },
-		getAmmo: function(){ return ammo; },
-		
-		shoot: function(target){
-			var newAmmo = ammo.createInstance();
-			newAmmo.setActor(actor);
-			newAmmo.setTarget(target);
-			newAmmo.setPosition(actor.getWorldPosition());
+var Weapon = function() {
+    this.fireInterval = 50;
+    this.cooldown = 50;
+    this.actor = null;
 
-			this.getGame().addEntity(newAmmo);
-
-			cooldown = 0;
-		},
-
-		start: function(){
-
-		},
-
-		update: function(){
-			if(cooldown < fireInterval){
-				cooldown ++;
-			}
-		},
-
-		isReady: function(){
-			return (cooldown == fireInterval);
-		},
-
-		fireIfReady: function(target){
-			if(!this.isReady()){
-				return;
-			}
-
-			this.shoot(target);
-		}
-	}
-
-	weapon.__proto__ = Entity();
-
-	return weapon;
+    this.game = null;
+    this.ammo = null;
 }
+
+Weapon.prototype = Object.create(Entity.prototype);
+Weapon.prototype.constructor = Weapon;
+
+Weapon.prototype.setDelta = function(value) {
+    cooldown = value;
+};
+
+Weapon.prototype.shoot = function(target) {
+    var ammoInstance = this.ammo.createInstance();
+    ammoInstance.actor = this.actor;
+    ammoInstance.target = this.target;
+    ammoInstance.position = this.actor.getWorldPosition();
+
+    this.game.addEntity(newAmmo);
+
+    this.cooldown = 0;
+};
+
+Weapon.prototype.start = function() {
+
+};
+
+Weapon.prototype.update = function() {
+    if (this.cooldown < this.fireInterval) {
+        this.cooldown++;
+    }
+};
+
+Weapon.prototype.isReady = function() {
+    return (this.cooldown == this.fireInterval);
+};
+
+Weapon.prototype.fireIfReady = function(target) {
+    if (!this.isReady()) {
+        return;
+    }
+
+    this.shoot(target);
+};
 
 module.exports = Weapon;

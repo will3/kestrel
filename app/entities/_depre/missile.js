@@ -74,8 +74,6 @@ var Missile = function(){
 			if(entity == this.getActor()){
 				return;
 			}
-
-			this.removeFromParent();
 		}
 	}
 

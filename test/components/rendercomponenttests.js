@@ -46,7 +46,7 @@ describe("Render Component", function(){
 
 	describe("#update transform", function(){
 		it("should update inner object position", function(){
-			entity.setPosition(new THREE.Vector3(100, 100, 100));
+			entity.position = new THREE.Vector3(100, 100, 100);
 			renderComponent.initObject = function(){ return innerObject; };
 			renderComponent.start();
 			renderComponent.updateTransform(entity);
@@ -54,7 +54,7 @@ describe("Render Component", function(){
 		})
 
 		it("should update inner object rotation", function(){
-			entity.setRotation(new THREE.Vector3(1, 1, 1));
+			entity.rotation = new THREE.Vector3(1, 1, 1);
 			renderComponent.initObject = function(){ return innerObject; };
 			renderComponent.start();
 			renderComponent.updateTransform(entity);
@@ -66,7 +66,7 @@ describe("Render Component", function(){
 		})
 
 		it("should update inner object scale", function(){
-			entity.setScale(new THREE.Vector3(4, 4, 4));
+			entity.scale = new THREE.Vector3(4, 4, 4);
 			renderComponent.initObject = function(){ return innerObject; };
 			renderComponent.start();
 			renderComponent.updateTransform(entity);

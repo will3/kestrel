@@ -1,26 +1,18 @@
-var Command = function(){
-	var actor = null;
-	var params = null;
-	
-	var command = {
-		getActor: function(){ return actor; },
-		setActor: function(value){ actor = value; },
-		getParams: function(){ return params; },
-		setParams: function(value){ params = value; },
-		execute: function(){
-			throw "must override";
-		},
+var Command = function() {
+    this.actor = null;
+    this.params = null;
+}
 
-		update: function(){
-			throw "must override";
-		},
+Command.prototype = {
+    constructor: Command,
 
-		destroy: function(){
+    execute: function() {
+        throw "must override";
+    },
 
-		},
-	};
-
-	return command;
+    update: function() {
+        throw "must override";
+    }
 }
 
 module.exports = Command;

@@ -5,17 +5,19 @@ var Game = require("../game");
 var _ = require("lodash");
 
 var RenderComponent = function() {
+    Component.call(this);
+    
     this.innerObject = null;
     this.game = Game;
     this.geometry = null;
     this.material = null;
 };
 
-RenderComponent.prototype = Object.create(Component);
+RenderComponent.prototype = Object.create(Component.prototype);
 RenderComponent.prototype.constructor = RenderComponent;
 
 RenderComponent.prototype.updateTransform = function() {
-    var transform = this.entity.getTransform();
+    var transform = this.entity.transform;
 
     if (this.innerObject == null) {
         return;
