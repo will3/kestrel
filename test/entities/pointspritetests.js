@@ -4,26 +4,26 @@ var sinon = require("sinon");
 var Component = require("../../app/component");
 var _ = require("lodash");
 
-describe("Point Sprite", function(){
-	var pointSprite;
+describe("PointSprite", function(){
+	var pointSprite, renderComponent, rigidBody;
 
 	beforeEach(function(){
 		pointSprite = new PointSprite();
+		renderComponent = {};
+		rigidBody = {};
+		pointSprite.renderComponent = renderComponent;
+		pointSprite.rigidBody = rigidBody;
 	})
 
 	describe("start", function(){
 		it("should add render component", function(){
-			var renderComponent = new Component();
-			pointSprite.setRenderComponent(renderComponent);
 			pointSprite.start();
-			expect(_.includes(pointSprite.getComponents(), renderComponent)).to.equal.true;
+			expect(_.includes(pointSprite.components, renderComponent)).to.be.true;
 		});
 
 		it("should add rigid body", function(){
-			var rigidBody = new Component();
-			pointSprite.setRigidBody(rigidBody);
 			pointSprite.start();
-			expect(_.includes(pointSprite.getComponents(), rigidBody)).to.equal.true;
+			expect(_.includes(pointSprite.components, rigidBody)).to.be.true;
 		})
 	});
 });

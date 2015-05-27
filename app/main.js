@@ -1,7 +1,7 @@
 var Game = require('./game.js');
 var Console = require('./console');
 var $ = require('jquery');
-var injector = require('./injector');
+var injector = require("./injection/injection").defaultInjector;
 var appmodule = require('./appmodule');
 
 injector.loadDependencies({

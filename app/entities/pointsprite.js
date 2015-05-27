@@ -57,18 +57,26 @@ PointSprite.prototype.start = function() {
 
 PointSprite.prototype.update = function() {
     //update size over time
-    if (this.sizeOverTime != null) {
-        var newSize = this.sizeOverTime(this.frameAge);
+    if (this.sizeOverTimeFunc != null) {
+        var newSize = this.sizeOverTimeFunc(this.frameAge);
         if (size != newSize) {
             size = newSize;
             this.updateSize();
         }
     }
 
-    if (this.velocityOverTime != null) {
-        var velocity = this.velocityOverTime(this.frameAge);
+    if (this.velocityOverTimeFunc != null) {
+        var velocity = this.velocityOverTimeFunc(this.frameAge);
         this.velocity = velocity;
     }
+}
+
+PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc){
+    this.sizeOverTimeFunc = sizeOverTimeFunc;
+}
+
+PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc){
+    this.velocityOverTime = velocityOverTimeFunc;
 }
 
 var PointSpriteRenderComponent = function() {
@@ -79,7 +87,7 @@ var PointSpriteRenderComponent = function() {
 PointSpriteRenderComponent.prototype = Object.create(RenderComponent.prototype);
 PointSpriteRenderComponent.prototype.constructor = PointSpriteRenderComponent;
 
-PointSpriteRenderComponent.prototype.getMatrial = function() {
+PointSpriteRenderComponent.prototype.initMaterial = function() {
     var map = this.texture == null ? TextureLoader.getDefault() : this.texture;
     map.minFilter = THREE.NearestFilter;
     var material = new THREE.SpriteMaterial({
@@ -95,8 +103,8 @@ PointSpriteRenderComponent.prototype.initGeometry = function() {
     return null;
 };
 
-PointSpriteRenderComponent.prototype.initObject = function() {
-    return new THREE.Sprite(this.getMatrial());
+PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
+    return new THREE.Sprite(material);
 };
 
 module.exports = PointSprite;

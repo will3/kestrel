@@ -10,6 +10,7 @@
     "express-handlebars": "^2.0.1",
     "extend": "^2.0.1",
     "handlebars": "^3.0.3",
+    "istanbul": "^0.3.14",
     "jquery": "^2.1.4",
     "klass": "^1.4.0",
     "lodash": "^3.9.1",
@@ -22,7 +23,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "mocha --recursive",
-    "cov": "mocha --require blanket -R html-cov > coverage.html --recursive",
+    "cov": "istanbul cover node_modules/.bin/_mocha -- --recursive",
     "start": "nodemon server.js",
     "build": "browserify app/main.js -o public/js/bundle.js",
     "buildblock": "browserify app/blocktest.js -o public/js/bundle.js"

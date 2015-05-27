@@ -2,6 +2,7 @@ var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
+var assert = require("assert");
 
 var Laser = function() {
     Ammo.call(this);
@@ -16,8 +17,8 @@ Laser.prototype.constructor = Laser;
 Laser.prototype.createSprite = function(size, offset, life) {
     var sprite = new PointSprite();
 
-    sprite.setSize(size);
-    sprite.setLife(life);
+    sprite.size = size;
+    sprite.life = life;
 
     var sizeOverTime = function(time) {
         var remainingLife = this.life - time;
@@ -36,7 +37,7 @@ Laser.prototype.createSprite = function(size, offset, life) {
 
     position.copy(this.velocity);
     position.multiplyScalar(offset);
-    sprite.setPosition(position);
+    sprite.position = position;
 
     return sprite;
 };
@@ -46,15 +47,12 @@ Laser.prototype.createInstance = function() {
 };
 
 Laser.prototype.initVelocity = function() {
-    var actor = this.getActor();
-    var target = this.getTarget();
-
-    if (actor == null || target == null) {
-        throw "actor or target cannot be null";
-    }
-
     var velocity = new THREE.Vector3();
-    velocity.subVectors(target.getWorldPosition(), actor.getWorldPosition());
+    velocity.subVectors(this.target.getWorldPosition(), this.actor.getWorldPosition());
+
+    if (velocity.length() == 0) {
+        velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+    }
     velocity.setLength(4);
 
     this.velocity = velocity;
@@ -62,20 +60,21 @@ Laser.prototype.initVelocity = function() {
 
 Laser.prototype.start = function() {
     assert(this.rigidBody != null, "rigidBody cannot be empty");
+    assert(this.actor != null, "actor cannot be empty");
+    assert(this.target != null, "target cannot be empty");
 
-    this.setLife(200);
+    this.life = 200;
 
     this.initVelocity();
-    transform = this.getTransform();
 
-    this.addComponent(this.getRigidBody());
-    this.getRigidBody().setVelocity(this.velocity);
+    this.addComponent(this.rigidBody);
+    this.rigidBody.velocity = this.velocity;
 
     var startPosition = new THREE.Vector3();
     startPosition.copy(this.velocity);
     startPosition.multiplyScalar(2);
 
-    this.getPosition().add(startPosition);
+    this.position.add(startPosition);
 
     this.createSprites();
 };
@@ -87,12 +86,12 @@ Laser.prototype.createSprites = function(time) {
     for (var i = 0; i < num; i++) {
         this.addEntity(this.createSprite(
             power * (num - i) / num, -i * 0.5,
-            this.getLife()));
+            this.life));
     }
 };
 
 Laser.prototype.onCollision = function(entity) {
-    if (entity == this.getActor()) {
+    if (entity == this.actor) {
         return;
     }
 

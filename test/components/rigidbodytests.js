@@ -17,6 +17,15 @@ describe("RigidBody", function(){
 		rigidBody.entity = entity;
 	})
 
+	describe("start", function(){
+		it("should apply default friction to friction", function(){
+			rigidBody.defaultFriction = 0.5;
+			rigidBody.friction = 1;
+			rigidBody.start();
+			expect(rigidBody.friction).to.equal(0.5);
+		})
+	})
+
 	describe("update", function(){
 		it("should update velocity from acceleration", function(){
 			rigidBody.applyForce(new THREE.Vector3(1, 1, 1));

@@ -4,50 +4,78 @@ var sinon = require("sinon");
 var THREE = require("THREE");
 var _ = require("lodash");
 
-describe("Laser", function(){
-	var laser = null;
-	var actor = null;
-	var target = null;
+describe("Laser", function() {
+    var laser, actor, target, rigidBody, mockLaser;
 
-	beforeEach(function(){
-		laser = new Laser();
-		actor = new Entity();
-		target = new Entity();
-		target.setPosition(new THREE.Vector3(100, 100, 100));
+    beforeEach(function() {
+        laser = new Laser();
+        actor = {
+        	getWorldPosition: function(){
+        		return new THREE.Vector3(0, 0, 0);
+        	}
+        };
+        target = {
+        	getWorldPosition: function(){
+        		return new THREE.Vector3(0, 0, 0);
+        	}
+        };
+        target.position = new THREE.Vector3(100, 100, 100);
+        rigidBody = {};
 
-		laser.setActor(actor);
-		laser.setTarget(target);
+        laser.actor = actor;
+        laser.target = target;
+		laser.rigidBody = rigidBody;
 
-		laser.createBlock = function(){
-			return new Entity();
-		}
-	})
+        laser.createBlock = function() {
+            return new Entity();
+        }
 
-	it("should has collision", function(){
-		expect(laser.hasCollision()).to.equal(true);
-	})
+        mockLaser = sinon.mock(laser);
+    })
 
-	describe("#start", function(){
-		it("should create blocks", function(){
-			laser.start();
-			expect(laser.getChildEntities().length).to.equal(4);
-		});
+    describe("#start", function() {
+        it("should create blocks", function() {
+            laser.start();
+            expect(laser.childEntities.length).to.equal(4);
+        });
 
-		it("should create rigid body", function(){
-			laser.start();
-			expect(laser.getRigidBody()).to.not.equal(null);
-			expect(_.includes(laser.getComponents(), laser.getRigidBody())).to.equal(true);
-		});
+        it("should add rigid body", function() {
+            laser.start();
+            expect(_.includes(laser.components, rigidBody)).to.be.true;
+        });
 
-		it("should initialize velocity", function(){
-			laser.start();
-			expect(laser.getRigidBody().getVelocity().length()).to.be.gt(0);
-		});
-	})
+        it("should initialize velocity when distance is zero", function() {
+        	actor.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
+        	target.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
+            laser.start();
+            expect(laser.rigidBody.velocity.length()).to.be.gt(0);
+        });
 
-	describe("#update", function(){
-		it("should remove self when no life", function(){
+        it("should initialize velocity when distance is greater than zero", function(){
+        	actor.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
+        	target.getWorldPosition = sinon.stub().returns(new THREE.Vector3(200, 200, 200));
+        	laser.start();
+        	expect(laser.rigidBody.velocity.length()).to.be.gt(0);
+        })
+    })
 
-		})
-	})
+    describe("#update", function() {
+        it("should remove self when no life", function() {
+
+        })
+    })
+
+    describe("#onCollision", function(){
+    	it("should not destroy if colliding object is actor", function(){
+    		mockLaser.expects("destroy").never();
+    		laser.onCollision(actor);
+    		mockLaser.verify();
+    	})
+
+    	it("should destroy if colliding object is not actor", function(){
+    		mockLaser.expects("destroy");
+    		laser.onCollision({});
+    		mockLaser.verify();
+    	})
+    })
 });

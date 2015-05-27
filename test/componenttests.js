@@ -11,12 +11,9 @@ describe("Component", function(){
 
 	describe("#getTransform", function(){
 		it("returns entity's transform", function(){
-			var transform = {}
-			var entity = {
-				getTransform: function(){
-					return transform;
-				}
-			}
+			var transform = {};
+			var entity = {};
+			entity.transform = transform;
 
 			component.entity = entity;
 

@@ -2,7 +2,6 @@ var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
 var MathUtils = require("./mathutils");
-var injector = require("./injector");
 
 var Entity = function(){
 	this.name = null;

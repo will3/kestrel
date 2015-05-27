@@ -4,3 +4,4 @@ coverage.html
 app/.DS_Store
 test/.DS_Store
 test/entities/.DS_Store
+coverage

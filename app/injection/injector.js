@@ -1,8 +1,14 @@
+var BaseModule = require("./basemodule");
+
 var Injector = function() {
     this.module = null;
 
     return {
         loadModule: function(mod) {
+            if(!mod instanceof BaseModule){
+                throw "attempt to load non module object";
+            }
+
         	this.module = mod;
         	this.module.load();
         },
@@ -23,6 +29,6 @@ var Injector = function() {
         	return object;
         }
     }
-}();
+};
 
 module.exports = Injector;

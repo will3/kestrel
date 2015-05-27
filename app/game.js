@@ -8,16 +8,16 @@ var Console = require("./console");
 var assert = require("assert");
 
 var Game = function() {
-    this.scene;
-    this.camera;
-    this.renderer;
-    this.control;
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.control = null;
     this.target = new THREE.Vector3();
     //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
     this.distance = 400.0;
     this.frameRate = 60.0;
-    this.keyboard;
+    this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
 
@@ -157,6 +157,7 @@ Game.prototype = {
     },
 
     initialize: function(container) {
+        assert(this.control != null, "control cannot be empty");
         assert(this.entityRunner != null, "entityRunner cannot be empty");
         assert(this.collision != null, "collision cannot be empty");
 

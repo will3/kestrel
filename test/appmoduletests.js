@@ -1,4 +1,4 @@
-var injector = require("../app/injector");
+var injector = require("../app/injection/injection").defaultInjector;
 var expect = require("chai").expect;
 var sinon = require("sinon");
 
@@ -18,6 +18,7 @@ describe("AppModule", function(){
 		expect(game).to.exist;
 		expect(game.entityRunner).to.exist;
 		expect(game.collision).to.exist;
+		expect(game.control).to.exist;
 	});
 
 	it("should inject game as singleton", function(){
@@ -62,5 +63,18 @@ describe("AppModule", function(){
 		expect(laser).to.exist;
 		expect(laser.rigidBody).to.exist;
 		expect(laser.rigidBody.defaultFriction).to.equal(1);
+		expect(laser.hasCollision()).to.be.true;
 	});
+
+	it("should inject control correctly", function(){
+		var control = injector.get("control");
+		expect(control).to.exist;
+		expect(control.keyMap).to.exist;
+	})
+
+	it("should inject control as singleton", function(){
+		var control1 = injector.get("control");
+		var control2 = injector.get("control");
+		expect(control1).to.equal(control2);
+	})
 })

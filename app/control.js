@@ -1,56 +1,41 @@
-function Control()
-{
-	var lastX;
-	var lastY;
-
-	var that = this;
-
-	var mouseMoveHandler;
-
-	this.isDragging = false;
-
-	return {
-		mousemove: function(handler){
-			mouseMoveHandler = handler;
-		},
-
-		hookContainer: function(container){
-
-			container.onmousedown = function(){
-				that.isDragging = true;
-			};
-
-			container.onmouseup = function(){
-				that.isDragging = false;
-			};
-
-			container.onmouseleave = function(){
-				that.isDragging = false;
-			};
-
-			container.onmousemove = function(event){
-				if(that.isDragging){
-					var xDiff = event.clientX - that.lastX;
-					var yDiff = event.clientY - that.lastY;
-
-					mouseMoveHandler(xDiff, yDiff);
-				}
-
-				that.lastX = event.clientX;
-				that.lastY = event.clientY;
-			};
-		}
-	};
+var Control = function() {
+    this.mouseX = null;
+    this.mouseY = null;
+    this.mouseMoveHandler = null;
+    this.isDragging = false;
+    this.keyMap = null;
 }
 
-var KeyMap = (function(){
-	return {
-		console: "q",
-		zoomIn: "pageup",
-		zoomOut: "pagedown",
-	};
-})();
+Control.prototype.constructor = Control;
 
-Control.KeyMap = KeyMap;
+Control.prototype.mouseMove = function(handler) {
+    this.mouseMoveHandler = handler;
+};
+
+Control.prototype.hookContainer = function(container) {
+    container.onmousedown = function() {
+        this.isDragging = true;
+    }.bind(this);
+
+    container.onmouseup = function() {
+        this.isDragging = false;
+    }.bind(this);
+
+    container.onmouseleave = function() {
+        this.isDragging = false;
+    }.bind(this);
+
+    container.onmousemove = function(event) {
+        if (this.isDragging) {
+            var xDiff = event.clientX - this.mouseX;
+            var yDiff = event.clientY - this.mouseY;
+
+            this.mouseMoveHandler(xDiff, yDiff);
+        }
+
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+    }.bind(this);
+};
 
 module.exports = Control;
