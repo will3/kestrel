@@ -2,6 +2,7 @@ var Control = function() {
     this.mouseX = null;
     this.mouseY = null;
     this.mouseMoveHandler = null;
+    this.mouseClickHandler = null;
     this.isDragging = false;
     this.keyMap = null;
 }
@@ -12,7 +13,17 @@ Control.prototype.mouseMove = function(handler) {
     this.mouseMoveHandler = handler;
 };
 
+Control.prototype.mouseClick = function(handler){
+    this.mouseClickHandler = handler;
+};
+
 Control.prototype.hookContainer = function(container) {
+    container.onclick = function(){
+        if(this.mouseClickHandler){
+            this.mouseClickHandler();
+        }
+    }.bind(this);
+
     container.onmousedown = function() {
         this.isDragging = true;
     }.bind(this);
