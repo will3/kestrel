@@ -8,6 +8,7 @@ var BlockChunk = function(origin, chunkSize) {
     this.origin = origin || null;
     this.chunkSize = chunkSize || null;
     this.minChunkSize = 8;
+    this.parent = null;
     this.children = [];
     this.lowerBound = null;
     this.higherBound = null;
@@ -16,35 +17,22 @@ var BlockChunk = function(origin, chunkSize) {
 BlockChunk.prototype = {
     constructor: BlockChunk,
 
-    visitMap: function(callback) {
-        for(x in this.map){
-            for(y in this.map[x]){
-                for(z in this.map[x][y]){
-                    callback(parseInt(x), parseInt(y), parseInt(z));
+    visitBlock: function(callback) {
+        for (x in this.map) {
+            for (y in this.map[x]) {
+                for (z in this.map[x][y]) {
+                    callback(this.map[x][y][z], parseInt(x), parseInt(y), parseInt(z));
                 }
             }
         }
     },
 
-    visitBlocks: function(callback) {
-        this.visitMap(function(x, y, z) {
-            callback(this.map[x][y][z], x, y, z);
-        }.bind(this));
-    },
+    visitBlockRecursively: function(callback) {
+        this.visitBlock(callback);
 
-    visitLeafs: function(callback){
-        if(this.children.length == 0){
-            callback(this);
-            return;
+        for (var i in this.children) {
+            this.children[i].visitBlockRecursively(callback);
         }
-
-        for(var i in this.children){
-            this.children[i].visitLeafs(callback);
-        }
-    },
-
-    clearMap: function() {
-        this.map = {}
     },
 
     hasBounds: function() {
@@ -53,19 +41,6 @@ BlockChunk.prototype = {
 
     getChildrenCount: function() {
         return this.children.length;
-    },
-
-    getBlockCount: function() {
-        var count = 0;
-        this.visitMap(function(x, y, z) {
-            count++;
-        })
-
-        this.children.forEach(function(child) {
-            count += child.getBlockCount();
-        })
-
-        return count;
     },
 
     inBound: function(x, y, z) {
@@ -107,6 +82,39 @@ BlockChunk.prototype = {
         }
 
         this.map[x][y][z] = block;
+
+        var left = this.findBlock(x - 1, y, z);
+        var right = this.findBlock(x + 1, y, z);
+        var bottom = this.findBlock(x, y - 1, z);
+        var top = this.findBlock(x, y + 1, z);
+        var back = this.findBlock(x, y, z - 1);
+        var front = this.findBlock(x, y, z + 1);
+
+        block.showLeft = (left == null);
+        block.showRight = (right == null);
+        block.showBottom = (bottom == null);
+        block.showTop = (top == null);
+        block.showBack = (back == null);
+        block.showFront = (front == null);
+
+        if (left != null) {
+            left.showRight = false;
+        }
+        if (right != null) {
+            right.showLeft = false;
+        }
+        if (bottom != null) {
+            bottom.showTop = false;
+        }
+        if (top != null) {
+            top.showBottom = false;
+        }
+        if (back != null) {
+            back.showFront = false;
+        }
+        if (front != null) {
+            front.showBack = false;
+        }
     },
 
     removeBlock: function(x, y, z) {
@@ -122,6 +130,32 @@ BlockChunk.prototype = {
         }
 
         this.map[x][y][z] = null;
+
+        var left = this.findBlock(x - 1, y, z);
+        var right = this.findBlock(x + 1, y, z);
+        var bottom = this.findBlock(x, y - 1, z);
+        var top = this.findBlock(x, y + 1, z);
+        var back = this.findBlock(x, y, z - 1);
+        var front = this.findBlock(x, y, z + 1);
+
+        if (left != null) {
+            left.showRight = true;
+        }
+        if (right != null) {
+            right.showLeft = true;
+        }
+        if (bottom != null) {
+            bottom.showTop = true;
+        }
+        if (top != null) {
+            top.showBottom = true;
+        }
+        if (back != null) {
+            back.showFront = true;
+        }
+        if (front != null) {
+            front.showBack = true;
+        }
     },
 
     getBlock: function(x, y, z) {
@@ -142,19 +176,36 @@ BlockChunk.prototype = {
         return this.map[x][y][z] || null;
     },
 
-    getChunk: function(x, y, z){
-        if(!this.inBound(x, y, z)){
+    findBlock: function(x, y, z){
+        if(!this.hasBounds()){
+            return this.getBlockOrEmpty(x, y, z);
+        }
+
+        if(this.inBound(x,y,z)){
+            var chunk = this.getChunk(x, y, z);
+            return chunk.getBlockOrEmpty(x, y, z);
+        }
+
+        if(this.parent == null){
             return null;
         }
 
-        if(this.children.length == 0){
+        return this.parent.findBlock(x, y, z);
+    },
+
+    getChunk: function(x, y, z) {
+        if (!this.inBound(x, y, z)) {
+            return null;
+        }
+
+        if (this.children.length == 0) {
             return this;
         }
 
-        for(var index in this.children){
+        for (var index in this.children) {
             var child = this.children[index];
             var chunk = child.getChunk(x, y, z);
-            if(chunk != null){
+            if (chunk != null) {
                 return chunk;
             }
         }
@@ -165,7 +216,7 @@ BlockChunk.prototype = {
     shrink: function() {
         var min = null;
         var max = null;
-        this.visitMap(function(x, y, z) {
+        this.visitBlock(function(block, x, y, z) {
             if (min == null) {
                 min = new BlockCoord(x, y, z);
             }
@@ -230,21 +281,23 @@ BlockChunk.prototype = {
         this.children.push(new BlockChunk(new BlockCoord(x, y + chunkSize_half, z + chunkSize_half), chunkSize_half));
 
         this.children.forEach(function(child) {
+            child.parent = this;
             child.subdivide();
-        })
+        }.bind(this));
     },
 
-    reallocate: function(){
-        this.visitBlocks(function(block, x, y, z){
+    reallocate: function() {
+        this.visitBlock(function(block, x, y, z) {
             var chunk = this.getChunk(x, y, z);
-            if(chunk == null){
+            if (chunk == null) {
                 throw "cannot allocate block";
             }
 
             chunk.addBlock(x, y, z, block);
         }.bind(this));
 
-        this.clearMap();
+        //clear map
+        this.map = {};
     }
 };
 

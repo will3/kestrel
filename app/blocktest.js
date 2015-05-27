@@ -15,7 +15,7 @@ stats.domElement.style.top = '0px';
 
 document.body.appendChild(stats.domElement);
 
-var container, camera, scene, renderer, object;
+var container, camera, scene, renderer, cube;
 
 var blockChunk = new BlockChunk();
 
@@ -41,7 +41,6 @@ blockChunk.reallocate();
 
 var blockModel = new BlockModel(blockChunk);
 blockModel.initGeometry();
-var geometry = blockModel.geometry;
 
 init();
 animate();
@@ -57,15 +56,10 @@ function init() {
         color: 0xffffff
     });
 
-    object = new THREE.Object3D();
-    scene.add(object);
-
-    for(var i in blockModel.geometries){
-        var geometry = blockModel.geometries[i];
-        var cube = new THREE.Mesh(geometry, material);
-        object.add(cube);
-    }
+    cube = new THREE.Mesh(blockModel.geometry, material);
     
+    scene.add(cube);
+
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
@@ -80,6 +74,6 @@ function animate() {
 }
 
 function render() {
-    object.rotation.y += 0.005;
+    cube.rotation.y += 0.005;
     renderer.render(scene, camera);
 }
