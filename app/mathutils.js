@@ -11,7 +11,7 @@ var MathUtils = (function(){
 		},
 
 		getEuler: function(yaw, pitch, roll){
-			return new THREE.Euler(pitch, yaw, roll, 'YXZ');
+			return new THREE.Euler(yaw, pitch, roll, 'XYZ');
 		},
 
 		getUnitVector: function(yaw, pitch, roll){

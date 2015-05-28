@@ -1,18 +1,19 @@
 var Command = require("../command");
 var Console = require("../console");
 
-var SelectCommand = function(){
-	var selectCommand = {
-		execute: function(){
-			var params = this.getParams();
-			var entity = Game.getEntity(params[0]);
-			Console.setSelectedEntity(entity);
-		},
-	};
+var SelectCommand = function() {
+    Command.call(this);
 
-	selectCommand.__proto__ = Command();
+    this.game = null;
+    this.console = null;
+};
 
-	return selectCommand;
-}
+SelectCommand.prototype = Object.create(Command.prototype);
+SelectCommand.prototype.constructor = SelectCommand;
+
+SelectCommand.prototype.execute = function() {
+    var entity = this.game.getEntity(this.params[0]);
+    this.console.selectedEntity = entity;
+};
 
 module.exports = SelectCommand;

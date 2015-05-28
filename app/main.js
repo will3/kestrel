@@ -1,18 +1,20 @@
-var Game = require('./game.js');
-var Console = require('./console');
 var $ = require('jquery');
 var injector = require("./injection/injection").defaultInjector;
 var appmodule = require('./appmodule');
 
 injector.loadDependencies({
-	appmodule
+    appmodule
 });
 
 var container = $('#container');
+var input = document.getElementById('console_text');
+var game = injector.get("game");
+game.initialize(container);
 
-Game.initialize(container);
+var console = injector.get("console");
+console.hookInput(input);
 
-// Console.runScenario(
+// console.runScenario(
 // 		[
 // 			"add ship",
 // 			"add ship 150 0 150",
@@ -25,10 +27,10 @@ Game.initialize(container);
 // 		]
 // 	);
 
-Console.runScenario(
-	[
-		"add ship 0 0 0"
-	]
+console.runScenario(
+    [
+        "add ship 0 0 0"
+    ]
 );
 
 var stats = new Stats();
@@ -40,4 +42,4 @@ stats.domElement.style.top = '0px';
 
 document.body.appendChild(stats.domElement);
 
-Game.setStats(stats);
+game.setStats(stats);

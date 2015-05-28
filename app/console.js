@@ -1,9 +1,8 @@
- var Console = function() {
+var Console = function() {
     this.commandMapping = null;
-    
+
     this.input = null;
     this.displayResult = false;
-    this.result = null;
     this.lastCommand = null;
     this.selectedEntity = null;
 }
@@ -19,62 +18,46 @@ Console.prototype = {
         }
 
         if (e.keyIdentifier == "Enter") {
-            this.onEnterCommand(input.value);
-            if (this.displayResult) {
-                this.input.value = this.result;
-            } else {
-                this.input.value = "";
+            if (this.input.value.length == 0) {
+                return;
             }
-        } else if (e.keyIdentifier == "Up") {
-            if (this.lastCommand != null && this.lastCommand.length > 0) {
-                this.input.value = this.lastCommand;
-                this.displayResult = false;
-            }
+
+            var command = this.getCommand(this.input.value);
+            this.run(command);
+            
+            this.input.value = "";
         }
     },
 
-    onEnterCommand: function(command) {
-        if (command.length == 0) {
-            return;
-        }
-
-        this.lastCommand = command;
-        var params = command.split(" ");
-
-        this.processCommand(params);
-    },
-
-    getCommand: function(name) {
-        var commandClass = this.commandMapping[name];
-        if (commandClass == null) {
-            throw name + " is not a valid command";
-        }
-
-        var command = new this.commandMapping[name]();
-
-        return command;
-    },
-
-    processCommand: function(params) {
-        var command = this.getCommand(params[0]);
-
-        params.splice(0, 1);
-
-        command.actor = this.selectedEntity;
-        command.params = this.params;
-        var resultBack = command.execute();
-
-        if (resultBack != null && resultBack.length > 0) {
-            result = resultBack;
-            this.displayResult = true;
-        }
-    },
-
-    setInput: function(value) {
+    hookInput: function(value) {
         this.input = value;
         this.input.addEventListener('keydown', function(e) {
             this.onKeyDown(e);
         }.bind(this), false);
+    },
+
+    getCommand: function(inputValue) {
+        this.lastCommand = inputValue;
+        var params = inputValue.split(" ");
+
+        var commandName = params[0];
+        if (this.commandMapping[commandName] == null) {
+            throw commandName + " is not a valid command";
+        }
+
+        var command = this.commandMapping[commandName]();
+        params.splice(0, 1);
+        command.params = params;
+        command.actor = this.selectedEntity;
+
+        return command
+    },
+
+    run: function(command) {
+        var result = command.execute();
+        if(result != null){
+            this.write(result);
+        }
     },
 
     focus: function() {
@@ -86,12 +69,9 @@ Console.prototype = {
         this.displayResult = true;
     },
 
-    run: function(command) {
-        this.onEnterCommand(command);
-    },
-
-    runScenario: function(commands) {
-        commands.forEach(function(command) {
+    runScenario: function(inputValues) {
+        inputValues.forEach(function(inputValue) {
+            var command = this.getCommand(inputValue);
             this.run(command);
         }.bind(this));
     }

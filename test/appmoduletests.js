@@ -49,13 +49,23 @@ describe("AppModule", function(){
 		var console = injector.get("console");
 		expect(console).to.exist;
 		expect(console.commandMapping).to.exist;
-		expect(console.input).to.exist;
 	});
 
 	it("should inject console as singleton", function(){
 		var console1 = injector.get("console");
 		var console2 = injector.get("console");
 		expect(console1).to.equal(console2);
+	});
+
+	it("should inject commandMapping correctly", function(){
+		var commandMapping = injector.get("commandMapping");
+		expect(commandMapping["add"]).to.exist;
+		expect(commandMapping["list"]).to.exist;
+		expect(commandMapping["remove"]).to.exist;
+		expect(commandMapping["move"]).to.exist;
+		expect(commandMapping["orbit"]).to.exist;
+		expect(commandMapping["select"]).to.exist;
+		expect(commandMapping["align"]).to.exist;
 	});
 
 	it("should inject laser correctly", function(){
