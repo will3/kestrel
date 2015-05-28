@@ -9,7 +9,7 @@ EntityRunner.prototype = {
     constructor: EntityRunner,
 
     runEntity: function(entity) {
-        if (entity.life != -1) {
+        if (entity.life != null) {
             if (entity.frameAge == entity.life) {
                 this.removeEntity(entity);
             }

@@ -41,7 +41,7 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    this.smokeTrail.amount = shipController.engineAmount;
+    // this.smokeTrail.amount = shipController.engineAmount;
 };
 
 module.exports = Ship;

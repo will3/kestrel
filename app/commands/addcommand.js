@@ -26,13 +26,12 @@ AddCommand.prototype.execute = function() {
     var y = parseInt(this.params[2]);
     var z = parseInt(this.params[3]);
 
-    var constructor = this.objectMapping == null ? null : this.objectMapping[param];
-
-    if (constructor == null) {
-        throw "cannot add " + param;
+    var objectFunc = this.objectMapping[param];
+    if(objectFunc == null){
+        throw "failed to add object";
     }
 
-    var entity = new constructor();
+    var entity = objectFunc();
     this.game.nameEntity(param, entity);
     this.game.addEntity(entity, new THREE.Vector3(x, y, z));
 };

@@ -11,7 +11,7 @@ var Entity = function(){
 	this.frameAge = 0;
 	this.parentEntity = null;
 	this.started = false;
-	this.life = -1;
+	this.life = null;
 	this.destroyable = false;
 };
 

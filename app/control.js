@@ -4,7 +4,6 @@ var Control = function() {
     this.mouseMoveHandler = null;
     this.mouseClickHandler = null;
     this.isDragging = false;
-    this.keyMap = null;
 }
 
 Control.prototype.constructor = Control;

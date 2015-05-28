@@ -22,7 +22,10 @@ var Game = function() {
     this.stats = null;
 
     this.entityRunner = null;
+    this.keyMap = null;
     this.collision = null;
+    this.container = null;
+    this.keyMap = null;
 }
 
 Game.prototype = {
@@ -39,76 +42,75 @@ Game.prototype = {
         var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
         var unitZ = new THREE.Vector3(0, 0, 1);
         unitZ.applyMatrix4(matrix);
-        unitZ.setLength(distance);
+        unitZ.setLength(this.distance);
 
         var position = new THREE.Vector3();
-        position.subVectors(target, unitZ);
+        position.subVectors(this.target, unitZ);
 
         this.camera.position.set(position.x, position.y, position.z);
-        this.camera.lookAt(target);
+        this.camera.lookAt(this.target);
         this.camera.updateMatrix();
     },
 
     initScene: function() {
-        var WIDTH = container.clientWidth,
-            HEIGHT = container.clientHeight;
+        var WIDTH = this.container.clientWidth,
+            HEIGHT = this.container.clientHeight;
 
         var VIEW_ANGLE = 45,
             ASPECT = WIDTH / HEIGHT,
             NEAR = 0.1,
             FAR = 10000;
 
-        renderer = new THREE.WebGLRenderer();
-        camera = new THREE.PerspectiveCamera(VIEW_ANGLE,
+        this.renderer = new THREE.WebGLRenderer();
+        this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE,
             ASPECT,
             NEAR,
             FAR);
 
-        scene = new THREE.Scene();
+        this.scene = new THREE.Scene();
 
-        renderer.setSize(WIDTH, HEIGHT);
+        this.renderer.setSize(WIDTH, HEIGHT);
 
-        container.appendChild(renderer.domElement);
+        this.container.append(this.renderer.domElement);
 
-        render();
+        this.render();
 
         this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0);
 
-        updateCamera();
+        this.updateCamera();
 
-        scene.add(camera);
+        this.scene.add(this.camera);
 
-        THREEx.WindowResize(renderer, camera);
+        THREEx.WindowResize(this.renderer, this.camera);
 
-        keyboard = new THREEx.KeyboardState(renderer.domElement);
-        renderer.domElement.setAttribute("tabIndex", "0");
-        renderer.domElement.focus();
+        keyboard = new THREEx.KeyboardState(this.renderer.domElement);
+        this.renderer.domElement.setAttribute("tabIndex", "0");
+        this.renderer.domElement.focus();
 
         // only on keyup
-        var KeyMap = Control.KeyMap;
         keyboard.domElement.addEventListener('keyup', function(event) {
-            if (keyboard.eventMatches(event, KeyMap.console)) {
+            if (keyboard.eventMatches(event, this.keyMap.console)) {
                 Console.focus();
-            } else if (keyboard.eventMatches(event, KeyMap.zoomIn)) {
+            } else if (keyboard.eventMatches(event, this.keyMap.zoomIn)) {
                 zoomIn();
-            } else if (keyboard.eventMatches(event, KeyMap.zoomOut)) {
+            } else if (keyboard.eventMatches(event, this.keyMap.zoomOut)) {
                 zoomOut();
             }
         });
     },
 
     zoomIn: function() {
-        distance /= 1.2;
-        updateCamera();
+        this.distance /= 1.2;
+        this.updateCamera();
     },
 
     zoomOut: function() {
-        distance *= 1.2;
-        updateCamera();
+        this.distance *= 1.2;
+        this.updateCamera();
     },
 
     mouseMove: function(xDiff, yDiff) {
-        var yVector = new THREE.Vector3(target.x - camera.position.x, 0, target.z - camera.position.z);
+        var yVector = new THREE.Vector3(this.target.x - camera.position.x, 0, this.target.z - camera.position.z);
         var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
         var xVector = new THREE.Vector3();
         xVector.copy(yVector);
@@ -117,10 +119,10 @@ Game.prototype = {
         xVector.normalize();
         yVector.normalize();
 
-        target.addVectors(target, xVector.multiplyScalar(xDiff / 2.0));
-        target.addVectors(target, yVector.multiplyScalar(yDiff / 2.0));
+        this.target.add(xVector.multiplyScalar(xDiff / 2.0));
+        this.target.add(yVector.multiplyScalar(yDiff / 2.0));
 
-        updateCamera();
+        this.updateCamera();
     },
 
     mouseRotate: function(xDiff, yDiff) {
@@ -133,27 +135,26 @@ Game.prototype = {
             this.cameraRotation.y = -Math.PI / 2.0;
         }
 
-        updateCamera();
+        this.updateCamera();
     },
 
     initControl: function() {
-        control = new Control();
-        control.hookContainer(container);
+        this.control.hookContainer(this.container);
 
-        control.mousemove(function(xDiff, yDiff) {
-            mouseRotate(xDiff, yDiff);
+        this.control.mouseMove(function(xDiff, yDiff) {
+            this.mouseMove(xDiff, yDiff);
         });
     },
 
     render: function() {
-        if (stats != null) {
-            stats.begin();
+        if (this.stats != null) {
+            this.stats.begin();
         }
-        renderer.render(scene, camera);
-        if (stats != null) {
-            stats.end();
+        this.renderer.render(this.scene, this.camera);
+        if (this.stats != null) {
+            this.stats.end();
         }
-        requestAnimationFrame(render);
+        requestAnimationFrame(this.render.bind(this));
     },
 
     initialize: function(container) {
@@ -161,15 +162,17 @@ Game.prototype = {
         assert(this.entityRunner != null, "entityRunner cannot be empty");
         assert(this.collision != null, "collision cannot be empty");
 
-        initScene();
-        initControl();
-        this.addEntity(collision);
-        setInterval(onEnterFrame, 1000 / frameRate);
+        this.container = container;
+        this.initScene();
+        this.initControl();
+        this.collision.game = this;
+        this.addEntity(this.collision);
+        setInterval(this.onEnterFrame.bind(this), 1000 / this.frameRate);
     },
 
     addEntity: function(entity, position) {
         if (position != null) {
-            entity.setPosition(position);
+            entity.position = position;
         }
 
         this.entityRunner.addEntity(entity);

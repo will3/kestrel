@@ -1,10 +1,9 @@
 var $ = require('jquery');
 var injector = require("./injection/injection").defaultInjector;
-var appmodule = require('./appmodule');
+var AppModule = require('./appmodule');
+var appModule = new AppModule();
 
-injector.loadDependencies({
-    appmodule
-});
+injector.loadModule(appModule);
 
 var container = $('#container');
 var input = document.getElementById('console_text');
@@ -42,4 +41,4 @@ stats.domElement.style.top = '0px';
 
 document.body.appendChild(stats.domElement);
 
-game.setStats(stats);
+game.stats = stats;

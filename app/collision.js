@@ -4,10 +4,12 @@ var THREE = require("THREE");
 var Game = require("./game");
 
 var Collision = function(){
+	Entity.call(this);
 	this.game = null;
 }
 
-Collision.prototype = Object.create(Entity);
+Collision.prototype = Object.create(Entity.prototype);
+Collision.prototype.constructor = Collision;
 
 //visit collidable entities
 Collision.prototype.visitEntities = function(callback){
