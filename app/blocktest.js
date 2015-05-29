@@ -18,18 +18,14 @@ document.body.appendChild(stats.domElement);
 var container = document.getElementById('container');
 var camera, scene, renderer, object;
 
-var blockChunk = new BlockChunk(new BlockCoord(0, 0, 0), 32);
-
+var blockModel = new BlockModel(512);
 for (var x = 0; x < 4; x++) {
     for (var y = 0; y < 4; y++) {
         for (var z = 0; z < 4; z++) {
-            blockChunk.add(x, y, z, new TestBlock());
+            blockModel.add(x, y, z, new TestBlock());
         }
     }
 }
-
-var blockModel = new BlockModel(blockChunk);
-blockModel.initObject();
 
 var control = new Control();
 control.hookContainer(container);
@@ -51,7 +47,7 @@ function init() {
     camera.position.z = 50;
     scene.add(camera);
 
-    object = blockModel.object;
+    object = blockModel.getObject();
 
     scene.add(object);
 
