@@ -9,6 +9,8 @@ var BlockChunk = function(origin, size) {
         throw "invalid size";
     }
 
+    this.uuid = THREE.Math.generateUUID();
+
     this.type = "BlockChunk";
 
     this.origin = origin;
@@ -23,64 +25,6 @@ var BlockChunk = function(origin, size) {
 
 BlockChunk.prototype = {
     constructor: BlockChunk,
-
-    // shouldShow: function() {
-    //     var shouldShow = false;
-    //     this.visitBlocks(function(block, x, y, z) {
-    //         if (block.shouldShow()) {
-    //             shouldShow = true;
-    //         }
-    //     });
-
-    //     return shouldShow;
-    // },
-
-    // getGeometry: function() {
-    //     if (this.geometry == null) {
-    //         if (!this.shouldShow()) {
-    //             return null;
-    //         }
-
-    //         this.geometry = new THREE.Geometry();
-
-    //         this.visitBlocks(function(block, x, y, z) {
-    //             var blockGeometry = block.getGeometry();
-
-    //             if (blockGeometry == null) {
-    //                 //skip if no cube geometry
-    //                 return;
-    //             }
-
-    //             blockGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(x, y, z));
-
-    //             this.geometry.merge(blockGeometry);
-    //         }.bind(this));
-    //     }
-
-    //     return this.geometry;
-    // },
-
-    // getMaterial: function() {
-    //     if (this.material == null) {
-    //         this.material = new THREE.MeshBasicMaterial({
-    //             color: 0xffffff
-    //         });
-    //     }
-
-    //     return this.material;
-    // },
-
-    // getMesh: function() {
-    //     if (this.mesh == null) {
-    //         if (!this.shouldShow()) {
-    //             return null;
-    //         }
-
-    //         this.mesh = new THREE.Mesh(this.getGeometry(), this.getMaterial());
-    //     }
-
-    //     return this.mesh;
-    // },
 
     get: function(x, y, z) {
         var chunk = this.getChunk(x, y, z);
@@ -111,37 +55,19 @@ BlockChunk.prototype = {
         }
 
         chunk.block = block;
-        
-        var left = this.get(x - 1, y, z);
-        var right = this.get(x + 1, y, z);
-        var bottom = this.get(x, y - 1, z);
-        var top = this.get(x, y + 1, z);
-        var back = this.get(x, y, z - 1);
-        var front = this.get(x, y, z + 1);
+        block.x = x;
+        block.y = y;
+        block.z = z;
+    },
 
-        if (left != null) {
-            block.hasLeft = left.hasRight = true;
+    remove: function(x, y, z) {
+        var chunk = this.getChunk(x, y, z);
+
+        if (chunk.size != 1 || chunk.block == null) {
+            throw "block doesn't exisit";
         }
 
-        if (right != null) {
-            block.hasRight = right.hasLeft = true;
-        }
-
-        if (bottom != null) {
-            block.hasBottom = bottom.hasTop = true;
-        }
-
-        if (top != null) {
-            block.hasTop = top.hasBottom = true;
-        }
-
-        if (back != null) {
-            block.hasBack = back.hasFront = true;
-        }
-
-        if (front != null) {
-            block.hasFront = front.hasBack = true;
-        }
+        chunk.block = null;
     },
 
     visitBlocks: function(callback) {
@@ -156,6 +82,24 @@ BlockChunk.prototype = {
         }
     },
 
+    visitChunks: function(callback, minChunkSize) {
+        if (this.size == minChunkSize) {
+            callback(this);
+        }
+
+        if (this.size < minChunkSize) {
+            return;
+        }
+
+        if (this.children.length == 0) {
+            return;
+        }
+
+        this.children.forEach(function(child) {
+            child.visitChunks(callback, minChunkSize);
+        });
+    },
+
     inBound: function(x, y, z) {
         return (
             x >= this.origin.x &&
@@ -167,17 +111,27 @@ BlockChunk.prototype = {
         );
     },
 
-    getChunk: function(x, y, z) {
+    getChunk: function(x, y, z, minChunkSize) {
         if (!this.inBound(x, y, z)) {
             return null;
         }
 
-        if (this.children.length == 0) {
-            return this;
+        if (minChunkSize != null) {
+            if (this.size == minChunkSize) {
+                return this;
+            } else if (this.size > minChunkSize) {
+
+            } else if (this.size < minChunkSize) {
+                return null;
+            }
+        } else {
+            if (this.children.length == 0) {
+                return this;
+            }
         }
 
         for (var i in this.children) {
-            var chunk = this.children[i].getChunk(x, y, z);
+            var chunk = this.children[i].getChunk(x, y, z, minChunkSize);
             if (chunk != null) {
                 return chunk;
             }

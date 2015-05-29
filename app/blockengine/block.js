@@ -3,158 +3,94 @@ var THREE = require("THREE");
 var Block = function() {
     this.uuid = THREE.Math.generateUUID();
 
-    // this.hasLeft = false;
-    // this.hasRight = false;
-    // this.hasBottom = false;
-    // this.hasTop = false;
-    // this.hasBack = false;
-    // this.hasFront = false;
-
-    //faces for block
-    // this.vertices = null;
-    // this.leftFace = null;
-    // this.rightFace = null;
-    // this.bottomFace = null;
-    // this.topFace = null;
-    // this.backFace = null;
-    // this.frontFace = null;
+    this.x = null;
+    this.y = null;
+    this.z = null;
 }
 
 Block.prototype = {
-    // constructor: Block,
+    constructor: Block,
 
-    // shouldShow: function(){
-    // 	return !(this.hasLeft && this.hasRight && this.hasBottom && this.hasTop && this.hasBack && this.hasFront);
-    // },
+    getVertice: function(index) {
+        switch (index) {
+            case 0:
+                return new THREE.Vector3(this.x - 0.5, this.y - 0.5, this.z - 0.5); //0
+            case 1:
+                return new THREE.Vector3(this.x + 0.5, this.y - 0.5, this.z - 0.5); //1
+            case 2:
+                return new THREE.Vector3(this.x + 0.5, this.y - 0.5, this.z + 0.5); //2
+            case 3:
+                return new THREE.Vector3(this.x - 0.5, this.y - 0.5, this.z + 0.5); //3
+            case 4:
+                return new THREE.Vector3(this.x - 0.5, this.y + 0.5, this.z - 0.5); //4
+            case 5:
+                return new THREE.Vector3(this.x + 0.5, this.y + 0.5, this.z - 0.5); //5
+            case 6:
+                return new THREE.Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5); //6
+            case 7:
+                return new THREE.Vector3(this.x - 0.5, this.y + 0.5, this.z + 0.5); //7
 
-    // getGeometry: function() {
-    // 	if(!this.shouldShow()){
-    // 		return null;
-    // 	}
+            default:
+                throw "invalid index";
+        }
+    },
 
-    //     if (this.geometry == null) {
-    //         this.geometry = new THREE.Geometry();
+    getVertices: function(indexes) {
+        var vertices = [];
+        indexes.forEach(function(index) {
+            vertices.push(this.getVertice(index));
+        }.bind(this));
 
-    //         var vertices = this.getVertices();
+        return vertices;
+    },
 
-    //         for (var i in vertices) {
-    //             this.geometry.vertices.push(vertices[i]);
-    //         }
+    getFace: function(face, indexOffset) {
+        var indices = [];
 
-    //         var faces = [];
-    //         if (!this.hasLeft) {
-    //             faces = faces.concat(this.getLeftFace());
-    //         }
+        //    7   6
+        //  4   5
+        //    3   2
+        //  0   1
+        switch (face) {
+            case 'left':
+                indices = [7, 4, 0, 3];
+                break;
+            case 'right':
+                indices = [5, 6, 2, 1];
+                break;
+            case 'bottom':
+                indices = [0, 1, 2, 3];
+                break;
+            case 'top':
+                indices = [5, 4, 7, 6];
+                break;
+            case 'back':
+                indices = [1, 0, 4, 5];
+                break;
+            case 'front':
+                indices = [6, 7, 3, 2];
+                break;
+            default:
+                throw "invalid face " + face;
+        }
 
-    //         if (!this.hasRight) {
-    //             faces = faces.concat(this.getRightFace());
-    //         }
+        var vertices = this.getVertices(indices);
 
-    //         if (!this.hasBottom) {
-    //             faces = faces.concat(this.getBottomFace());
-    //         }
+        // var triangles = [
+        //     new THREE.Face3(indexOffset + indices[0], indexOffset + indices[1], indexOffset + indices[2]),
+        //     new THREE.Face3(indexOffset + indices[2], indexOffset + indices[3], indexOffset + indices[0])
+        // ];
 
-    //         if (!this.hasTop) {
-    //             faces = faces.concat(this.getTopFace());
-    //         }
+        var triangles = [
+            new THREE.Face3(indexOffset + 0, indexOffset + 1, indexOffset + 2),
+            new THREE.Face3(indexOffset + 2, indexOffset + 3, indexOffset + 0)
+        ];
 
-    //         if (!this.hasBack) {
-    //             faces = faces.concat(this.getBackFace());
-    //         }
-
-    //         if (!this.hasFront) {
-    //             faces = faces.concat(this.getFrontFace());
-    //         }
-
-    //         for (var i in faces) {
-    //             this.geometry.faces.push(faces[i]);
-    //         }
-    //     }
-
-    //     return this.geometry;
-    // },
-
-    // getVertices: function() {
-    //     if (this.vertices == null) {
-    //         this.vertices = [
-    //             new THREE.Vector3(-0.5, -0.5, -0.5), //0
-    //             new THREE.Vector3(0.5, -0.5, -0.5), //1
-    //             new THREE.Vector3(0.5, -0.5, 0.5), //2
-    //             new THREE.Vector3(-0.5, -0.5, 0.5), //3
-    //             new THREE.Vector3(-0.5, 0.5, -0.5), //0
-    //             new THREE.Vector3(0.5, 0.5, -0.5), //1
-    //             new THREE.Vector3(0.5, 0.5, 0.5), //2
-    //             new THREE.Vector3(-0.5, 0.5, 0.5), //3
-    //         ];
-    //     }
-
-    //     return this.vertices;
-    // },
-
-    // getLeftFace: function() {
-    //     if (this.leftFace == null) {
-    //         this.leftFace = [
-    //             new THREE.Face3(0, 3, 4),
-    //             new THREE.Face3(7, 4, 3)
-    //         ];
-    //     }
-
-    //     return this.leftFace;
-    // },
-
-    // getRightFace: function() {
-    //     if (this.rightFace == null) {
-    //         this.rightFace = [
-    //             new THREE.Face3(5, 6, 1),
-    //             new THREE.Face3(2, 1, 6)
-    //         ];
-    //     }
-    //     return this.rightFace;
-    // },
-
-    // getBottomFace: function() {
-    //     if (this.bottomFace == null) {
-    //         this.bottomFace = [
-    //             new THREE.Face3(0, 1, 2),
-    //             new THREE.Face3(2, 3, 0)
-    //         ];
-    //     }
-
-    //     return this.bottomFace;
-    // },
-
-    // getTopFace: function() {
-    //     if (this.topFace == null) {
-    //         this.topFace = [
-    //             new THREE.Face3(5, 4, 6),
-    //             new THREE.Face3(6, 4, 7)
-    //         ];
-    //     }
-
-    //     return this.topFace;
-    // },
-
-    // getBackFace: function() {
-    //     if (this.backFace == null) {
-    //         this.backFace = [
-    //             new THREE.Face3(1, 0, 5),
-    //             new THREE.Face3(4, 5, 0)
-    //         ];
-    //     }
-
-    //     return this.backFace;
-    // },
-
-    // getFrontFace: function() {
-    //     if (this.frontFace == null) {
-    //         this.frontFace = [
-    //             new THREE.Face3(3, 2, 7),
-    //             new THREE.Face3(6, 7, 2)
-    //         ];
-    //     }
-
-    //     return this.frontFace;
-    // }
+        return {
+            vertices: vertices,
+            triangles: triangles
+        };
+    }
 }
 
 module.exports = Block;
