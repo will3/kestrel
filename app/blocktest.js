@@ -19,7 +19,7 @@ document.body.appendChild(stats.domElement);
 var container = document.getElementById('container');
 var camera, scene, renderer, object;
 
-var testSize = 4;
+var testSize = 32;
 var blockModel = new BlockModel(512);
 for (var x = 0; x < testSize; x++) {
     for (var y = 0; y < testSize; y++) {
@@ -69,7 +69,7 @@ animate();
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.z = 20;
+    camera.position.z = 50;
     scene.add(camera);
 
     object = blockModel.object;

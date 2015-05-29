@@ -314,23 +314,41 @@ BlockModel.prototype = {
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
-
-        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
-
-        var chunkState = this.chunkStates[chunk.uuid];
-        if (chunkState == null) {
-            chunkState = this.chunkStates[chunk.uuid] = {};
-            chunkState.chunk = chunk;
-        }
-
-        chunkState.dirty = true;
+        this.updateDirty(x, y, z);
     },
 
     remove: function(x, y, z) {
         this.chunk.remove(x, y, z);
+        this.updateDirty(x, y, z);
+    },
+
+    updateDirty: function(x, y, z) {
+        this.setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
+
+        if (this.chunk.get(x - 1, y, z) != null) {
+            this.setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x + 1, y, z) != null) {
+            this.setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y - 1, z) != null) {
+            this.setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y + 1, z) != null) {
+            this.setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z - 1) != null) {
+            this.setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z + 1) != null) {
+            this.setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
+        }
 
         var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
+        this.setDirty(chunk);
+    },
 
+    setDirty: function(chunk) {
         var chunkState = this.chunkStates[chunk.uuid];
         if (chunkState == null) {
             chunkState = this.chunkStates[chunk.uuid] = {};
@@ -415,25 +433,6 @@ BlockModel.prototype = {
             geometry.faces.push(triangle);
         }.bind(this));
     }
-
-    // removeFace: function(block, face) {
-    //     var blockInfo = this.blockMapping[block.uuid] || {};
-    //     var triangles = blockInfo[face];
-
-    //     if (triangles == null) {
-    //         // throw "no face found";
-    //         return;
-    //     }
-
-    //     triangles.forEach(function(triangle) {
-    //         _.remove(this.geometry.faces, function(face){
-    //             return face.a == triangle.a && 
-    //             face.b == triangle.b && 
-    //             face.c == triangle.c;
-    //         });
-    //     }.bind(this));
-    //     blockInfo[face] = null;
-    // },
 };
 
 module.exports = BlockModel;
@@ -50029,7 +50028,7 @@ document.body.appendChild(stats.domElement);
 var container = document.getElementById('container');
 var camera, scene, renderer, object;
 
-var testSize = 4;
+var testSize = 32;
 var blockModel = new BlockModel(512);
 for (var x = 0; x < testSize; x++) {
     for (var y = 0; y < testSize; y++) {
@@ -50051,24 +50050,26 @@ var removeY = 0;
 var removeZ = 0;
 var allRemoved = false;
 
-Mousetrap.bind('space', function(){
-    if(allRemoved){
-        return;
-    }
+Mousetrap.bind('space', function() {
+    for (var i = 0; i < testSize; i++) {
+        if (allRemoved) {
+            return;
+        }
 
-    blockModel.remove(removeX, removeY, removeZ);
+        blockModel.remove(removeX, removeY, removeZ);
 
-    if(removeX < testSize - 1){
-        removeX ++;
-    }else if(removeY < testSize - 1){
-        removeX = 0;
-        removeY ++;
-    }else if(removeZ < testSize - 1){
-        removeX = 0;
-        removeY = 0;
-        removeZ ++;
-    }else{
-        allRemoved = true;
+        if (removeX < testSize - 1) {
+            removeX++;
+        } else if (removeY < testSize - 1) {
+            removeX = 0;
+            removeY++;
+        } else if (removeZ < testSize - 1) {
+            removeX = 0;
+            removeY = 0;
+            removeZ++;
+        } else {
+            allRemoved = true;
+        }
     }
 });
 
@@ -50079,7 +50080,7 @@ animate();
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.z = 20;
+    camera.position.z = 50;
     scene.add(camera);
 
     object = blockModel.object;

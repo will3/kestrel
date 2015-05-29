@@ -19,23 +19,41 @@ BlockModel.prototype = {
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
-
-        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
-
-        var chunkState = this.chunkStates[chunk.uuid];
-        if (chunkState == null) {
-            chunkState = this.chunkStates[chunk.uuid] = {};
-            chunkState.chunk = chunk;
-        }
-
-        chunkState.dirty = true;
+        this.updateDirty(x, y, z);
     },
 
     remove: function(x, y, z) {
         this.chunk.remove(x, y, z);
+        this.updateDirty(x, y, z);
+    },
+
+    updateDirty: function(x, y, z) {
+        this.setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
+
+        if (this.chunk.get(x - 1, y, z) != null) {
+            this.setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x + 1, y, z) != null) {
+            this.setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y - 1, z) != null) {
+            this.setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y + 1, z) != null) {
+            this.setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z - 1) != null) {
+            this.setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z + 1) != null) {
+            this.setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
+        }
 
         var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
+        this.setDirty(chunk);
+    },
 
+    setDirty: function(chunk) {
         var chunkState = this.chunkStates[chunk.uuid];
         if (chunkState == null) {
             chunkState = this.chunkStates[chunk.uuid] = {};
@@ -120,25 +138,6 @@ BlockModel.prototype = {
             geometry.faces.push(triangle);
         }.bind(this));
     }
-
-    // removeFace: function(block, face) {
-    //     var blockInfo = this.blockMapping[block.uuid] || {};
-    //     var triangles = blockInfo[face];
-
-    //     if (triangles == null) {
-    //         // throw "no face found";
-    //         return;
-    //     }
-
-    //     triangles.forEach(function(triangle) {
-    //         _.remove(this.geometry.faces, function(face){
-    //             return face.a == triangle.a && 
-    //             face.b == triangle.b && 
-    //             face.c == triangle.c;
-    //         });
-    //     }.bind(this));
-    //     blockInfo[face] = null;
-    // },
 };
 
 module.exports = BlockModel;
