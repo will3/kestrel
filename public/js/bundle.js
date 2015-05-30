@@ -52,40 +52,6 @@ AppModule.prototype.load = function() {
         return rigidBody;
     });
 
-    this.bindKey("rigidBody").withTag("laser").to(function() {
-        var rigidBody = new RigidBody();
-        rigidBody.defaultFriction = 1;
-        rigidBody.collisionRadius = 1;
-        return rigidBody;
-    });
-
-    this.bindKey("weapons").to(function() {
-        var laser = new Laser();
-        // var missile = new Missile();
-
-        weapons = [];
-
-        var weapon1 = new Weapon(laser);
-        weapon1.actor = this;
-        weapon1.delta = 0;
-        weapons.push(weapon1);
-
-        var weapon2 = new Weapon(laser);
-        weapon2.actor = this;
-        weapon2.delta = 8;
-        weapons.push(weapon2);
-
-        return weapons;
-    });
-
-    this.bindKey("laser").to(function() {
-        return new Laser();
-    }).withProperties(function() {
-        return {
-            rigidBody: this.get("rigidBody", "laser")
-        };
-    }.bind(this));
-
     this.bindKey("smokeTrail").to(function() {
         return new SmokeTrail();
     });
@@ -105,7 +71,6 @@ AppModule.prototype.load = function() {
             shipController: this.get("shipController"),
             rigidBody: this.get("rigidBody", "ship"),
             weaponController: this.get("weaponController"),
-            weapons: this.get("weapons"),
             smokeTrail: this.get("smokeTrail"),
             renderComponent: this.get("renderComponent", "ship")
         };
@@ -1031,10 +996,14 @@ OrbitCommand.prototype.execute = function() {
         var x = parseInt(params[0] || 0);
         var y = parseInt(params[1] || 0);
         var z = parseInt(params[2] || 0);
-        distance = params[3] || 50;
+        distance = params[3];
 
         this.target = new Entity();
         this.target.position = new THREE.Vector3(x, y, z);
+    }
+
+    if(distance == null){
+        distance = 100;
     }
 
     this.distance = parseInt(distance);
@@ -1230,14 +1199,19 @@ module.exports = RenderComponent;
 var Component = require("../component");
 var THREE = require("THREE");
 
-var RigidBody = function(defaultFriction) {
+var RigidBody = function(params) {
     Component.call(this);
 
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
-    this.defaultFriction = defaultFriction || 0.98;
-       this.friction = 0.98;
-    this.collisionRadius = null;
+    this.friction = 0.98;
+
+    if (params == null) {
+        params = {};
+    }
+    
+    this.defaultFriction = params.defaultFriction || 0.98;
+    this.collisionRadius = params.collisionRadius || null;;
 };
 
 RigidBody.prototype = Object.create(Component.prototype);
@@ -1265,7 +1239,6 @@ RigidBody.prototype.applyFriction = function(friction) {
 };
 
 module.exports = RigidBody;
-
 },{"../component":16,"THREE":45}],20:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
@@ -1676,12 +1649,63 @@ var assert = require("assert");
 var Laser = function() {
     Ammo.call(this);
 
-    this.rigidBody = null;
+    this.rigidBody = new RigidBody({
+        defaultFriction: 1,
+        collisionRadius: 1
+    });
+
     this.velocity = null;
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
 Laser.prototype.constructor = Laser;
+
+Laser.prototype.createInstance = function() {
+    return new Laser();
+};
+
+Laser.prototype.initVelocity = function() {
+    var velocity = new THREE.Vector3();
+    velocity.subVectors(this.target.getWorldPosition(), this.actor.getWorldPosition());
+
+    if (velocity.length() == 0) {
+        velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+    }
+    velocity.setLength(8);
+
+    this.velocity = velocity;
+};
+
+Laser.prototype.start = function() {
+    assert(this.actor != null, "actor cannot be empty");
+    assert(this.target != null, "target cannot be empty");
+
+    this.life = 200;
+
+    this.initVelocity();
+
+    this.addComponent(this.rigidBody);
+    this.rigidBody.velocity = this.velocity;
+
+    var startPosition = new THREE.Vector3();
+    startPosition.copy(this.velocity);
+    startPosition.multiplyScalar(2);
+
+    this.position.add(startPosition);
+
+    this.createSprites();
+};
+
+Laser.prototype.createSprites = function(time) {
+    var power = 4;
+    var num = 4;
+
+    for (var i = 0; i < num; i++) {
+        this.addEntity(this.createSprite(
+            power * (num - i) / num, -i * 0.5,
+            this.life));
+    }
+};
 
 Laser.prototype.createSprite = function(size, offset, life) {
     var sprite = new PointSprite();
@@ -1711,56 +1735,12 @@ Laser.prototype.createSprite = function(size, offset, life) {
     return sprite;
 };
 
-Laser.prototype.createInstance = function() {
-    return new Laser();
-};
-
-Laser.prototype.initVelocity = function() {
-    var velocity = new THREE.Vector3();
-    velocity.subVectors(this.target.getWorldPosition(), this.actor.getWorldPosition());
-
-    if (velocity.length() == 0) {
-        velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
-    }
-    velocity.setLength(4);
-
-    this.velocity = velocity;
-};
-
-Laser.prototype.start = function() {
-    assert(this.rigidBody != null, "rigidBody cannot be empty");
-    assert(this.actor != null, "actor cannot be empty");
-    assert(this.target != null, "target cannot be empty");
-
-    this.life = 200;
-
-    this.initVelocity();
-
-    this.addComponent(this.rigidBody);
-    this.rigidBody.velocity = this.velocity;
-
-    var startPosition = new THREE.Vector3();
-    startPosition.copy(this.velocity);
-    startPosition.multiplyScalar(2);
-
-    this.position.add(startPosition);
-
-    this.createSprites();
-};
-
-Laser.prototype.createSprites = function(time) {
-    var power = 2;
-    var num = 4;
-
-    for (var i = 0; i < num; i++) {
-        this.addEntity(this.createSprite(
-            power * (num - i) / num, -i * 0.5,
-            this.life));
-    }
-};
-
 Laser.prototype.onCollision = function(entity) {
     if (entity == this.actor) {
+        return;
+    }
+
+    if(entity instanceof Ammo){
         return;
     }
 
@@ -1778,7 +1758,9 @@ var PointSprite = function() {
     Entity.call(this);
 
     this.renderComponent = new PointSpriteRenderComponent();
-    this.rigidBody = new RigidBody(1);
+    this.rigidBody = new RigidBody({
+        defaultFriction: 1
+    });
 
     this.texture = null;
     this.size = 4;
@@ -1839,11 +1821,11 @@ PointSprite.prototype.update = function() {
     }
 }
 
-PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc){
+PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc) {
     this.sizeOverTimeFunc = sizeOverTimeFunc;
 }
 
-PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc){
+PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc) {
     this.velocityOverTime = velocityOverTimeFunc;
 }
 
@@ -1851,6 +1833,8 @@ module.exports = PointSprite;
 },{"../components/pointspriterendercomponent":17,"../components/rigidbody":19,"../entity":33,"assert":46}],30:[function(require,module,exports){
 var Entity = require("../entity");
 var assert = require("assert");
+var Laser = require("./laser");
+var Weapon = require("./weapon");
 
 var Ship = function() {
     Entity.call(this);
@@ -1858,7 +1842,14 @@ var Ship = function() {
     this.shipController = null;
     this.rigidBody = null;
     this.weaponController = null;
-    this.weapons = null;
+
+    //weapons
+    var laser = new Laser();
+    this.weapons = [new Weapon({
+        ammo: laser,
+        actor: this
+    })];
+
     this.smokeTrail = null;
     this.renderComponent = null;
 
@@ -1896,8 +1887,7 @@ Ship.prototype.update = function() {
 };
 
 module.exports = Ship;
-
-},{"../entity":33,"assert":46}],31:[function(require,module,exports){
+},{"../entity":33,"./laser":28,"./weapon":32,"assert":46}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -1955,16 +1945,26 @@ module.exports = SmokeTrail;
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
+var Game = require("../game");
+var assert = require("assert");
 
-var Weapon = function() {
+//params
+//ammo
+//actor
+//delta
+var Weapon = function(params) {
     Entity.call(this);
-    
-    this.fireInterval = 50;
-    this.cooldown = 50;
-    this.actor = null;
 
-    this.game = null;
-    this.ammo = null;
+    this.cooldown = 50;
+
+    if (params == null) {
+        params = {};
+    }
+
+    this.ammo = params.ammo;
+    this.actor = params.actor;
+    this.fireInterval = params.fireInterval || 50;
+    this.game = Game.getInstance();
 }
 
 Weapon.prototype = Object.create(Entity.prototype);
@@ -1975,14 +1975,15 @@ Weapon.prototype.setDelta = function(value) {
 };
 
 Weapon.prototype.shoot = function(target) {
+    assert(this.actor != null, "actor cannot be empty");
+    assert(target != null, "target cannot be empty");
+
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
-    ammoInstance.target = this.target;
+    ammoInstance.target = target;
     ammoInstance.position = this.actor.getWorldPosition();
 
-    this.game.addEntity(newAmmo);
-
-    this.cooldown = 0;
+    this.game.addEntity(ammoInstance);
 };
 
 Weapon.prototype.start = function() {
@@ -1995,20 +1996,15 @@ Weapon.prototype.update = function() {
     }
 };
 
-Weapon.prototype.isReady = function() {
-    return (this.cooldown == this.fireInterval);
-};
-
 Weapon.prototype.fireIfReady = function(target) {
-    if (!this.isReady()) {
-        return;
+    if(this.cooldown == this.fireInterval){
+        this.shoot(target);
+        this.cooldown = 0;
     }
-
-    this.shoot(target);
 };
 
 module.exports = Weapon;
-},{"../entity":33,"THREE":45,"extend":51}],33:[function(require,module,exports){
+},{"../entity":33,"../game":35,"THREE":45,"assert":46,"extend":51}],33:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -61743,8 +61739,8 @@ console.runScenario(
 			"add ship",
 			"add ship 150 0 150",
 			"select ship1",
-			"orbit 0 0 0 150",
-			// "attack ship0",
+			"orbit ship0 200",
+			"attack ship0",
 			// "select ship0",
 			// "orbit ship1 100",
 			// "attack ship1",

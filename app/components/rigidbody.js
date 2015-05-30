@@ -1,14 +1,19 @@
 var Component = require("../component");
 var THREE = require("THREE");
 
-var RigidBody = function(defaultFriction) {
+var RigidBody = function(params) {
     Component.call(this);
 
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
-    this.defaultFriction = defaultFriction || 0.98;
-       this.friction = 0.98;
-    this.collisionRadius = null;
+    this.friction = 0.98;
+
+    if (params == null) {
+        params = {};
+    }
+    
+    this.defaultFriction = params.defaultFriction || 0.98;
+    this.collisionRadius = params.collisionRadius || null;;
 };
 
 RigidBody.prototype = Object.create(Component.prototype);

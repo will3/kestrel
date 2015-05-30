@@ -33,10 +33,14 @@ OrbitCommand.prototype.execute = function() {
         var x = parseInt(params[0] || 0);
         var y = parseInt(params[1] || 0);
         var z = parseInt(params[2] || 0);
-        distance = params[3] || 50;
+        distance = params[3];
 
         this.target = new Entity();
         this.target.position = new THREE.Vector3(x, y, z);
+    }
+
+    if(distance == null){
+        distance = 100;
     }
 
     this.distance = parseInt(distance);

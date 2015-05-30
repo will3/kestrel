@@ -1,5 +1,7 @@
 var Entity = require("../entity");
 var assert = require("assert");
+var Laser = require("./laser");
+var Weapon = require("./weapon");
 
 var Ship = function() {
     Entity.call(this);
@@ -7,7 +9,14 @@ var Ship = function() {
     this.shipController = null;
     this.rigidBody = null;
     this.weaponController = null;
-    this.weapons = null;
+
+    //weapons
+    var laser = new Laser();
+    this.weapons = [new Weapon({
+        ammo: laser,
+        actor: this
+    })];
+
     this.smokeTrail = null;
     this.renderComponent = null;
 

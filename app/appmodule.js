@@ -51,40 +51,6 @@ AppModule.prototype.load = function() {
         return rigidBody;
     });
 
-    this.bindKey("rigidBody").withTag("laser").to(function() {
-        var rigidBody = new RigidBody();
-        rigidBody.defaultFriction = 1;
-        rigidBody.collisionRadius = 1;
-        return rigidBody;
-    });
-
-    this.bindKey("weapons").to(function() {
-        var laser = new Laser();
-        // var missile = new Missile();
-
-        weapons = [];
-
-        var weapon1 = new Weapon(laser);
-        weapon1.actor = this;
-        weapon1.delta = 0;
-        weapons.push(weapon1);
-
-        var weapon2 = new Weapon(laser);
-        weapon2.actor = this;
-        weapon2.delta = 8;
-        weapons.push(weapon2);
-
-        return weapons;
-    });
-
-    this.bindKey("laser").to(function() {
-        return new Laser();
-    }).withProperties(function() {
-        return {
-            rigidBody: this.get("rigidBody", "laser")
-        };
-    }.bind(this));
-
     this.bindKey("smokeTrail").to(function() {
         return new SmokeTrail();
     });
@@ -104,7 +70,6 @@ AppModule.prototype.load = function() {
             shipController: this.get("shipController"),
             rigidBody: this.get("rigidBody", "ship"),
             weaponController: this.get("weaponController"),
-            weapons: this.get("weapons"),
             smokeTrail: this.get("smokeTrail"),
             renderComponent: this.get("renderComponent", "ship")
         };

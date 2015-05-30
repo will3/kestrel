@@ -7,7 +7,9 @@ var PointSprite = function() {
     Entity.call(this);
 
     this.renderComponent = new PointSpriteRenderComponent();
-    this.rigidBody = new RigidBody(1);
+    this.rigidBody = new RigidBody({
+        defaultFriction: 1
+    });
 
     this.texture = null;
     this.size = 4;
@@ -68,11 +70,11 @@ PointSprite.prototype.update = function() {
     }
 }
 
-PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc){
+PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc) {
     this.sizeOverTimeFunc = sizeOverTimeFunc;
 }
 
-PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc){
+PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc) {
     this.velocityOverTime = velocityOverTimeFunc;
 }
 

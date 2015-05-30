@@ -1,16 +1,26 @@
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
+var Game = require("../game");
+var assert = require("assert");
 
-var Weapon = function() {
+//params
+//ammo
+//actor
+//delta
+var Weapon = function(params) {
     Entity.call(this);
-    
-    this.fireInterval = 50;
-    this.cooldown = 50;
-    this.actor = null;
 
-    this.game = null;
-    this.ammo = null;
+    this.cooldown = 50;
+
+    if (params == null) {
+        params = {};
+    }
+
+    this.ammo = params.ammo;
+    this.actor = params.actor;
+    this.fireInterval = params.fireInterval || 50;
+    this.game = Game.getInstance();
 }
 
 Weapon.prototype = Object.create(Entity.prototype);
@@ -21,14 +31,15 @@ Weapon.prototype.setDelta = function(value) {
 };
 
 Weapon.prototype.shoot = function(target) {
+    assert(this.actor != null, "actor cannot be empty");
+    assert(target != null, "target cannot be empty");
+
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
-    ammoInstance.target = this.target;
+    ammoInstance.target = target;
     ammoInstance.position = this.actor.getWorldPosition();
 
-    this.game.addEntity(newAmmo);
-
-    this.cooldown = 0;
+    this.game.addEntity(ammoInstance);
 };
 
 Weapon.prototype.start = function() {
@@ -41,16 +52,11 @@ Weapon.prototype.update = function() {
     }
 };
 
-Weapon.prototype.isReady = function() {
-    return (this.cooldown == this.fireInterval);
-};
-
 Weapon.prototype.fireIfReady = function(target) {
-    if (!this.isReady()) {
-        return;
+    if(this.cooldown == this.fireInterval){
+        this.shoot(target);
+        this.cooldown = 0;
     }
-
-    this.shoot(target);
 };
 
 module.exports = Weapon;
