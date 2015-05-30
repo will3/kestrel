@@ -25,7 +25,6 @@ var Game = function() {
     this.keyMap = null;
     this.collision = null;
     this.container = null;
-    this.keyMap = null;
 }
 
 Game.prototype = {
@@ -96,7 +95,7 @@ Game.prototype = {
             } else if (keyboard.eventMatches(event, this.keyMap.zoomOut)) {
                 zoomOut();
             }
-        });
+        }.bind(this));
     },
 
     zoomIn: function() {

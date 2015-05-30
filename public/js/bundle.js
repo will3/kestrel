@@ -50050,26 +50050,24 @@ var removeY = 0;
 var removeZ = 0;
 var allRemoved = false;
 
-Mousetrap.bind('space', function() {
-    for (var i = 0; i < testSize; i++) {
-        if (allRemoved) {
-            return;
-        }
+Mousetrap.bind('space', function(){
+    if(allRemoved){
+        return;
+    }
 
-        blockModel.remove(removeX, removeY, removeZ);
+    blockModel.remove(removeX, removeY, removeZ);
 
-        if (removeX < testSize - 1) {
-            removeX++;
-        } else if (removeY < testSize - 1) {
-            removeX = 0;
-            removeY++;
-        } else if (removeZ < testSize - 1) {
-            removeX = 0;
-            removeY = 0;
-            removeZ++;
-        } else {
-            allRemoved = true;
-        }
+    if(removeX < testSize - 1){
+        removeX ++;
+    }else if(removeY < testSize - 1){
+        removeX = 0;
+        removeY ++;
+    }else if(removeZ < testSize - 1){
+        removeX = 0;
+        removeY = 0;
+        removeZ ++;
+    }else{
+        allRemoved = true;
     }
 });
 
