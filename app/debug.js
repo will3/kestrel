@@ -4,15 +4,15 @@ var Debug = function(){
 	return {
 		addIndicator: function(point, duration){
 			var indicator = new PointSprite();
-			indicator.setSize(2);
+			indicator.size = 2;
 			var life = duration == null ? 8 : duration;
 
-			indicator.setLife(life);
+			indicator.life = life;
 			indicator.sizeOverTime(function(time){
 				return 2 - time * (2 / life);
 			});
 
-			indicator.getTransform().getPosition().copy(point);
+			indicator.position = point;
 
 			Game.addEntity(indicator);
 		},

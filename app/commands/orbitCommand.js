@@ -69,8 +69,8 @@ OrbitCommand.prototype.update = function() {
     b.setLength(this.distance);
     c.setLength(this.distance);
 
-    b.addVectors(b, this.target.getPosition());
-    c.addVectors(c, this.target.getPosition());
+    b.addVectors(b, this.target.position);
+    c.addVectors(c, this.target.position);
 
     var unitFacing = shipController.getUnitFacing();
     var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
@@ -78,7 +78,7 @@ OrbitCommand.prototype.update = function() {
 
     var point = angle1 < angle2 ? b : c;
 
-    // Debug.addIndicator(point, 2);
+    Debug.addIndicator(point, 2);
 
     shipController.align(point);
 

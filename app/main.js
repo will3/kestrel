@@ -13,24 +13,18 @@ game.initialize(container);
 var console = injector.get("console");
 console.hookInput(input);
 
-// console.runScenario(
-// 		[
-// 			"add ship",
-// 			"add ship 150 0 150",
-// 			"select ship1",
-// 			"orbit ship0 150",
-// 			"attack ship0",
-// 			// "select ship0",
-// 			// "orbit ship1 100",
-// 			// "attack ship1",
-// 		]
-// 	);
-
 console.runScenario(
-    [
-        "add ship 0 0 0"
-    ]
-);
+		[
+			"add ship",
+			"add ship 150 0 150",
+			"select ship1",
+			"orbit 0 0 0 150",
+			// "attack ship0",
+			// "select ship0",
+			// "orbit ship1 100",
+			// "attack ship1",
+		]
+	);
 
 var stats = new Stats();
 stats.setMode(0);

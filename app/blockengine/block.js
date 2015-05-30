@@ -3,13 +3,17 @@ var THREE = require("THREE");
 var Block = function() {
     this.uuid = THREE.Math.generateUUID();
     this.scale = null;
+    this.hasGaps = false;
 }
 
 Block.prototype = {
     constructor: Block,
 
-    withScale: function(scale){
+    withScale: function(scale) {
         this.scale = scale;
+        if (scale.x < 1 || scale.y < 1 || scale.z < 1) {
+            this.hasGaps = true;
+        }
         return this;
     },
 

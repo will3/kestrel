@@ -39,11 +39,11 @@ BlockModel.prototype = {
         }
     },
 
-    center: function(){
+    center: function() {
         var xCoords = [];
         var yCoords = [];
         var zCoords = [];
-        this.chunk.visitBlocks(function(block, x, y, z){
+        this.chunk.visitBlocks(function(block, x, y, z) {
             xCoords.push(x);
             yCoords.push(y);
             zCoords.push(z);
@@ -54,9 +54,9 @@ BlockModel.prototype = {
 
         var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
 
-        var offset = center.multiplyScalar(- this.gridSize);
+        var offset = center.multiplyScalar(-this.gridSize);
 
-        this.object.children.forEach(function(child){
+        this.object.children.forEach(function(child) {
             child.position.set(offset);
         });
 
@@ -110,27 +110,27 @@ BlockModel.prototype = {
             var back = this.chunk.get(x, y, z - 1);
             var front = this.chunk.get(x, y, z + 1);
 
-            if (left == null) {
+            if (left == null || left.hasGaps) {
                 this._addFace(geometry, block, 'left', x, y, z);
             }
 
-            if (right == null) {
+            if (right == null || right.hasGaps) {
                 this._addFace(geometry, block, 'right', x, y, z);
             }
 
-            if (bottom == null) {
+            if (bottom == null || bottom.hasGaps) {
                 this._addFace(geometry, block, 'bottom', x, y, z);
             }
 
-            if (top == null) {
+            if (top == null || top.hasGaps) {
                 this._addFace(geometry, block, 'top', x, y, z);
             }
 
-            if (back == null) {
+            if (back == null || back.hasGaps) {
                 this._addFace(geometry, block, 'back', x, y, z);
             }
 
-            if (front == null) {
+            if (front == null || front.hasGaps) {
                 this._addFace(geometry, block, 'front', x, y, z);
             }
 
@@ -138,7 +138,7 @@ BlockModel.prototype = {
 
         this.object.add(mesh);
 
-        if(this._centerOffset != null){
+        if (this._centerOffset != null) {
             mesh.position.copy(this._centerOffset);
         }
     },

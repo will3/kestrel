@@ -226,13 +226,17 @@ var THREE = require("THREE");
 var Block = function() {
     this.uuid = THREE.Math.generateUUID();
     this.scale = null;
+    this.hasGaps = false;
 }
 
 Block.prototype = {
     constructor: Block,
 
-    withScale: function(scale){
+    withScale: function(scale) {
         this.scale = scale;
+        if (scale.x < 1 || scale.y < 1 || scale.z < 1) {
+            this.hasGaps = true;
+        }
         return this;
     },
 
@@ -577,11 +581,11 @@ BlockModel.prototype = {
         }
     },
 
-    center: function(){
+    center: function() {
         var xCoords = [];
         var yCoords = [];
         var zCoords = [];
-        this.chunk.visitBlocks(function(block, x, y, z){
+        this.chunk.visitBlocks(function(block, x, y, z) {
             xCoords.push(x);
             yCoords.push(y);
             zCoords.push(z);
@@ -592,9 +596,9 @@ BlockModel.prototype = {
 
         var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
 
-        var offset = center.multiplyScalar(- this.gridSize);
+        var offset = center.multiplyScalar(-this.gridSize);
 
-        this.object.children.forEach(function(child){
+        this.object.children.forEach(function(child) {
             child.position.set(offset);
         });
 
@@ -648,27 +652,27 @@ BlockModel.prototype = {
             var back = this.chunk.get(x, y, z - 1);
             var front = this.chunk.get(x, y, z + 1);
 
-            if (left == null) {
+            if (left == null || left.hasGaps) {
                 this._addFace(geometry, block, 'left', x, y, z);
             }
 
-            if (right == null) {
+            if (right == null || right.hasGaps) {
                 this._addFace(geometry, block, 'right', x, y, z);
             }
 
-            if (bottom == null) {
+            if (bottom == null || bottom.hasGaps) {
                 this._addFace(geometry, block, 'bottom', x, y, z);
             }
 
-            if (top == null) {
+            if (top == null || top.hasGaps) {
                 this._addFace(geometry, block, 'top', x, y, z);
             }
 
-            if (back == null) {
+            if (back == null || back.hasGaps) {
                 this._addFace(geometry, block, 'back', x, y, z);
             }
 
-            if (front == null) {
+            if (front == null || front.hasGaps) {
                 this._addFace(geometry, block, 'front', x, y, z);
             }
 
@@ -676,7 +680,7 @@ BlockModel.prototype = {
 
         this.object.add(mesh);
 
-        if(this._centerOffset != null){
+        if (this._centerOffset != null) {
             mesh.position.copy(this._centerOffset);
         }
     },
@@ -989,7 +993,7 @@ MoveCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.command = this;
+    this.actor.shipController.setCommand(this);
 };
 
 MoveCommand.prototype.update = function() {
@@ -1070,8 +1074,8 @@ OrbitCommand.prototype.update = function() {
     b.setLength(this.distance);
     c.setLength(this.distance);
 
-    b.addVectors(b, this.target.getPosition());
-    c.addVectors(c, this.target.getPosition());
+    b.addVectors(b, this.target.position);
+    c.addVectors(c, this.target.position);
 
     var unitFacing = shipController.getUnitFacing();
     var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
@@ -1079,7 +1083,7 @@ OrbitCommand.prototype.update = function() {
 
     var point = angle1 < angle2 ? b : c;
 
-    // Debug.addIndicator(point, 2);
+    Debug.addIndicator(point, 2);
 
     shipController.align(point);
 
@@ -1250,132 +1254,57 @@ module.exports = RigidBody;
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
-
-var RotationState = function(params) {
-    var desired = null;
-
-    var params = params != null ? params : {};
-    var resting = params.resting != null ? params.resting : null;
-    var max = params.max != null ? params.max : Math.PI / 2;
-    var curve = params.curve != null ? params.curve : 0.1;
-    var maxSpeed = params.maxSpeed != null ? params.maxSpeed : 0.1;
-    var friction = params.friction != null ? params.friction : 0.95;
-    var axis = params.axis != null ? params.axis : "";
-
-    var getVectorValue = null;
-    var setVectorValue = null;
-    if (axis == "x") {
-        getVectorValue = function(vector) {
-            return vector.x;
-        }
-        setVectorValue = function(vector, value) {
-            vector.setX(value);
-        }
-    } else if (axis == "y") {
-        getVectorValue = function(vector) {
-            return vector.y;
-        }
-        setVectorValue = function(vector, value) {
-            vector.setY(value);
-        }
-    } else if (axis == "z") {
-        getVectorValue = function(vector) {
-            return vector.z;
-        }
-        setVectorValue = function(vector, value) {
-            vector.setZ(value);
-        }
-    } else {
-        throw "invalid axis " + axis;
-    }
-
-    return {
-        getAxis: function() {
-            return axis;
-        },
-        setAmount: function(amount) {
-            desired = max * amount;
-        },
-
-        setDesired: function(amount) {
-            desired = amount;
-        },
-
-        update: function(entity) {
-            if (desired == null) {
-                desired = resting;
-            }
-
-            if (desired != null) {
-                var transform = entity.getTransform();
-                var rotation = transform.getRotation();
-
-                var value = getVectorValue(rotation);
-
-                var speed = (desired - value) * curve;
-                if (speed > maxSpeed) {
-                    speed = maxSpeed;
-                } else if (speed < -maxSpeed) {
-                    speed = -maxSpeed;
-                }
-                value += speed;
-                value *= friction;
-
-                setVectorValue(rotation, value);
-            }
-
-            desired = resting;
-        }
-    }
-}
-
-var Roll = function() {
-    return new RotationState({
-        axis: "z",
-        resting: null,
-    });
-}
-
-var Pitch = function() {
-    return new RotationState({
-        axis: "y",
-        resting: null,
-    });
-}
-
-var Yaw = function() {
-    var yawForce = 0.015;
-
-    return {
-        setYawForce: function(value) {
-            yawForce = value;
-        },
-        getYawForce: function() {
-            return yawForce;
-        },
-
-        update: function(entity) {
-            var transform = entity.transform;
-            var rotation = transform.rotation;
-            var bankFactor = Math.sin(rotation.z);
-            var yawVelocity = bankFactor * -yawForce;
-
-            var yaw = rotation.x;
-            yaw += yawVelocity;
-            rotation.setX(yaw);
-        }
-    };
-}
+var _ = require("lodash");
 
 var ShipController = function() {
     Component.call(this);
 
     this.force = 0.025;
 
+    this.yaw = {
+        yawForce: 0.015,
+        value: 0,
+
+        update: function(roll) {
+            var bankFactor = Math.sin(roll.value);
+            var yawVelocity = bankFactor * -this.yawForce;
+
+            this.value += yawVelocity;
+        }
+    };
+
     //engine
-    this.roll = new Roll();
-    this.pitch = new Pitch();
-    this.yaw = new Yaw();
+    this.pitch = {
+        desired: null,
+        resting: 0,
+        max: Math.PI / 2,
+        curve: 0.1,
+        maxSpeed: 0.1,
+        friction: 0.95,
+        value: 0,
+
+        update: function() {
+            if (this.desired == null) {
+                this.desired = this.resting;
+            }
+
+            if (this.desired != null) {
+                var speed = (this.desired - this.value) * this.curve;
+                if (speed > this.maxSpeed) {
+                    speed = this.maxSpeed;
+                } else if (speed < -this.maxSpeed) {
+                    speed = -this.maxSpeed;
+                }
+
+                this.value += speed;
+                this.value *= this.friction;
+            }
+
+            this.desired = this.resting;
+        }
+    };
+
+    this.roll = _.clone(this.pitch, true);
 
     //yaw
     this.yawForce = 0.015;
@@ -1392,39 +1321,26 @@ Object.defineProperty(ShipController.prototype, 'rigidBody', {
     }
 });
 
+ShipController.prototype.setCommand = function(command){
+    if(this.command != null){
+        this.command.destroy();
+        this.command = null;
+    }
+
+    this.command = command;
+};
+
 //amount 0 - 1
 ShipController.prototype.bank = function(amount) {
     this.roll.setAmount(amount);
 };
 
-//bank to achieve yaw velocity
-ShipController.prototype.bankForYawVelocity = function(yawVelocity) {
-    var bankFactor = yawVelocity / - this.yawForce;
-    if (bankFactor > 1) {
-        bankFactor = 1;
-    } else if (bankFactor < -1) {
-        bankFactor = -1;
-    }
-    var desiredRoll = Math.asin(bankFactor);
-
-    this.roll.setDesired(desiredRoll);
-};
-
-ShipController.prototype.updateYaw = function(transform) {
-    var rotation = transform.rotation;
-    var bankFactor = Math.sin(rotation.z);
-    var yawVelocity = bankFactor * -yawForce;
-
-    var yaw = rotation.x;
-    yaw += yawVelocity;
-    rotation.setX(yaw);
-};
-
 ShipController.prototype.update = function() {
     var entity = this.entity;
-    this.roll.update(entity);
-    this.pitch.update(entity);
-    this.yaw.update(entity);
+    this.roll.update();
+    this.pitch.update();
+    this.yaw.update(this.roll);
+    entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
 
     if (this.command != null) {
         this.command.update();
@@ -1434,13 +1350,13 @@ ShipController.prototype.update = function() {
 ShipController.prototype.accelerate = function(amount) {
     engineAmount = amount;
     var rotation = this.transform.rotation;
-    var vector = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
+    var vector = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
     vector.multiplyScalar(amount * this.force);
     this.rigidBody.applyForce(vector);
 };
 
 ShipController.prototype.align = function(point) {
-    var position = this.getTransform().getPosition();
+    var position = this.transform.position;
 
     var a = new THREE.Vector3();
     a.copy(point);
@@ -1452,12 +1368,12 @@ ShipController.prototype.align = function(point) {
 
     var desiredYawSpeed = angleBetween * 0.1;
 
-    bankForYawVelocity(desiredYawSpeed);
+    this._bankForYawVelocity(desiredYawSpeed);
     var xDiff = point.x - position.x;
     var yDiff = point.y - position.y;
     var zDiff = point.z - position.z;
 
-    pitch.setDesired(Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff)));
+    this.pitch.desired = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
 };
 
 ShipController.prototype.move = function(point) {
@@ -1466,8 +1382,8 @@ ShipController.prototype.move = function(point) {
 };
 
 ShipController.prototype.getUnitFacing = function() {
-    var position = this.getTransform().getPosition();
-    var rotation = this.getTransform().getRotation();
+    var position = this.transform.position;
+    var rotation = this.transform.rotation;
     var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
     var c = new THREE.Vector3();
     c.addVectors(position, unitFacing);
@@ -1475,9 +1391,21 @@ ShipController.prototype.getUnitFacing = function() {
     return c;
 };
 
-module.exports = ShipController;
+//bank to achieve yaw velocity
+ShipController.prototype._bankForYawVelocity = function(yawVelocity) {
+    var bankFactor = yawVelocity / -this.yawForce;
+    if (bankFactor > 1) {
+        bankFactor = 1;
+    } else if (bankFactor < -1) {
+        bankFactor = -1;
+    }
+    var desiredRoll = Math.asin(bankFactor);
 
-},{"../component":16,"../mathutils":39,"THREE":44}],20:[function(require,module,exports){
+    this.roll.desired = desiredRoll;
+};
+
+module.exports = ShipController;
+},{"../component":16,"../mathutils":39,"THREE":44,"lodash":53}],20:[function(require,module,exports){
 var RenderComponent = require('./rendercomponent');
 var assert = require("assert");
 
@@ -1681,15 +1609,15 @@ var Debug = function(){
 	return {
 		addIndicator: function(point, duration){
 			var indicator = new PointSprite();
-			indicator.setSize(2);
+			indicator.size = 2;
 			var life = duration == null ? 8 : duration;
 
-			indicator.setLife(life);
+			indicator.life = life;
 			indicator.sizeOverTime(function(time){
 				return 2 - time * (2 / life);
 			});
 
-			indicator.getTransform().getPosition().copy(point);
+			indicator.position = point;
 
 			Game.addEntity(indicator);
 		},
@@ -61813,24 +61741,18 @@ game.initialize(container);
 var console = injector.get("console");
 console.hookInput(input);
 
-// console.runScenario(
-// 		[
-// 			"add ship",
-// 			"add ship 150 0 150",
-// 			"select ship1",
-// 			"orbit ship0 150",
-// 			"attack ship0",
-// 			// "select ship0",
-// 			// "orbit ship1 100",
-// 			// "attack ship1",
-// 		]
-// 	);
-
 console.runScenario(
-    [
-        "add ship 0 0 0"
-    ]
-);
+		[
+			"add ship",
+			"add ship 150 0 150",
+			"select ship1",
+			"orbit 0 0 0 150",
+			// "attack ship0",
+			// "select ship0",
+			// "orbit ship1 100",
+			// "attack ship1",
+		]
+	);
 
 var stats = new Stats();
 stats.setMode(0);
