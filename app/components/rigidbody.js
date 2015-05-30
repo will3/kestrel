@@ -11,9 +11,8 @@ var RigidBody = function(params) {
     if (params == null) {
         params = {};
     }
-    
+
     this.defaultFriction = params.defaultFriction || 0.98;
-    this.collisionRadius = params.collisionRadius || null;;
 };
 
 RigidBody.prototype = Object.create(Component.prototype);

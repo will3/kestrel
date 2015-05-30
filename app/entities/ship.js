@@ -2,6 +2,8 @@ var Entity = require("../entity");
 var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
+var ShipModel = require("../models/shipmodel");
+var ShipRenderComponent = require("../components/shiprendercomponent");
 
 var Ship = function() {
     Entity.call(this);
@@ -17,10 +19,11 @@ var Ship = function() {
         actor: this
     })];
 
+    this.model = new ShipModel();
+    this.renderComponent = new ShipRenderComponent(this.model);
     this.smokeTrail = null;
-    this.renderComponent = null;
-
     this.destroyable = true;
+    this.setCollisionRadius(9);
 }
 
 Ship.prototype = Object.create(Entity.prototype);

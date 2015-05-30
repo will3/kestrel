@@ -63,6 +63,10 @@ BlockModel.prototype = {
         this._centerOffset = offset;
     },
 
+    hitTest: function(vector){
+        
+    },
+
     _updateDirty: function(x, y, z) {
         this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
 

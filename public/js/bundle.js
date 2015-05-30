@@ -48,21 +48,12 @@ AppModule.prototype.load = function() {
 
     this.bindKey("rigidBody").withTag("ship").to(function() {
         var rigidBody = new RigidBody();
-        rigidBody.collisionRadius = 9;
         return rigidBody;
     });
 
     this.bindKey("smokeTrail").to(function() {
         return new SmokeTrail();
     });
-
-    this.bindKey("renderComponent").withTag("ship").to(function() {
-        return new ShipRenderComponent();
-    }).withProperties(function() {
-        return {
-            model: new ShipModel()
-        }
-    }.bind(this));
 
     this.bindKey("ship").to(function() {
         return new Ship();
@@ -72,7 +63,6 @@ AppModule.prototype.load = function() {
             rigidBody: this.get("rigidBody", "ship"),
             weaponController: this.get("weaponController"),
             smokeTrail: this.get("smokeTrail"),
-            renderComponent: this.get("renderComponent", "ship")
         };
     }.bind(this));
 
@@ -563,6 +553,10 @@ BlockModel.prototype = {
         this._centerOffset = offset;
     },
 
+    hitTest: function(vector){
+        
+    },
+
     _updateDirty: function(x, y, z) {
         this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
 
@@ -682,66 +676,73 @@ var _ = require("lodash");
 var THREE = require("THREE");
 var Game = require("./game");
 
-var Collision = function(){
-	Entity.call(this);
-	this.game = null;
+var Collision = function() {
+    Entity.call(this);
+
+    this.game = null;
 }
 
 Collision.prototype = Object.create(Entity.prototype);
 Collision.prototype.constructor = Collision;
 
 //visit collidable entities
-Collision.prototype.visitEntities = function(callback){
-	var entities = _.filter(this.game.getEntities(), function(entity){ 
-		return entity.hasCollision();
-	});
-	
-	for(var i = 0; i < entities.length; i++){
-		for(var j = 0; j < i; j ++){
-			if(i == j){
-				continue;
-			}
+Collision.prototype.visitEntities = function(callback) {
+    var entities = _.filter(this.game.getEntities(), function(entity) {
+        return entity.collisionBody != null;
+    });
 
-			callback(entities[i], entities[j]);
-		}
-	}
+    for (var i = 0; i < entities.length; i++) {
+        for (var j = 0; j < i; j++) {
+            if (i == j) {
+                continue;
+            }
+
+            callback(entities[i], entities[j]);
+        }
+    }
 };
 
-Collision.prototype.hitTest = function(a, b){
-	var distanceVector = new THREE.Vector3();
-	distanceVector.subVectors(b.position, a.position);
-	var distance = distanceVector.length();
-	if(distance == 0){
-		distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-		distanceVector.setLength(1);
-		distance = 1;
-	}
+Collision.prototype.hitTest = function(a, b) {
+	var body_a = a.collisionBody;
+	var body_b = b.collisionBody;
 
-	var collisionDistance = a.rigidBody.collisionRadius + b.rigidBody.collisionRadius;
+    if (body_a.type == 'sphere' && body_b.type == 'sphere') {
+        var distanceVector = new THREE.Vector3();
+        distanceVector.subVectors(b.position, a.position);
+        var distance = distanceVector.length();
+        if (distance == 0) {
+            distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+            distanceVector.setLength(1);
+            distance = 1;
+        }
 
-	return distance <= collisionDistance;
+        var collisionDistance = body_a.radius + body_b.radius;
+
+        return distance <= collisionDistance;
+    }
+
+    throw "cannot resolve collisions between " + body_a.type + " and " + body_b.type;
 };
 
-Collision.prototype.start = function(){
+Collision.prototype.start = function() {
 
 };
 
-Collision.prototype.update = function(){
-	this.visitEntities(function(a, b){
-		if(this.hitTest(a, b)){
-			if(a.onCollision != null){
-				a.onCollision(b);
-			}
+Collision.prototype.update = function() {
+    this.visitEntities(function(a, b) {
+        if (this.hitTest(a, b)) {
+            if (a.onCollision != null) {
+                a.onCollision(b);
+            }
 
-			if(b.onCollision != null){
-				b.onCollision(a);
-			}
-		}
-	}.bind(this));
+            if (b.onCollision != null) {
+                b.onCollision(a);
+            }
+        }
+    }.bind(this));
 };
 
 module.exports = Collision;
-
 },{"./entity":33,"./game":35,"THREE":45,"lodash":54}],7:[function(require,module,exports){
 var Command = function() {
     this.actor = null;
@@ -1209,9 +1210,8 @@ var RigidBody = function(params) {
     if (params == null) {
         params = {};
     }
-    
+
     this.defaultFriction = params.defaultFriction || 0.98;
-    this.collisionRadius = params.collisionRadius || null;;
 };
 
 RigidBody.prototype = Object.create(Component.prototype);
@@ -1398,9 +1398,9 @@ module.exports = ShipController;
 var RenderComponent = require('./rendercomponent');
 var assert = require("assert");
 
-var ShipRenderComponent = function(){
+var ShipRenderComponent = function(model){
 	RenderComponent.call(this);
-	this.model = null;
+	this.model = model;
 }
 
 ShipRenderComponent.prototype = Object.create(RenderComponent.prototype);
@@ -1651,8 +1651,9 @@ var Laser = function() {
 
     this.rigidBody = new RigidBody({
         defaultFriction: 1,
-        collisionRadius: 1
     });
+    
+    this.setCollisionRadius(1);
 
     this.velocity = null;
 }
@@ -1835,6 +1836,8 @@ var Entity = require("../entity");
 var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
+var ShipModel = require("../models/shipmodel");
+var ShipRenderComponent = require("../components/shiprendercomponent");
 
 var Ship = function() {
     Entity.call(this);
@@ -1850,10 +1853,11 @@ var Ship = function() {
         actor: this
     })];
 
+    this.model = new ShipModel();
+    this.renderComponent = new ShipRenderComponent(this.model);
     this.smokeTrail = null;
-    this.renderComponent = null;
-
     this.destroyable = true;
+    this.setCollisionRadius(9);
 }
 
 Ship.prototype = Object.create(Entity.prototype);
@@ -1887,7 +1891,7 @@ Ship.prototype.update = function() {
 };
 
 module.exports = Ship;
-},{"../entity":33,"./laser":28,"./weapon":32,"assert":46}],31:[function(require,module,exports){
+},{"../components/shiprendercomponent":21,"../entity":33,"../models/shipmodel":41,"./laser":28,"./weapon":32,"assert":46}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2020,17 +2024,17 @@ var Entity = function(){
 	this.started = false;
 	this.life = null;
 	this.destroyable = false;
+	this.collisionBody = null;
 };
 
 Entity.prototype = {
 	constructor: Entity,
 
-	hasCollision: function(){
-		if(this.rigidBody == null){
-			return false;
-		}
-
-		return this.rigidBody.collisionRadius != null;
+	setCollisionRadius: function(radius){
+		this.collisionBody = {
+			type: 'sphere',
+			radius: radius
+		};
 	},
 
 	addEntity: function(entity){
@@ -2448,7 +2452,7 @@ BaseModule.prototype = {
         }.bind(this));
 
         if (bindings.length == 0) {
-            var desc = (key + "" + (tag || "")).trim();
+            var desc = (key + " " + (tag || "")).trim();
             throw "no bindings found for " + desc;
         }
 

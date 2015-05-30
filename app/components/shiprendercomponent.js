@@ -1,9 +1,9 @@
 var RenderComponent = require('./rendercomponent');
 var assert = require("assert");
 
-var ShipRenderComponent = function(){
+var ShipRenderComponent = function(model){
 	RenderComponent.call(this);
-	this.model = null;
+	this.model = model;
 }
 
 ShipRenderComponent.prototype = Object.create(RenderComponent.prototype);

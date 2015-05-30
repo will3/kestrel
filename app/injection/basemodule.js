@@ -33,7 +33,7 @@ BaseModule.prototype = {
         }.bind(this));
 
         if (bindings.length == 0) {
-            var desc = (key + "" + (tag || "")).trim();
+            var desc = (key + " " + (tag || "")).trim();
             throw "no bindings found for " + desc;
         }
 

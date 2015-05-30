@@ -47,21 +47,12 @@ AppModule.prototype.load = function() {
 
     this.bindKey("rigidBody").withTag("ship").to(function() {
         var rigidBody = new RigidBody();
-        rigidBody.collisionRadius = 9;
         return rigidBody;
     });
 
     this.bindKey("smokeTrail").to(function() {
         return new SmokeTrail();
     });
-
-    this.bindKey("renderComponent").withTag("ship").to(function() {
-        return new ShipRenderComponent();
-    }).withProperties(function() {
-        return {
-            model: new ShipModel()
-        }
-    }.bind(this));
 
     this.bindKey("ship").to(function() {
         return new Ship();
@@ -71,7 +62,6 @@ AppModule.prototype.load = function() {
             rigidBody: this.get("rigidBody", "ship"),
             weaponController: this.get("weaponController"),
             smokeTrail: this.get("smokeTrail"),
-            renderComponent: this.get("renderComponent", "ship")
         };
     }.bind(this));
 

@@ -9,8 +9,9 @@ var Laser = function() {
 
     this.rigidBody = new RigidBody({
         defaultFriction: 1,
-        collisionRadius: 1
     });
+    
+    this.setCollisionRadius(1);
 
     this.velocity = null;
 }

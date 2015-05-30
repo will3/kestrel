@@ -13,17 +13,17 @@ var Entity = function(){
 	this.started = false;
 	this.life = null;
 	this.destroyable = false;
+	this.collisionBody = null;
 };
 
 Entity.prototype = {
 	constructor: Entity,
 
-	hasCollision: function(){
-		if(this.rigidBody == null){
-			return false;
-		}
-
-		return this.rigidBody.collisionRadius != null;
+	setCollisionRadius: function(radius){
+		this.collisionBody = {
+			type: 'sphere',
+			radius: radius
+		};
 	},
 
 	addEntity: function(entity){
