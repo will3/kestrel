@@ -131,7 +131,7 @@ ShipController.prototype.move = function(point) {
 ShipController.prototype.getUnitFacing = function() {
     var position = this.transform.position;
     var rotation = this.transform.rotation;
-    var unitFacing = MathUtils.getUnitVector(rotation.x, rotation.y, rotation.z);
+    var unitFacing = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
     var c = new THREE.Vector3();
     c.addVectors(position, unitFacing);
 

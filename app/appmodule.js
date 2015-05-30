@@ -58,12 +58,6 @@ AppModule.prototype.load = function() {
         return rigidBody;
     });
 
-    this.bindKey("rigidBody").withTag("pointSprite").to(function() {
-        var rigidBody = new RigidBody();
-        rigidBody.defaultFriction = 1;
-        return rigidBody;
-    });
-
     this.bindKey("weapons").to(function() {
         var laser = new Laser();
         // var missile = new Missile();
@@ -99,8 +93,7 @@ AppModule.prototype.load = function() {
         return new ShipRenderComponent();
     }).withProperties(function() {
         return {
-            model: new ShipModel(),
-            game: this.get("game")
+            model: new ShipModel()
         }
     }.bind(this));
 
@@ -117,7 +110,7 @@ AppModule.prototype.load = function() {
         };
     }.bind(this));
 
-    this.bindKey("game").to(new Game()).withProperties(function() {
+    this.bindKey("game").to(Game.getInstance()).withProperties(function() {
         return {
             entityRunner: this.get("entityRunner"),
             collision: this.get("collision"),

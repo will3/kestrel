@@ -1,6 +1,11 @@
 var PointSprite = require("./entities/pointsprite");
+var injector = require("./injection/injection").defaultInjector;
 
 var Debug = function(){
+	var getGame = function(){
+		return injector.get("game");
+	};
+
 	return {
 		addIndicator: function(point, duration){
 			var indicator = new PointSprite();
@@ -14,7 +19,7 @@ var Debug = function(){
 
 			indicator.position = point;
 
-			Game.addEntity(indicator);
+			getGame().addEntity(indicator);
 		},
 	};
 }();

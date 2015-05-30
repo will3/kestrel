@@ -9,7 +9,7 @@ var RenderComponent = function() {
     Component.call(this);
     
     this.innerObject = null;
-    this.game = null;
+    this.game = Game.getInstance();
     this.geometry = null;
     this.material = null;
 };
@@ -42,8 +42,6 @@ RenderComponent.prototype.updateTransform = function() {
 };
 
 RenderComponent.prototype.start = function() {
-    assert(this.game != null, "game cannot be null");
-
     this.innerObject = this.initObject();
     this.game.scene.add(this.innerObject);
     this.updateTransform(this.entity);

@@ -1,16 +1,13 @@
 var Entity = require("../entity");
-var RenderComponent = require("../components/rendercomponent");
-var TextureLoader = require("../textureloader");
-var THREE = require("THREE");
-var extend = require("extend");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
+var PointSpriteRenderComponent = require("../components/pointspriterendercomponent");
 
 var PointSprite = function() {
     Entity.call(this);
 
-    this.renderComponent = null;
-    this.rigidBody = null;
+    this.renderComponent = new PointSpriteRenderComponent();
+    this.rigidBody = new RigidBody(1);
 
     this.texture = null;
     this.size = 4;
@@ -59,8 +56,8 @@ PointSprite.prototype.update = function() {
     //update size over time
     if (this.sizeOverTimeFunc != null) {
         var newSize = this.sizeOverTimeFunc(this.frameAge);
-        if (size != newSize) {
-            size = newSize;
+        if (this.size != newSize) {
+            this.size = newSize;
             this.updateSize();
         }
     }
@@ -78,33 +75,5 @@ PointSprite.prototype.sizeOverTime = function(sizeOverTimeFunc){
 PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc){
     this.velocityOverTime = velocityOverTimeFunc;
 }
-
-var PointSpriteRenderComponent = function() {
-    this.texture = null;
-    this.color = null;
-}
-
-PointSpriteRenderComponent.prototype = Object.create(RenderComponent.prototype);
-PointSpriteRenderComponent.prototype.constructor = PointSpriteRenderComponent;
-
-PointSpriteRenderComponent.prototype.initMaterial = function() {
-    var map = this.texture == null ? TextureLoader.getDefault() : this.texture;
-    map.minFilter = THREE.NearestFilter;
-    var material = new THREE.SpriteMaterial({
-        map: map,
-        color: this.color || 0xffffff,
-        fog: true
-    });
-
-    return material;
-};
-
-PointSpriteRenderComponent.prototype.initGeometry = function() {
-    return null;
-};
-
-PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
-    return new THREE.Sprite(material);
-};
 
 module.exports = PointSprite;

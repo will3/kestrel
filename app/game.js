@@ -16,7 +16,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
-    this.distance = 400.0;
+    this.distance = 600.0;
     this.frameRate = 60.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -27,6 +27,14 @@ var Game = function() {
     this.keyMap = null;
     this.collision = null;
     this.container = null;
+}
+
+Game.getInstance = function(){
+    if(Game.instance == null){
+        Game.instance = new Game();
+    }
+
+    return Game.instance;
 }
 
 Game.prototype = {

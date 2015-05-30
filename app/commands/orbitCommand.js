@@ -2,7 +2,6 @@ var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Entity = require("../entity");
-var Debug = require("../debug");
 var assert = require("assert");
 
 var OrbitCommand = function() {
@@ -77,8 +76,6 @@ OrbitCommand.prototype.update = function() {
     var angle2 = Math.abs(MathUtils.angleBetween(c, position, unitFacing));
 
     var point = angle1 < angle2 ? b : c;
-
-    Debug.addIndicator(point, 2);
 
     shipController.align(point);
 
