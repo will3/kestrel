@@ -30,25 +30,40 @@ Collision.prototype.visitEntities = function(callback) {
 };
 
 Collision.prototype.hitTest = function(a, b) {
-	var body_a = a.collisionBody;
-	var body_b = b.collisionBody;
-
-    if (body_a.type == 'sphere' && body_b.type == 'sphere') {
-        var distanceVector = new THREE.Vector3();
-        distanceVector.subVectors(b.position, a.position);
-        var distance = distanceVector.length();
-        if (distance == 0) {
-            distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-            distanceVector.setLength(1);
-            distance = 1;
-        }
-
-        var collisionDistance = body_a.radius + body_b.radius;
-
-        return distance <= collisionDistance;
+    if (a.type == 'sphere' && b.type == 'sphere') {
+        return this.hitTestSphereAndSphere(a, b);
+    } else if (a.type == 'sphere' && b.type == 'block') {
+        return this.hitTestSphereAndBlock(a, b);
+    } else if (a.type == 'block' && b.type == 'sphere') {
+        return this.hitTestSphereAndBlock(b, a);
+    } else if (a.type == 'block' && b.type == 'block') {
+        return this.hitTestBlockAndBlock(a, b);
     }
 
     throw "cannot resolve collisions between " + body_a.type + " and " + body_b.type;
+};
+
+Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
+    var distanceVector = new THREE.Vector3();
+    distanceVector.subVectors(sphere1.getPosition(), sphere2.getPosition());
+    var distance = distanceVector.length();
+    if (distance == 0) {
+        distanceVector = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+        distanceVector.setLength(1);
+        distance = 1;
+    }
+
+    var collisionDistance = sphere1.radius + sphere2.radius;
+
+    return distance <= collisionDistance;
+};
+
+Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
+    return block.hitTest(sphere.getPosition(), sphere.radius);
+};
+
+Collision.prototype.hitTestBlockAndBlock = function(block1, block2) {
+    return false;
 };
 
 Collision.prototype.start = function() {
@@ -57,7 +72,7 @@ Collision.prototype.start = function() {
 
 Collision.prototype.update = function() {
     this.visitEntities(function(a, b) {
-        if (this.hitTest(a, b)) {
+        if (this.hitTest(a.collisionBody, b.collisionBody)) {
             if (a.onCollision != null) {
                 a.onCollision(b);
             }

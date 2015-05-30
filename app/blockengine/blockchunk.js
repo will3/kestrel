@@ -15,6 +15,7 @@ var BlockChunk = function(origin, size) {
 
     this.origin = origin;
     this.size = size;
+    this.radius = Math.sqrt(size * size * 3);
 
     this.children = [];
     this.block = null;

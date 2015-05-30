@@ -1,6 +1,7 @@
 var THREE = require("THREE");
 var BlockChunk = require("./blockchunk");
 var BlockCoord = require("./blockcoord");
+var BlockBody = require("./blockbody");
 var _ = require("lodash");
 
 var BlockModel = function(halfSize) {
@@ -17,6 +18,10 @@ var BlockModel = function(halfSize) {
 
 BlockModel.prototype = {
     constructor: BlockModel,
+
+    get chunkRadius(){
+        return this.chunk.radius;
+    },
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
@@ -63,8 +68,13 @@ BlockModel.prototype = {
         this._centerOffset = offset;
     },
 
-    hitTest: function(vector){
-        
+    hitTest: function(position, radius){
+        var distance = position.distanceTo(this.object.position);
+        if(distance > (radius + this.chunk.radius)){
+            return false;
+        }
+
+        return true;
     },
 
     _updateDirty: function(x, y, z) {

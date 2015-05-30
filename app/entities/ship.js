@@ -23,7 +23,14 @@ var Ship = function() {
     this.renderComponent = new ShipRenderComponent(this.model);
     this.smokeTrail = null;
     this.destroyable = true;
-    this.setCollisionRadius(9);
+    
+    this.collisionBody = {
+        type: "block",
+        entity: this,
+        hitTest: function(position, radius){
+            return this.model.hitTest(position, radius);
+        }.bind(this)
+    }
 }
 
 Ship.prototype = Object.create(Entity.prototype);

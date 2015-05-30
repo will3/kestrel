@@ -21,6 +21,10 @@ Entity.prototype = {
 
 	setCollisionRadius: function(radius){
 		this.collisionBody = {
+			getPosition: function(){
+				return this.position
+			}.bind(this),
+
 			type: 'sphere',
 			radius: radius
 		};
