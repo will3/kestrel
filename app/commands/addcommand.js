@@ -28,7 +28,7 @@ AddCommand.prototype.execute = function() {
 
     var objectFunc = this.objectMapping[param];
     if(objectFunc == null){
-        throw "failed to add object";
+        throw "cannot add " + param;
     }
 
     var entity = objectFunc();

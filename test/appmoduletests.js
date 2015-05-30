@@ -79,12 +79,11 @@ describe("AppModule", function(){
 	it("should inject control correctly", function(){
 		var control = injector.get("control");
 		expect(control).to.exist;
-		expect(control.keyMap).to.exist;
-	})
+	});
 
 	it("should inject control as singleton", function(){
 		var control1 = injector.get("control");
 		var control2 = injector.get("control");
 		expect(control1).to.equal(control2);
-	})
+	});
 })

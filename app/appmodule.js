@@ -21,7 +21,8 @@ var MoveCommand = require("./commands/movecommand");
 var OrbitCommand = require("./commands/orbitcommand");
 var SelectCommand = require("./commands/selectcommand");
 var AlignCommand = require("./commands/aligncommand");
-var MeshRenderComponent = require("./components/meshrendercomponent");
+var ShipRenderComponent = require("./components/shiprendercomponent");
+var ShipModel = require("./models/shipmodel");
 
 var AppModule = function() {
     BaseModule.call(this);
@@ -95,8 +96,13 @@ AppModule.prototype.load = function() {
     });
 
     this.bindKey("renderComponent").withTag("ship").to(function() {
-        return new MeshRenderComponent();
-    });
+        return new ShipRenderComponent();
+    }).withProperties(function() {
+        return {
+            model: new ShipModel(),
+            game: this.get("game")
+        }
+    }.bind(this));
 
     this.bindKey("ship").to(function() {
         return new Ship();
@@ -120,8 +126,8 @@ AppModule.prototype.load = function() {
         };
     }.bind(this));
 
-    var getShip = function(){
-    	return this.get("ship");
+    var getShip = function() {
+        return this.get("ship");
     }.bind(this);
 
     this.bindKey("objectMapping").to(function() {

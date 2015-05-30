@@ -3,12 +3,13 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Game = require("../game");
 var _ = require("lodash");
+var assert = require("assert");
 
 var RenderComponent = function() {
     Component.call(this);
     
     this.innerObject = null;
-    this.game = Game;
+    this.game = null;
     this.geometry = null;
     this.material = null;
 };
@@ -24,10 +25,14 @@ RenderComponent.prototype.updateTransform = function() {
     }
 
     var position = this.entity.getWorldPosition();
-    this.innerObject.position.set(position.x, position.y, position.z);
+    if(!position.equals(this.innerObject.position)){
+        this.innerObject.position.set(position.x, position.y, position.z);
+    }
 
     var rotation = transform.rotation;
-    this.innerObject.rotation.setFromRotationMatrix(MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z));
+    if(!rotation.equals(this.innerObject.rotation)){
+        this.innerObject.rotation.set(rotation.x, rotation.y, rotation.z);
+    }
 
     var scale = transform.scale;
     var actualScale = this.innerObject.scale;
@@ -37,10 +42,10 @@ RenderComponent.prototype.updateTransform = function() {
 };
 
 RenderComponent.prototype.start = function() {
-    this.geometry = this.initGeometry();
-    this.material = this.initMaterial();
-    this.innerObject = this.initObject(this.geometry, this.material);
-    this.game.getScene().add(this.innerObject);
+    assert(this.game != null, "game cannot be null");
+
+    this.innerObject = this.initObject();
+    this.game.scene.add(this.innerObject);
     this.updateTransform(this.entity);
 };
 
@@ -49,15 +54,7 @@ RenderComponent.prototype.update = function() {
 };
 
 RenderComponent.prototype.destroy = function() {
-    this.game.getScene().remove(this.innerObject);
-};
-
-RenderComponent.prototype.initGeometry = function() {
-    throw "must override";
-};
-
-RenderComponent.prototype.initMaterial = function() {
-    throw "must override";
+    this.game.scene.remove(this.innerObject);
 };
 
 RenderComponent.prototype.initObject = function(geometry, material) {

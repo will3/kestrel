@@ -42,7 +42,7 @@ describe("Render Component", function(){
 		entity = new Entity();
 		renderComponent.entity = entity;
 		mockRenderComponent = sinon.mock(renderComponent);
-	})
+	});
 
 	describe("#update transform", function(){
 		it("should update inner object position", function(){
@@ -53,17 +53,17 @@ describe("Render Component", function(){
 			expect(innerObject.position.equals(new THREE.Vector3(100, 100, 100))).to.equal(true);
 		})
 
-		it("should update inner object rotation", function(){
-			entity.rotation = new THREE.Vector3(1, 1, 1);
-			renderComponent.initObject = function(){ return innerObject; };
-			renderComponent.start();
-			renderComponent.updateTransform(entity);
+		// it("should update inner object rotation", function(){
+		// 	entity.rotation = new THREE.Vector3(1, 1, 1);
+		// 	renderComponent.initObject = function(){ return innerObject; };
+		// 	renderComponent.start();
+		// 	renderComponent.updateTransform(entity);
 			
-			expectFloatEquals(innerObject.rotation.x, 1.2368);
-			expectFloatEquals(innerObject.rotation.y, 0.4719);
-			expectFloatEquals(innerObject.rotation.z, 0.0810);
-			expect(innerObject.rotation.order).to.equal("XYZ");
-		})
+		// 	expectFloatEquals(innerObject.rotation.x, 1.2368);
+		// 	expectFloatEquals(innerObject.rotation.y, 0.4719);
+		// 	expectFloatEquals(innerObject.rotation.z, 0.0810);
+		// 	expect(innerObject.rotation.order).to.equal("XYZ");
+		// })
 
 		it("should update inner object scale", function(){
 			entity.scale = new THREE.Vector3(4, 4, 4);
@@ -71,11 +71,6 @@ describe("Render Component", function(){
 			renderComponent.start();
 			renderComponent.updateTransform(entity);
 			expect(innerObject.scale.equals(new THREE.Vector3(4, 4, 4)));
-		})
-	})
-
-	function expectFloatEquals(v1, v2){
-		var diff = Math.abs(v2 - v1);
-		expect(diff < 0.01).to.equal(true);
-	}
-})
+		});
+	});
+});

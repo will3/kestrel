@@ -2,39 +2,43 @@ var _ = require("lodash");
 var extend = require("extend");
 var Bindable = require("./bindable");
 
-var BaseModule = function(){
-	this.bindings = [];
+var BaseModule = function() {
+    this.bindings = [];
+    this.subModules = [];
 };
 
 BaseModule.prototype = {
-	constructor: BaseModule,
+    constructor: BaseModule,
 
-	load: function(){
-		throw "must override";
-	},
+    load: function() {
+        throw "must override";
+    },
 
-	bindKey: function(key){
-		var binding = new Bindable(key);
-		this.bindings.push(binding);
-		return binding;
-	},
+    bindKey: function(key) {
+        var binding = new Bindable(key);
+        this.bindings.push(binding);
+        return binding;
+    },
 
-	get: function(key, tag){
-		var bindings = _.filter(this.bindings, function(binding){
-			return (binding.key == key) && (tag == null || binding.tag == tag);
-		});
+    getBindings: function(key, tag) {
+        return _.filter(this.bindings, function(binding) {
+            return (binding.key == key) && (tag == null || binding.tag == tag);
+        });
+    },
 
-		var desc = key + (tag != null ? " tag:" + tag : "");
-		if(bindings.length == 0){
-			throw "no bindings found for " + desc;
-		}
+    get: function(key, tag) {
+        var bindings = this.getBindings(key, tag);
+        this.subModules.forEach(function(subModule){
+        	bindings = bindings.concat(subModule.getBindings);
+        }.bind(this));
 
-		if(bindings.length > 1){
-			throw "more than one binding found for " + desc;
-		}
+        if (bindings.length == 0) {
+            var desc = (key + "" + (tag || "")).trim();
+            throw "no bindings found for " + desc;
+        }
 
-		return bindings[0].get();
-	}
+        return bindings[0].get();
+    }
 };
 
 module.exports = BaseModule;
