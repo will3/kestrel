@@ -1,16 +1,18 @@
-- add weapons
-	- missile
+- block collision
+	- add stop condition in visit chunk function
 
-- ship collision
-	- shield?
+- stock ships
+	- frigate
+	- destroyer
+	- cruiser
+	- battleship
+	- titan
 
-- procedural generate ships
-	- different orientations
-	- different sizes
-	- different components
-	- procedural properties
-	- different classes
-	- weapons
+- user generated ships
+	- editor
+	- upload
+	- download
+	- sign up
 
 - add environment
 	- stars
@@ -27,14 +29,6 @@
 
 - documentation
 
-- tester
-
 - multiplayer
-	- socket io
-
-- gameplay
-	- ?
-
-- blocks
-	- add collision
-	- rigid body
+	- arena
+	- ai
