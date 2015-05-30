@@ -122,7 +122,8 @@ AppModule.prototype.load = function() {
             entityRunner: this.get("entityRunner"),
             collision: this.get("collision"),
             control: this.get("control"),
-            keyMap: this.get("keyMap")
+            keyMap: this.get("keyMap"),
+            console: this.get("console")
         };
     }.bind(this));
 
@@ -166,9 +167,7 @@ AppModule.prototype.load = function() {
     this.bindKey("selectCommand").toType(SelectCommand).withProperties(function() {
         return {
             game: this.get("game"),
-            console: function() {
-                return this.get("console");
-            }.bind(this)
+            console: this.get("console")
         };
     }.bind(this));
     this.bindKey("alignCommand").toType(AlignCommand);

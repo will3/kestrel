@@ -26,6 +26,16 @@ var BlockChunk = function(origin, size) {
 BlockChunk.prototype = {
     constructor: BlockChunk,
 
+    merge: function(chunk, xOffset, yOffset, zOffset){
+        if(chunk.type != "BlockChunk"){
+            throw "attempt to merge non chunk object";
+        }
+
+        chunk.visitBlocks(function(block, x, y, z){
+            this.add(x + xOffset, y + yOffset, z + zOffset, block);
+        });
+    },
+
     get: function(x, y, z) {
         var chunk = this.getChunk(x, y, z);
         if (chunk == null) {
@@ -55,9 +65,6 @@ BlockChunk.prototype = {
         }
 
         chunk.block = block;
-        block.x = x;
-        block.y = y;
-        block.z = z;
     },
 
     remove: function(x, y, z) {

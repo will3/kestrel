@@ -23,6 +23,10 @@ ListCommand.prototype.execute = function() {
         names.push(entity.name);
     });
 
+    if(names.length == 0){
+        return "nothing found";
+    }
+
     return names.join(", ");
 };
 

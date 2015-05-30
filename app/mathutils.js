@@ -6,12 +6,8 @@ var MathUtils = (function(){
 		
 		getRotationMatrix: function(yaw, pitch, roll){
 			var m = new THREE.Matrix4();
-			m.makeRotationFromEuler(this.getEuler(yaw, pitch, roll));
+			m.makeRotationFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ'));
 			return m;
-		},
-
-		getEuler: function(yaw, pitch, roll){
-			return new THREE.Euler(yaw, pitch, roll, 'XYZ');
 		},
 
 		getUnitVector: function(yaw, pitch, roll){

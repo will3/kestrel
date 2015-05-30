@@ -6,6 +6,7 @@ var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
 var assert = require("assert");
+var Mousetrap = require("Mousetrap");
 
 var Game = function() {
     this.scene = null;
@@ -20,6 +21,7 @@ var Game = function() {
     this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
+    this.console = null;
 
     this.entityRunner = null;
     this.keyMap = null;
@@ -35,8 +37,8 @@ Game.prototype = {
     },
 
     updateCamera: function() {
-        var yaw = this.cameraRotation.x;
-        var pitch = this.cameraRotation.y;
+        var yaw = this.cameraRotation.y;
+        var pitch = this.cameraRotation.x;
         var roll = this.cameraRotation.z;
         var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
         var unitZ = new THREE.Vector3(0, 0, 1);
@@ -52,8 +54,8 @@ Game.prototype = {
     },
 
     initScene: function() {
-        var WIDTH = this.container.clientWidth,
-            HEIGHT = this.container.clientHeight;
+        var WIDTH = this.container.width(),
+            HEIGHT = this.container.height();
 
         var VIEW_ANGLE = 45,
             ASPECT = WIDTH / HEIGHT,
@@ -74,7 +76,7 @@ Game.prototype = {
 
         this.render();
 
-        this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0);
+        this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0, 0);
 
         this.updateCamera();
 
@@ -82,20 +84,9 @@ Game.prototype = {
 
         THREEx.WindowResize(this.renderer, this.camera);
 
-        keyboard = new THREEx.KeyboardState(this.renderer.domElement);
-        this.renderer.domElement.setAttribute("tabIndex", "0");
-        this.renderer.domElement.focus();
-
-        // only on keyup
-        keyboard.domElement.addEventListener('keyup', function(event) {
-            if (keyboard.eventMatches(event, this.keyMap.console)) {
-                Console.focus();
-            } else if (keyboard.eventMatches(event, this.keyMap.zoomIn)) {
-                zoomIn();
-            } else if (keyboard.eventMatches(event, this.keyMap.zoomOut)) {
-                zoomOut();
-            }
-        }.bind(this));
+        Mousetrap.bind('`', function() {
+            this.console.focus();
+        }.bind(this), 'keyup');
     },
 
     zoomIn: function() {
@@ -108,8 +99,8 @@ Game.prototype = {
         this.updateCamera();
     },
 
-    mouseMove: function(xDiff, yDiff) {
-        var yVector = new THREE.Vector3(this.target.x - camera.position.x, 0, this.target.z - camera.position.z);
+    moveCamera: function(xDiff, yDiff) {
+        var yVector = new THREE.Vector3(this.target.x - this.camera.position.x, 0, this.target.z - this.camera.position.z);
         var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
         var xVector = new THREE.Vector3();
         xVector.copy(yVector);
@@ -124,14 +115,14 @@ Game.prototype = {
         this.updateCamera();
     },
 
-    mouseRotate: function(xDiff, yDiff) {
-        this.cameraRotation.x += -xDiff / 100.0;
-        this.cameraRotation.y += yDiff / 100.0;
+    rotateCamera: function(xDiff, yDiff) {
+        this.cameraRotation.y += -xDiff * 0.01;
+        this.cameraRotation.x += yDiff * 0.01;
 
-        if (this.cameraRotation.y > Math.PI / 2.0) {
-            this.cameraRotation.y = Math.PI / 2.0;
-        } else if (this.cameraRotation.y < -Math.PI / 2.0) {
-            this.cameraRotation.y = -Math.PI / 2.0;
+        if (this.cameraRotation.x > Math.PI / 2.0) {
+            this.cameraRotation.x = Math.PI / 2.0;
+        } else if (this.cameraRotation.x < -Math.PI / 2.0) {
+            this.cameraRotation.x = -Math.PI / 2.0;
         }
 
         this.updateCamera();
@@ -141,8 +132,8 @@ Game.prototype = {
         this.control.hookContainer(this.container);
 
         this.control.mouseMove(function(xDiff, yDiff) {
-            this.mouseMove(xDiff, yDiff);
-        });
+            this.rotateCamera(xDiff, yDiff);
+        }.bind(this));
     },
 
     render: function() {

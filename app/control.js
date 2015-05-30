@@ -2,7 +2,6 @@ var Control = function() {
     this.mouseX = null;
     this.mouseY = null;
     this.mouseMoveHandler = null;
-    this.mouseClickHandler = null;
     this.isDragging = false;
 }
 
@@ -12,30 +11,21 @@ Control.prototype.mouseMove = function(handler) {
     this.mouseMoveHandler = handler;
 };
 
-Control.prototype.mouseClick = function(handler){
-    this.mouseClickHandler = handler;
-};
-
 Control.prototype.hookContainer = function(container) {
-    container.onclick = function(){
-        if(this.mouseClickHandler){
-            this.mouseClickHandler();
-        }
-    }.bind(this);
 
-    container.onmousedown = function() {
+    container.mousedown(function() {
         this.isDragging = true;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmouseup = function() {
+    container.mouseup(function() {
         this.isDragging = false;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmouseleave = function() {
+    container.mouseleave(function() {
         this.isDragging = false;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmousemove = function(event) {
+    container.mousemove(function(event) {
         if (this.isDragging) {
             var xDiff = event.clientX - this.mouseX;
             var yDiff = event.clientY - this.mouseY;
@@ -45,7 +35,7 @@ Control.prototype.hookContainer = function(container) {
 
         this.mouseX = event.clientX;
         this.mouseY = event.clientY;
-    }.bind(this);
+    }.bind(this));
 };
 
 module.exports = Control;

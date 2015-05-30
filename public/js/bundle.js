@@ -123,7 +123,8 @@ AppModule.prototype.load = function() {
             entityRunner: this.get("entityRunner"),
             collision: this.get("collision"),
             control: this.get("control"),
-            keyMap: this.get("keyMap")
+            keyMap: this.get("keyMap"),
+            console: this.get("console")
         };
     }.bind(this));
 
@@ -167,9 +168,7 @@ AppModule.prototype.load = function() {
     this.bindKey("selectCommand").toType(SelectCommand).withProperties(function() {
         return {
             game: this.get("game"),
-            console: function() {
-                return this.get("console");
-            }.bind(this)
+            console: this.get("console")
         };
     }.bind(this));
     this.bindKey("alignCommand").toType(AlignCommand);
@@ -221,42 +220,56 @@ AppModule.prototype.load = function() {
 }
 
 module.exports = AppModule;
-},{"./collision":6,"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./components/rendercomponent":17,"./components/rigidbody":18,"./components/shipcontroller":19,"./components/shiprendercomponent":20,"./components/weaponcontroller":22,"./console":23,"./control":24,"./entities/laser":27,"./entities/ship":29,"./entities/smokeTrail":30,"./entities/weapon":31,"./entityrunner":33,"./game":34,"./injection/basemodule":35,"./models/shipmodel":40,"extend":48}],2:[function(require,module,exports){
+},{"./collision":6,"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./components/rendercomponent":17,"./components/rigidbody":18,"./components/shipcontroller":19,"./components/shiprendercomponent":20,"./components/weaponcontroller":22,"./console":23,"./control":24,"./entities/laser":27,"./entities/ship":29,"./entities/smokeTrail":30,"./entities/weapon":31,"./entityrunner":33,"./game":34,"./injection/basemodule":35,"./models/shipmodel":40,"extend":50}],2:[function(require,module,exports){
 var THREE = require("THREE");
 
 var Block = function() {
     this.uuid = THREE.Math.generateUUID();
-
-    this.x = null;
-    this.y = null;
-    this.z = null;
+    this.scale = null;
 }
 
 Block.prototype = {
     constructor: Block,
 
-    getVertice: function(index) {
+    withScale: function(scale){
+        this.scale = scale;
+        return this;
+    },
+
+    getStandardVertice: function(index) {
         switch (index) {
             case 0:
-                return new THREE.Vector3(this.x - 0.5, this.y - 0.5, this.z - 0.5); //0
+                return new THREE.Vector3(-0.5, -0.5, -0.5); //0
             case 1:
-                return new THREE.Vector3(this.x + 0.5, this.y - 0.5, this.z - 0.5); //1
+                return new THREE.Vector3(+0.5, -0.5, -0.5); //1
             case 2:
-                return new THREE.Vector3(this.x + 0.5, this.y - 0.5, this.z + 0.5); //2
+                return new THREE.Vector3(+0.5, -0.5, +0.5); //2
             case 3:
-                return new THREE.Vector3(this.x - 0.5, this.y - 0.5, this.z + 0.5); //3
+                return new THREE.Vector3(-0.5, -0.5, +0.5); //3
             case 4:
-                return new THREE.Vector3(this.x - 0.5, this.y + 0.5, this.z - 0.5); //4
+                return new THREE.Vector3(-0.5, +0.5, -0.5); //4
             case 5:
-                return new THREE.Vector3(this.x + 0.5, this.y + 0.5, this.z - 0.5); //5
+                return new THREE.Vector3(+0.5, +0.5, -0.5); //5
             case 6:
-                return new THREE.Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5); //6
+                return new THREE.Vector3(+0.5, +0.5, +0.5); //6
             case 7:
-                return new THREE.Vector3(this.x - 0.5, this.y + 0.5, this.z + 0.5); //7
+                return new THREE.Vector3(-0.5, +0.5, +0.5); //7
 
             default:
                 throw "invalid index";
         }
+    },
+
+    getVertice: function(index) {
+        var vertice = this.getStandardVertice(index);
+
+        if (this.scale != null) {
+            vertice.setX(vertice.x * this.scale.x);
+            vertice.setY(vertice.y * this.scale.y);
+            vertice.setZ(vertice.z * this.scale.z);
+        }
+
+        return vertice;
     },
 
     getVertices: function(indexes) {
@@ -318,7 +331,7 @@ Block.prototype = {
 }
 
 module.exports = Block;
-},{"THREE":42}],3:[function(require,module,exports){
+},{"THREE":44}],3:[function(require,module,exports){
 var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
 var assert = require("assert");
@@ -346,6 +359,16 @@ var BlockChunk = function(origin, size) {
 
 BlockChunk.prototype = {
     constructor: BlockChunk,
+
+    merge: function(chunk, xOffset, yOffset, zOffset){
+        if(chunk.type != "BlockChunk"){
+            throw "attempt to merge non chunk object";
+        }
+
+        chunk.visitBlocks(function(block, x, y, z){
+            this.add(x + xOffset, y + yOffset, z + zOffset, block);
+        });
+    },
 
     get: function(x, y, z) {
         var chunk = this.getChunk(x, y, z);
@@ -376,9 +399,6 @@ BlockChunk.prototype = {
         }
 
         chunk.block = block;
-        block.x = x;
-        block.y = y;
-        block.z = z;
     },
 
     remove: function(x, y, z) {
@@ -490,7 +510,7 @@ BlockChunk.prototype = {
 };
 
 module.exports = BlockChunk;
-},{"./block":2,"./blockcoord":4,"THREE":42,"assert":43,"lodash":51}],4:[function(require,module,exports){
+},{"./block":2,"./blockcoord":4,"THREE":44,"assert":45,"lodash":53}],4:[function(require,module,exports){
 var BlockCoord = function(x, y, z) {
     this.type = "BlockCoord";
     this.x = x || 0;
@@ -530,6 +550,7 @@ var BlockModel = function(halfSize) {
     this.object = new THREE.Object3D();
 
     this.chunkStates = {};
+    this._centerOffset = null;
 };
 
 BlockModel.prototype = {
@@ -537,62 +558,76 @@ BlockModel.prototype = {
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
-        this.updateDirty(x, y, z);
+        this._updateDirty(x, y, z);
     },
 
     remove: function(x, y, z) {
         this.chunk.remove(x, y, z);
-        this.updateDirty(x, y, z);
-    },
-
-    updateDirty: function(x, y, z) {
-        this.setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
-
-        if (this.chunk.get(x - 1, y, z) != null) {
-            this.setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x + 1, y, z) != null) {
-            this.setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y - 1, z) != null) {
-            this.setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y + 1, z) != null) {
-            this.setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y, z - 1) != null) {
-            this.setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y, z + 1) != null) {
-            this.setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
-        }
-
-        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
-        this.setDirty(chunk);
-    },
-
-    setDirty: function(chunk) {
-        var chunkState = this.chunkStates[chunk.uuid];
-        if (chunkState == null) {
-            chunkState = this.chunkStates[chunk.uuid] = {};
-            chunkState.chunk = chunk;
-        }
-
-        chunkState.dirty = true;
+        this._updateDirty(x, y, z);
     },
 
     update: function() {
         for (var uuid in this.chunkStates) {
             var chunkState = this.chunkStates[uuid];
             if (chunkState.dirty) {
-                this.updateChunk(chunkState.chunk);
+                this._updateChunk(chunkState.chunk);
             }
 
             chunkState.dirty = false;
         }
     },
 
-    updateChunk: function(chunk) {
+    center: function(){
+        var xCoords = [];
+        var yCoords = [];
+        var zCoords = [];
+        this.chunk.visitBlocks(function(block, x, y, z){
+            xCoords.push(x);
+            yCoords.push(y);
+            zCoords.push(z);
+        });
+
+        var min = new THREE.Vector3(_.min(xCoords), _.min(yCoords), _.min(zCoords));
+        var max = new THREE.Vector3(_.max(xCoords), _.max(yCoords), _.max(zCoords));
+
+        var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
+
+        var offset = center.multiplyScalar(- this.gridSize);
+
+        this.object.children.forEach(function(child){
+            child.position.set(offset);
+        });
+
+        this._centerOffset = offset;
+    },
+
+    _updateDirty: function(x, y, z) {
+        this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
+
+        if (this.chunk.get(x - 1, y, z) != null) {
+            this._setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x + 1, y, z) != null) {
+            this._setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y - 1, z) != null) {
+            this._setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y + 1, z) != null) {
+            this._setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z - 1) != null) {
+            this._setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z + 1) != null) {
+            this._setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
+        }
+
+        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
+        this._setDirty(chunk);
+    },
+
+    _updateChunk: function(chunk) {
         if (this.meshMapping[chunk.uuid] != null) {
             this.object.remove(this.meshMapping[chunk.uuid]);
         }
@@ -614,38 +649,58 @@ BlockModel.prototype = {
             var front = this.chunk.get(x, y, z + 1);
 
             if (left == null) {
-                this.addFace(geometry, block, 'left');
+                this._addFace(geometry, block, 'left', x, y, z);
             }
 
             if (right == null) {
-                this.addFace(geometry, block, 'right');
+                this._addFace(geometry, block, 'right', x, y, z);
             }
 
             if (bottom == null) {
-                this.addFace(geometry, block, 'bottom');
+                this._addFace(geometry, block, 'bottom', x, y, z);
             }
 
             if (top == null) {
-                this.addFace(geometry, block, 'top');
+                this._addFace(geometry, block, 'top', x, y, z);
             }
 
             if (back == null) {
-                this.addFace(geometry, block, 'back');
+                this._addFace(geometry, block, 'back', x, y, z);
             }
 
             if (front == null) {
-                this.addFace(geometry, block, 'front');
+                this._addFace(geometry, block, 'front', x, y, z);
             }
 
         }.bind(this));
 
         this.object.add(mesh);
+
+        if(this._centerOffset != null){
+            mesh.position.copy(this._centerOffset);
+        }
     },
 
-    addFace: function(geometry, block, face) {
+    _setDirty: function(chunk) {
+        var chunkState = this.chunkStates[chunk.uuid];
+        if (chunkState == null) {
+            chunkState = this.chunkStates[chunk.uuid] = {};
+            chunkState.chunk = chunk;
+        }
+
+        chunkState.dirty = true;
+    },
+
+    _addFace: function(geometry, block, face, x, y, z) {
         var verticesOffset = geometry.vertices.length;
         var result = block.getFace(face, verticesOffset);
         var vertices = result.vertices;
+
+        vertices.forEach(function(vertice) {
+            vertice.add(new THREE.Vector3(x, y, z));
+            vertice.multiplyScalar(this.gridSize);
+        }.bind(this));
+
         var triangles = result.triangles;
 
         vertices.forEach(function(vertice) {
@@ -659,7 +714,7 @@ BlockModel.prototype = {
 };
 
 module.exports = BlockModel;
-},{"./blockchunk":3,"./blockcoord":4,"THREE":42,"lodash":51}],6:[function(require,module,exports){
+},{"./blockchunk":3,"./blockcoord":4,"THREE":44,"lodash":53}],6:[function(require,module,exports){
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
@@ -725,7 +780,7 @@ Collision.prototype.update = function(){
 
 module.exports = Collision;
 
-},{"./entity":32,"./game":34,"THREE":42,"lodash":51}],7:[function(require,module,exports){
+},{"./entity":32,"./game":34,"THREE":44,"lodash":53}],7:[function(require,module,exports){
 var Command = function() {
     this.actor = null;
     this.params = null;
@@ -784,7 +839,7 @@ AddCommand.prototype.execute = function() {
 };
 
 module.exports = AddCommand;
-},{"../command":7,"THREE":42,"assert":43}],9:[function(require,module,exports){
+},{"../command":7,"THREE":44,"assert":45}],9:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -813,7 +868,7 @@ AlignCommand.prototype.update = function() {
 };
 
 module.exports = AlignCommand;
-},{"../command":7,"THREE":42}],10:[function(require,module,exports){
+},{"../command":7,"THREE":44}],10:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -840,7 +895,7 @@ AttackCommand.prototype.execute = function() {
 };
 
 module.exports = AttackCommand;
-},{"../command":7,"../game":34,"THREE":42,"assert":43}],11:[function(require,module,exports){
+},{"../command":7,"../game":34,"THREE":44,"assert":45}],11:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var assert = require("assert")
@@ -877,7 +932,7 @@ DestroyCommand.prototype.execute = function() {
 
 
 module.exports = DestroyCommand;
-},{"../command":7,"assert":43,"lodash":51}],12:[function(require,module,exports){
+},{"../command":7,"assert":45,"lodash":53}],12:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var assert = require("assert");
@@ -903,11 +958,15 @@ ListCommand.prototype.execute = function() {
         names.push(entity.name);
     });
 
+    if(names.length == 0){
+        return "nothing found";
+    }
+
     return names.join(", ");
 };
 
 module.exports = ListCommand;
-},{"../command":7,"assert":43,"lodash":51}],13:[function(require,module,exports){
+},{"../command":7,"assert":45,"lodash":53}],13:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
@@ -930,7 +989,7 @@ MoveCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.shipController.command = this;
 };
 
 MoveCommand.prototype.update = function() {
@@ -939,7 +998,7 @@ MoveCommand.prototype.update = function() {
 };
 
 module.exports = MoveCommand;
-},{"../command":7,"THREE":42,"assert":43}],14:[function(require,module,exports){
+},{"../command":7,"THREE":44,"assert":45}],14:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1028,7 +1087,7 @@ OrbitCommand.prototype.update = function() {
 };
 
 module.exports = OrbitCommand;
-},{"../command":7,"../debug":25,"../entity":32,"../mathutils":39,"THREE":42,"assert":43}],15:[function(require,module,exports){
+},{"../command":7,"../debug":25,"../entity":32,"../mathutils":39,"THREE":44,"assert":45}],15:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
 
@@ -1081,7 +1140,7 @@ Component.prototype = {
 }
 
 module.exports = Component;
-},{"klass":50}],17:[function(require,module,exports){
+},{"klass":52}],17:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1147,7 +1206,7 @@ RenderComponent.prototype.initObject = function(geometry, material) {
 
 module.exports = RenderComponent;
 
-},{"../component":16,"../game":34,"../mathutils":39,"THREE":42,"assert":43,"lodash":51}],18:[function(require,module,exports){
+},{"../component":16,"../game":34,"../mathutils":39,"THREE":44,"assert":45,"lodash":53}],18:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1187,7 +1246,7 @@ RigidBody.prototype.applyFriction = function(friction) {
 
 module.exports = RigidBody;
 
-},{"../component":16,"THREE":42}],19:[function(require,module,exports){
+},{"../component":16,"THREE":44}],19:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1372,7 +1431,6 @@ ShipController.prototype.update = function() {
     }
 };
 
-
 ShipController.prototype.accelerate = function(amount) {
     engineAmount = amount;
     var rotation = this.transform.rotation;
@@ -1419,7 +1477,7 @@ ShipController.prototype.getUnitFacing = function() {
 
 module.exports = ShipController;
 
-},{"../component":16,"../mathutils":39,"THREE":42}],20:[function(require,module,exports){
+},{"../component":16,"../mathutils":39,"THREE":44}],20:[function(require,module,exports){
 var RenderComponent = require('./rendercomponent');
 var assert = require("assert");
 
@@ -1439,7 +1497,7 @@ ShipRenderComponent.prototype.initObject = function(){
 }
 
 module.exports = ShipRenderComponent;
-},{"./rendercomponent":17,"assert":43}],21:[function(require,module,exports){
+},{"./rendercomponent":17,"assert":45}],21:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1457,44 +1515,43 @@ TransformComponent.prototype.constructor = TransformComponent;
 
 module.exports = TransformComponent;
 
-},{"../component":16,"THREE":42}],22:[function(require,module,exports){
+},{"../component":16,"THREE":44}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
-var Debug = require("../debug");
 
-var WeaponController = function(){
-	var targets = [];
+var WeaponController = function() {
+	Component.call(this);
 
-	var weaponController = {
-		setTarget: function(target){
-			targets = [target];
-		},
+    this.targets = [];
+};
 
-		getWeapons: function(){
-			return this.getEntity().getWeapons();
-		},
+WeaponController.prototype = Object.create(Component);
+WeaponController.prototype.constructor = WeaponController;
 
-		update: function(){
-			var target = targets.length > 0 ? targets[0] : null;
-			if(target == null){
-				return;
-			}
+WeaponController.prototype.setTarget = function(target) {
+    this.targets = [target];
+};
 
-			var weapons = this.getWeapons();
-			weapons.forEach(function(weapon){
-				weapon.fireIfReady(target);
-			})
-		}
-	};
+WeaponController.prototype.start = function(){
 
-	weaponController.__proto__ = Component();
+};
 
-	return weaponController;
-}
+WeaponController.prototype.update = function() {
+    var target = this.targets[0] || null;
+
+    if (target == null) {
+        return;
+    }
+
+    var weapons = this.entity.weapons;
+    weapons.forEach(function(weapon) {
+        weapon.fireIfReady(target);
+    })
+};
 
 module.exports = WeaponController;
-},{"../component":16,"../debug":25,"../game":34,"THREE":42}],23:[function(require,module,exports){
+},{"../component":16,"../game":34,"THREE":44}],23:[function(require,module,exports){
 var Console = function() {
     this.commandMapping = null;
 
@@ -1507,30 +1564,28 @@ var Console = function() {
 Console.prototype = {
     constructor: Console,
 
-    onKeyDown: function(e) {
+    onKeyUp: function(e) {
         if (this.displayResult) {
-            this.input.value = "";
+            this.input.val("");
             this.displayResult = false;
             return;
         }
 
-        if (e.keyIdentifier == "Enter") {
-            if (this.input.value.length == 0) {
+        if (e.keyCode == 13) {
+            if (this.input.val().length == 0) {
                 return;
             }
 
-            var command = this.getCommand(this.input.value);
+            var command = this.getCommand(this.input.val());
             this.run(command);
-            
-            this.input.value = "";
         }
     },
 
     hookInput: function(value) {
         this.input = value;
-        this.input.addEventListener('keydown', function(e) {
-            this.onKeyDown(e);
-        }.bind(this), false);
+        this.input.keyup(function(e) {
+            this.onKeyUp(e);
+        }.bind(this));
     },
 
     getCommand: function(inputValue) {
@@ -1554,6 +1609,8 @@ Console.prototype = {
         var result = command.execute();
         if(result != null){
             this.write(result);
+        }else{
+            this.input.val("");
         }
     },
 
@@ -1562,7 +1619,7 @@ Console.prototype = {
     },
 
     write: function(value) {
-        this.input.value = value;
+        this.input.val(value);
         this.displayResult = true;
     },
 
@@ -1580,7 +1637,6 @@ var Control = function() {
     this.mouseX = null;
     this.mouseY = null;
     this.mouseMoveHandler = null;
-    this.mouseClickHandler = null;
     this.isDragging = false;
 }
 
@@ -1590,30 +1646,21 @@ Control.prototype.mouseMove = function(handler) {
     this.mouseMoveHandler = handler;
 };
 
-Control.prototype.mouseClick = function(handler){
-    this.mouseClickHandler = handler;
-};
-
 Control.prototype.hookContainer = function(container) {
-    container.onclick = function(){
-        if(this.mouseClickHandler){
-            this.mouseClickHandler();
-        }
-    }.bind(this);
 
-    container.onmousedown = function() {
+    container.mousedown(function() {
         this.isDragging = true;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmouseup = function() {
+    container.mouseup(function() {
         this.isDragging = false;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmouseleave = function() {
+    container.mouseleave(function() {
         this.isDragging = false;
-    }.bind(this);
+    }.bind(this));
 
-    container.onmousemove = function(event) {
+    container.mousemove(function(event) {
         if (this.isDragging) {
             var xDiff = event.clientX - this.mouseX;
             var yDiff = event.clientY - this.mouseY;
@@ -1623,7 +1670,7 @@ Control.prototype.hookContainer = function(container) {
 
         this.mouseX = event.clientX;
         this.mouseY = event.clientY;
-    }.bind(this);
+    }.bind(this));
 };
 
 module.exports = Control;
@@ -1670,7 +1717,7 @@ Ammo.prototype.createInstance = function(){
 };
 
 module.exports = Ammo;
-},{"../entity.js":32,"THREE":42}],27:[function(require,module,exports){
+},{"../entity.js":32,"THREE":44}],27:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
@@ -1772,7 +1819,7 @@ Laser.prototype.onCollision = function(entity) {
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":18,"./ammo":26,"./pointsprite":28,"THREE":42,"assert":43}],28:[function(require,module,exports){
+},{"../components/rigidbody":18,"./ammo":26,"./pointsprite":28,"THREE":44,"assert":45}],28:[function(require,module,exports){
 var Entity = require("../entity");
 var RenderComponent = require("../components/rendercomponent");
 var TextureLoader = require("../textureloader");
@@ -1883,7 +1930,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
 };
 
 module.exports = PointSprite;
-},{"../components/rendercomponent":17,"../components/rigidbody":18,"../entity":32,"../textureloader":41,"THREE":42,"assert":43,"extend":48}],29:[function(require,module,exports){
+},{"../components/rendercomponent":17,"../components/rigidbody":18,"../entity":32,"../textureloader":42,"THREE":44,"assert":45,"extend":50}],29:[function(require,module,exports){
 var Entity = require("../entity");
 var assert = require("assert");
 
@@ -1932,7 +1979,7 @@ Ship.prototype.update = function() {
 
 module.exports = Ship;
 
-},{"../entity":32,"assert":43}],30:[function(require,module,exports){
+},{"../entity":32,"assert":45}],30:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -1986,12 +2033,14 @@ SmokeTrail.prototype.update = function() {
 };
 
 module.exports = SmokeTrail;
-},{"../debug":25,"../entity":32,"../mathutils":39,"./pointsprite":28,"THREE":42}],31:[function(require,module,exports){
+},{"../debug":25,"../entity":32,"../mathutils":39,"./pointsprite":28,"THREE":44}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
 
 var Weapon = function() {
+    Entity.call(this);
+    
     this.fireInterval = 50;
     this.cooldown = 50;
     this.actor = null;
@@ -2041,7 +2090,7 @@ Weapon.prototype.fireIfReady = function(target) {
 };
 
 module.exports = Weapon;
-},{"../entity":32,"THREE":42,"extend":48}],32:[function(require,module,exports){
+},{"../entity":32,"THREE":44,"extend":50}],32:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -2150,7 +2199,7 @@ Entity.prototype = {
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":21,"./mathutils":39,"THREE":42,"lodash":51}],33:[function(require,module,exports){
+},{"./components/transformcomponent":21,"./mathutils":39,"THREE":44,"lodash":53}],33:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function() {
@@ -2220,7 +2269,7 @@ EntityRunner.prototype = {
 
 module.exports = EntityRunner;
 
-},{"lodash":51}],34:[function(require,module,exports){
+},{"lodash":53}],34:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var Collision = require("./collision");
@@ -2229,6 +2278,7 @@ var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
 var assert = require("assert");
+var Mousetrap = require("Mousetrap");
 
 var Game = function() {
     this.scene = null;
@@ -2243,6 +2293,7 @@ var Game = function() {
     this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
+    this.console = null;
 
     this.entityRunner = null;
     this.keyMap = null;
@@ -2258,8 +2309,8 @@ Game.prototype = {
     },
 
     updateCamera: function() {
-        var yaw = this.cameraRotation.x;
-        var pitch = this.cameraRotation.y;
+        var yaw = this.cameraRotation.y;
+        var pitch = this.cameraRotation.x;
         var roll = this.cameraRotation.z;
         var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
         var unitZ = new THREE.Vector3(0, 0, 1);
@@ -2275,8 +2326,8 @@ Game.prototype = {
     },
 
     initScene: function() {
-        var WIDTH = this.container.clientWidth,
-            HEIGHT = this.container.clientHeight;
+        var WIDTH = this.container.width(),
+            HEIGHT = this.container.height();
 
         var VIEW_ANGLE = 45,
             ASPECT = WIDTH / HEIGHT,
@@ -2297,7 +2348,7 @@ Game.prototype = {
 
         this.render();
 
-        this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0);
+        this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0, 0);
 
         this.updateCamera();
 
@@ -2305,20 +2356,9 @@ Game.prototype = {
 
         THREEx.WindowResize(this.renderer, this.camera);
 
-        keyboard = new THREEx.KeyboardState(this.renderer.domElement);
-        this.renderer.domElement.setAttribute("tabIndex", "0");
-        this.renderer.domElement.focus();
-
-        // only on keyup
-        keyboard.domElement.addEventListener('keyup', function(event) {
-            if (keyboard.eventMatches(event, this.keyMap.console)) {
-                Console.focus();
-            } else if (keyboard.eventMatches(event, this.keyMap.zoomIn)) {
-                zoomIn();
-            } else if (keyboard.eventMatches(event, this.keyMap.zoomOut)) {
-                zoomOut();
-            }
-        }.bind(this));
+        Mousetrap.bind('`', function() {
+            this.console.focus();
+        }.bind(this), 'keyup');
     },
 
     zoomIn: function() {
@@ -2331,8 +2371,8 @@ Game.prototype = {
         this.updateCamera();
     },
 
-    mouseMove: function(xDiff, yDiff) {
-        var yVector = new THREE.Vector3(this.target.x - camera.position.x, 0, this.target.z - camera.position.z);
+    moveCamera: function(xDiff, yDiff) {
+        var yVector = new THREE.Vector3(this.target.x - this.camera.position.x, 0, this.target.z - this.camera.position.z);
         var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
         var xVector = new THREE.Vector3();
         xVector.copy(yVector);
@@ -2347,14 +2387,14 @@ Game.prototype = {
         this.updateCamera();
     },
 
-    mouseRotate: function(xDiff, yDiff) {
-        this.cameraRotation.x += -xDiff / 100.0;
-        this.cameraRotation.y += yDiff / 100.0;
+    rotateCamera: function(xDiff, yDiff) {
+        this.cameraRotation.y += -xDiff * 0.01;
+        this.cameraRotation.x += yDiff * 0.01;
 
-        if (this.cameraRotation.y > Math.PI / 2.0) {
-            this.cameraRotation.y = Math.PI / 2.0;
-        } else if (this.cameraRotation.y < -Math.PI / 2.0) {
-            this.cameraRotation.y = -Math.PI / 2.0;
+        if (this.cameraRotation.x > Math.PI / 2.0) {
+            this.cameraRotation.x = Math.PI / 2.0;
+        } else if (this.cameraRotation.x < -Math.PI / 2.0) {
+            this.cameraRotation.x = -Math.PI / 2.0;
         }
 
         this.updateCamera();
@@ -2364,8 +2404,8 @@ Game.prototype = {
         this.control.hookContainer(this.container);
 
         this.control.mouseMove(function(xDiff, yDiff) {
-            this.mouseMove(xDiff, yDiff);
-        });
+            this.rotateCamera(xDiff, yDiff);
+        }.bind(this));
     },
 
     render: function() {
@@ -2450,8 +2490,7 @@ Game.prototype = {
 }
 
 module.exports = Game;
-
-},{"./collision":6,"./console":23,"./control":24,"./entityrunner":33,"./mathutils":39,"THREE":42,"assert":43,"lodash":51}],35:[function(require,module,exports){
+},{"./collision":6,"./console":23,"./control":24,"./entityrunner":33,"./mathutils":39,"Mousetrap":43,"THREE":44,"assert":45,"lodash":53}],35:[function(require,module,exports){
 var _ = require("lodash");
 var extend = require("extend");
 var Bindable = require("./bindable");
@@ -2496,7 +2535,7 @@ BaseModule.prototype = {
 };
 
 module.exports = BaseModule;
-},{"./bindable":36,"extend":48,"lodash":51}],36:[function(require,module,exports){
+},{"./bindable":36,"extend":50,"lodash":53}],36:[function(require,module,exports){
 var _ = require("lodash");
 
 var Bindable = function(key) {
@@ -2563,7 +2602,7 @@ var Bindable = function(key) {
 }
 
 module.exports = Bindable;
-},{"lodash":51}],37:[function(require,module,exports){
+},{"lodash":53}],37:[function(require,module,exports){
 var Injector = require("./injector");
 var BaseModule = require("./basemodule");
 
@@ -2619,12 +2658,8 @@ var MathUtils = (function(){
 		
 		getRotationMatrix: function(yaw, pitch, roll){
 			var m = new THREE.Matrix4();
-			m.makeRotationFromEuler(this.getEuler(yaw, pitch, roll));
+			m.makeRotationFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ'));
 			return m;
-		},
-
-		getEuler: function(yaw, pitch, roll){
-			return new THREE.Euler(yaw, pitch, roll, 'XYZ');
 		},
 
 		getUnitVector: function(yaw, pitch, roll){
@@ -2704,23 +2739,162 @@ var MathUtils = (function(){
 })();
 
 module.exports = MathUtils;
-},{"THREE":42}],40:[function(require,module,exports){
+},{"THREE":44}],40:[function(require,module,exports){
 var BlockModel = require("../blockengine/blockmodel");
 var Block = require("../blockengine/block");
+var BlockCoord = require("../blockengine/blockcoord");
+var TestBlock = require("../testblock");
+var THREE = require("THREE");
 
-var ShipModel = function(){
-	BlockModel.call(this, 64);
+var ShipModel = function() {
+    BlockModel.call(this, 64);
 
-	this.add(0,0,0, new Block());
-	this.add(1,1,1, new Block());
-	this.add(2,2,2, new Block());
+    this.gridSize = 2;
+
+    this.addHull(0, 0, 0);
+
+    this.addWeapon(3, 0, -1);
+    this.addCargo(6, 0, -3);
+    this.addCargo(8, 0, -3);
+    this.addCargo(10, 0, -3);
+    this.addWeapon(13, 0, -1);
+
+    this.center();
 }
 
 ShipModel.prototype = Object.create(BlockModel.prototype);
 ShipModel.prototype.constructor = ShipModel;
 
+
+ShipModel.prototype.addHull = function(startX, startY, startZ) {
+    for (var x = 0; x < 17; x++) {
+        for (var y = 0; y < 1; y++) {
+            for (var z = 0; z < 2; z++) {
+                this.add(startX + x, startY + y, startZ + z, new TestBlock().withScale(new THREE.Vector3(1, 0.5, 1)));
+            }
+        }
+    }
+};
+
+ShipModel.prototype.addCargo = function(startX, startY, startZ) {
+    for (var z = 0; z < 6; z++) {
+        this.add(startX, startY, startZ + z, new TestBlock());
+    }
+};
+
+ShipModel.prototype.addWeapon = function(startX, startY, startZ) {
+    for (var z = 0; z < 6; z++) {
+        if (z == 3) {
+            this.add(startX, startY, startZ + z, new TestBlock().withScale(new THREE.Vector3(0.75, 0.75, 1)));
+        } else if (z == 4) {
+            this.add(startX, startY, startZ + z, new TestBlock().withScale(new THREE.Vector3(0.50, 0.50, 1)));
+        } else if (z == 5) {
+            this.add(startX, startY, startZ + z, new TestBlock().withScale(new THREE.Vector3(0.25, 0.25, 1)));
+        } else {
+            this.add(startX, startY, startZ + z, new TestBlock());
+        }
+    }
+}
+
 module.exports = ShipModel;
-},{"../blockengine/block":2,"../blockengine/blockmodel":5}],41:[function(require,module,exports){
+
+// var ShipModel = function(){
+// 	var getHull = function(){
+// 		var chunk = new BlockChunk();
+// 		var range = new BlockRange(
+// 			new BlockCoord(0, 0, 0),
+// 			new BlockCoord(17, 1, 2)
+// 			)
+
+// 		range.visit(function(x, y, z){
+// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
+// 		})
+
+// 		return chunk;
+// 	}
+
+// 	var getCargo = function(){
+// 		var chunk = new BlockChunk();
+// 		var range = new BlockRange(
+// 			new BlockCoord(0, 0, 0),
+// 			new BlockCoord(1, 1, 6)
+// 			)
+// 		range.visit(function(x, y, z){
+// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
+// 		})
+
+// 		return chunk;
+// 	}
+
+// 	var getWeapon = function(){
+// 		var chunk = new BlockChunk();
+// 		var range = new BlockRange(
+// 			new BlockCoord(0, 0 ,0),
+// 			new BlockCoord(1, 1, 6)
+// 			)
+// 		range.visit(function(x, y, z){
+// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
+// 		})
+
+// 		return chunk;
+// 	}
+
+// 	var shipModel = {
+// 		getChunk: function(){
+// 			var hull = getHull();
+// 			var cargo1 = getCargo();
+// 			var cargo2 = getCargo();
+// 			var cargo3 = getCargo();
+// 			var weapon1 = getWeapon();
+// 			var weapon2 = getWeapon();
+
+// 			return hull;
+// 		}
+// 	}
+
+// 	shipModel.__proto__ = Model();
+
+// 	return shipModel;
+// }
+
+// module.exports = ShipModel;
+},{"../blockengine/block":2,"../blockengine/blockcoord":4,"../blockengine/blockmodel":5,"../testblock":41,"THREE":44}],41:[function(require,module,exports){
+var Block = require("./blockengine/block");
+var THREE = require("THREE");
+
+var TestBlock = function() {
+    Block.call(this);
+}
+
+TestBlock.prototype = Object.create(Block.prototype);
+TestBlock.prototype.constructor = TestBlock;
+
+TestBlock.prototype.getStandardVertice = function(index) {
+    switch (index) {
+        case 0:
+            return new THREE.Vector3(-0.45, -0.45, -0.45); //0
+        case 1:
+            return new THREE.Vector3(+0.45, -0.45, -0.45); //1
+        case 2:
+            return new THREE.Vector3(+0.45, -0.45, +0.45); //2
+        case 3:
+            return new THREE.Vector3(-0.45, -0.45, +0.45); //3
+        case 4:
+            return new THREE.Vector3(-0.45, +0.45, -0.45); //4
+        case 5:
+            return new THREE.Vector3(+0.45, +0.45, -0.45); //5
+        case 6:
+            return new THREE.Vector3(+0.45, +0.45, +0.45); //6
+        case 7:
+            return new THREE.Vector3(-0.45, +0.45, +0.45); //7
+
+        default:
+            throw "invalid index";
+    }
+};
+
+module.exports = TestBlock;
+},{"./blockengine/block":2,"THREE":44}],42:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -2745,7 +2919,1030 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":42}],42:[function(require,module,exports){
+},{"THREE":44}],43:[function(require,module,exports){
+/*global define:false */
+/**
+ * Copyright 2015 Craig Campbell
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Mousetrap is a simple keyboard shortcut library for Javascript with
+ * no external dependencies
+ *
+ * @version 1.5.2
+ * @url craig.is/killing/mice
+ */
+(function(window, document, undefined) {
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+        8: 'backspace',
+        9: 'tab',
+        13: 'enter',
+        16: 'shift',
+        17: 'ctrl',
+        18: 'alt',
+        20: 'capslock',
+        27: 'esc',
+        32: 'space',
+        33: 'pageup',
+        34: 'pagedown',
+        35: 'end',
+        36: 'home',
+        37: 'left',
+        38: 'up',
+        39: 'right',
+        40: 'down',
+        45: 'ins',
+        46: 'del',
+        91: 'meta',
+        93: 'meta',
+        224: 'meta'
+    };
+
+    /**
+     * mapping for special characters so they can support
+     *
+     * this dictionary is only used incase you want to bind a
+     * keyup or keydown event to one of these keys
+     *
+     * @type {Object}
+     */
+    var _KEYCODE_MAP = {
+        106: '*',
+        107: '+',
+        109: '-',
+        110: '.',
+        111 : '/',
+        186: ';',
+        187: '=',
+        188: ',',
+        189: '-',
+        190: '.',
+        191: '/',
+        192: '`',
+        219: '[',
+        220: '\\',
+        221: ']',
+        222: '\''
+    };
+
+    /**
+     * this is a mapping of keys that require shift on a US keypad
+     * back to the non shift equivelents
+     *
+     * this is so you can use keyup events with these keys
+     *
+     * note that this will only work reliably on US keyboards
+     *
+     * @type {Object}
+     */
+    var _SHIFT_MAP = {
+        '~': '`',
+        '!': '1',
+        '@': '2',
+        '#': '3',
+        '$': '4',
+        '%': '5',
+        '^': '6',
+        '&': '7',
+        '*': '8',
+        '(': '9',
+        ')': '0',
+        '_': '-',
+        '+': '=',
+        ':': ';',
+        '\"': '\'',
+        '<': ',',
+        '>': '.',
+        '?': '/',
+        '|': '\\'
+    };
+
+    /**
+     * this is a list of special strings you can use to map
+     * to modifier keys when you specify your keyboard shortcuts
+     *
+     * @type {Object}
+     */
+    var _SPECIAL_ALIASES = {
+        'option': 'alt',
+        'command': 'meta',
+        'return': 'enter',
+        'escape': 'esc',
+        'plus': '+',
+        'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
+    };
+
+    /**
+     * variable to store the flipped version of _MAP from above
+     * needed to check if we should use keypress or not when no action
+     * is specified
+     *
+     * @type {Object|undefined}
+     */
+    var _REVERSE_MAP;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            object.addEventListener(type, callback, false);
+            return;
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            var character = String.fromCharCode(e.which);
+
+            // if the shift key is not pressed then it is safe to assume
+            // that we want the character to be lowercase.  this means if
+            // you accidentally have caps lock on then your key bindings
+            // will continue to work
+            //
+            // the only side effect that might not be desired is if you
+            // bind something like 'A' cause you want to trigger an
+            // event when capital A is pressed caps lock will no longer
+            // trigger the event.  shift+a will though.
+            if (!e.shiftKey) {
+                character = character.toLowerCase();
+            }
+
+            return character;
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+
+        // with keydown and keyup events the character seems to always
+        // come in as an uppercase character whether you are pressing shift
+        // or not.  we should make sure it is always lowercase for comparisons
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * prevents default for this event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _preventDefault(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+            return;
+        }
+
+        e.returnValue = false;
+    }
+
+    /**
+     * stops propogation for this event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _stopPropagation(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+            return;
+        }
+
+        e.cancelBubble = true;
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * Converts from a string key combination to an array
+     *
+     * @param  {string} combination like "command+shift+l"
+     * @return {Array}
+     */
+    function _keysFromString(combination) {
+        if (combination === '+') {
+            return ['+'];
+        }
+
+        combination = combination.replace(/\+{2}/g, '+plus');
+        return combination.split('+');
+    }
+
+    /**
+     * Gets info for a specific key combination
+     *
+     * @param  {string} combination key combination ("command+s" or "a" or "*")
+     * @param  {string=} action
+     * @returns {Object}
+     */
+    function _getKeyInfo(combination, action) {
+        var keys;
+        var key;
+        var i;
+        var modifiers = [];
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = _keysFromString(combination);
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        return {
+            key: key,
+            modifiers: modifiers,
+            action: action
+        };
+    }
+
+    function _belongsTo(element, ancestor) {
+        if (element === document) {
+            return false;
+        }
+
+        if (element === ancestor) {
+            return true;
+        }
+
+        return _belongsTo(element.parentNode, ancestor);
+    }
+
+    function Mousetrap(targetElement) {
+        var self = this;
+
+        targetElement = targetElement || document;
+
+        if (!(self instanceof Mousetrap)) {
+            return new Mousetrap(targetElement);
+        }
+
+        /**
+         * element to attach key events to
+         *
+         * @type {Element}
+         */
+        self.target = targetElement;
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        self._callbacks = {};
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        self._directMap = {};
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        var _sequenceLevels = {};
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        var _resetTimer;
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        var _ignoreNextKeyup = false;
+
+        /**
+         * temporary state where we will ignore the next keypress
+         *
+         * @type {boolean}
+         */
+        var _ignoreNextKeypress = false;
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        var _nextExpectedAction = false;
+
+        /**
+         * resets all sequence counters except for the ones passed in
+         *
+         * @param {Object} doNotReset
+         * @returns void
+         */
+        function _resetSequences(doNotReset) {
+            doNotReset = doNotReset || {};
+
+            var activeSequences = false,
+                key;
+
+            for (key in _sequenceLevels) {
+                if (doNotReset[key]) {
+                    activeSequences = true;
+                    continue;
+                }
+                _sequenceLevels[key] = 0;
+            }
+
+            if (!activeSequences) {
+                _nextExpectedAction = false;
+            }
+        }
+
+        /**
+         * finds all callbacks that match based on the keycode, modifiers,
+         * and action
+         *
+         * @param {string} character
+         * @param {Array} modifiers
+         * @param {Event|Object} e
+         * @param {string=} sequenceName - name of the sequence we are looking for
+         * @param {string=} combination
+         * @param {number=} level
+         * @returns {Array}
+         */
+        function _getMatches(character, modifiers, e, sequenceName, combination, level) {
+            var i;
+            var callback;
+            var matches = [];
+            var action = e.type;
+
+            // if there are no events related to this keycode
+            if (!self._callbacks[character]) {
+                return [];
+            }
+
+            // if a modifier key is coming up on its own we should allow it
+            if (action == 'keyup' && _isModifier(character)) {
+                modifiers = [character];
+            }
+
+            // loop through all callbacks for the key that was pressed
+            // and see if any of them match
+            for (i = 0; i < self._callbacks[character].length; ++i) {
+                callback = self._callbacks[character][i];
+
+                // if a sequence name is not specified, but this is a sequence at
+                // the wrong level then move onto the next match
+                if (!sequenceName && callback.seq && _sequenceLevels[callback.seq] != callback.level) {
+                    continue;
+                }
+
+                // if the action we are looking for doesn't match the action we got
+                // then we should keep going
+                if (action != callback.action) {
+                    continue;
+                }
+
+                // if this is a keypress event and the meta key and control key
+                // are not pressed that means that we need to only look at the
+                // character, otherwise check the modifiers as well
+                //
+                // chrome will not fire a keypress if meta or control is down
+                // safari will fire a keypress if meta or meta+shift is down
+                // firefox will fire a keypress if meta or control is down
+                if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                    // when you bind a combination or sequence a second time it
+                    // should overwrite the first one.  if a sequenceName or
+                    // combination is specified in this call it does just that
+                    //
+                    // @todo make deleting its own method?
+                    var deleteCombo = !sequenceName && callback.combo == combination;
+                    var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
+                    if (deleteCombo || deleteSequence) {
+                        self._callbacks[character].splice(i, 1);
+                    }
+
+                    matches.push(callback);
+                }
+            }
+
+            return matches;
+        }
+
+        /**
+         * actually calls the callback function
+         *
+         * if your callback function returns false this will use the jquery
+         * convention - prevent default and stop propogation on the event
+         *
+         * @param {Function} callback
+         * @param {Event} e
+         * @returns void
+         */
+        function _fireCallback(callback, e, combo, sequence) {
+
+            // if this event should not happen stop here
+            if (self.stopCallback(e, e.target || e.srcElement, combo, sequence)) {
+                return;
+            }
+
+            if (callback(e, combo) === false) {
+                _preventDefault(e);
+                _stopPropagation(e);
+            }
+        }
+
+        /**
+         * handles a character key event
+         *
+         * @param {string} character
+         * @param {Array} modifiers
+         * @param {Event} e
+         * @returns void
+         */
+        self._handleKey = function(character, modifiers, e) {
+            var callbacks = _getMatches(character, modifiers, e);
+            var i;
+            var doNotReset = {};
+            var maxLevel = 0;
+            var processedSequenceCallback = false;
+
+            // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
+            for (i = 0; i < callbacks.length; ++i) {
+                if (callbacks[i].seq) {
+                    maxLevel = Math.max(maxLevel, callbacks[i].level);
+                }
+            }
+
+            // loop through matching callbacks for this key event
+            for (i = 0; i < callbacks.length; ++i) {
+
+                // fire for all sequence callbacks
+                // this is because if for example you have multiple sequences
+                // bound such as "g i" and "g t" they both need to fire the
+                // callback for matching g cause otherwise you can only ever
+                // match the first one
+                if (callbacks[i].seq) {
+
+                    // only fire callbacks for the maxLevel to prevent
+                    // subsequences from also firing
+                    //
+                    // for example 'a option b' should not cause 'option b' to fire
+                    // even though 'option b' is part of the other sequence
+                    //
+                    // any sequences that do not match here will be discarded
+                    // below by the _resetSequences call
+                    if (callbacks[i].level != maxLevel) {
+                        continue;
+                    }
+
+                    processedSequenceCallback = true;
+
+                    // keep a list of which sequences were matches for later
+                    doNotReset[callbacks[i].seq] = 1;
+                    _fireCallback(callbacks[i].callback, e, callbacks[i].combo, callbacks[i].seq);
+                    continue;
+                }
+
+                // if there were no sequence matches but we are still here
+                // that means this is a regular match so we should fire that
+                if (!processedSequenceCallback) {
+                    _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
+                }
+            }
+
+            // if the key you pressed matches the type of sequence without
+            // being a modifier (ie "keyup" or "keypress") then we should
+            // reset all sequences that were not matched by this event
+            //
+            // this is so, for example, if you have the sequence "h a t" and you
+            // type "h e a r t" it does not match.  in this case the "e" will
+            // cause the sequence to reset
+            //
+            // modifier keys are ignored because you can have a sequence
+            // that contains modifiers such as "enter ctrl+space" and in most
+            // cases the modifier key will be pressed before the next key
+            //
+            // also if you have a sequence such as "ctrl+b a" then pressing the
+            // "b" key will trigger a "keypress" and a "keydown"
+            //
+            // the "keydown" is expected when there is a modifier, but the
+            // "keypress" ends up matching the _nextExpectedAction since it occurs
+            // after and that causes the sequence to reset
+            //
+            // we ignore keypresses in a sequence that directly follow a keydown
+            // for the same character
+            var ignoreThisKeypress = e.type == 'keypress' && _ignoreNextKeypress;
+            if (e.type == _nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
+                _resetSequences(doNotReset);
+            }
+
+            _ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
+        };
+
+        /**
+         * handles a keydown event
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        function _handleKeyEvent(e) {
+
+            // normalize e.which for key events
+            // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+            if (typeof e.which !== 'number') {
+                e.which = e.keyCode;
+            }
+
+            var character = _characterFromEvent(e);
+
+            // no character found then stop
+            if (!character) {
+                return;
+            }
+
+            // need to use === for the character check because the character can be 0
+            if (e.type == 'keyup' && _ignoreNextKeyup === character) {
+                _ignoreNextKeyup = false;
+                return;
+            }
+
+            self.handleKey(character, _eventModifiers(e), e);
+        }
+
+        /**
+         * called to set a 1 second timeout on the specified sequence
+         *
+         * this is so after each key press in the sequence you have 1 second
+         * to press the next key before you have to start over
+         *
+         * @returns void
+         */
+        function _resetSequenceTimer() {
+            clearTimeout(_resetTimer);
+            _resetTimer = setTimeout(_resetSequences, 1000);
+        }
+
+        /**
+         * binds a key sequence to an event
+         *
+         * @param {string} combo - combo specified in bind call
+         * @param {Array} keys
+         * @param {Function} callback
+         * @param {string=} action
+         * @returns void
+         */
+        function _bindSequence(combo, keys, callback, action) {
+
+            // start off by adding a sequence level record for this combination
+            // and setting the level to 0
+            _sequenceLevels[combo] = 0;
+
+            /**
+             * callback to increase the sequence level for this sequence and reset
+             * all other sequences that were active
+             *
+             * @param {string} nextAction
+             * @returns {Function}
+             */
+            function _increaseSequence(nextAction) {
+                return function() {
+                    _nextExpectedAction = nextAction;
+                    ++_sequenceLevels[combo];
+                    _resetSequenceTimer();
+                };
+            }
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            function _callbackAndReset(e) {
+                _fireCallback(callback, e, combo);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignoreNextKeyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            }
+
+            // loop through keys one at a time and bind the appropriate callback
+            // function.  for any key leading up to the final one it should
+            // increase the sequence. after the final, it should reset all sequences
+            //
+            // if an action is specified in the original bind call then that will
+            // be used throughout.  otherwise we will pass the action that the
+            // next key in the sequence should match.  this allows a sequence
+            // to mix and match keypress and keydown events depending on which
+            // ones are better suited to the key provided
+            for (var i = 0; i < keys.length; ++i) {
+                var isFinal = i + 1 === keys.length;
+                var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence(action || _getKeyInfo(keys[i + 1]).action);
+                _bindSingle(keys[i], wrappedCallback, action, combo, i);
+            }
+        }
+
+        /**
+         * binds a single keyboard combination
+         *
+         * @param {string} combination
+         * @param {Function} callback
+         * @param {string=} action
+         * @param {string=} sequenceName - name of sequence if part of sequence
+         * @param {number=} level - what part of the sequence the command is
+         * @returns void
+         */
+        function _bindSingle(combination, callback, action, sequenceName, level) {
+
+            // store a direct mapped reference for use with Mousetrap.trigger
+            self._directMap[combination + ':' + action] = callback;
+
+            // make sure multiple spaces in a row become a single space
+            combination = combination.replace(/\s+/g, ' ');
+
+            var sequence = combination.split(' ');
+            var info;
+
+            // if this pattern is a sequence of keys then run through this method
+            // to reprocess each pattern one key at a time
+            if (sequence.length > 1) {
+                _bindSequence(combination, sequence, callback, action);
+                return;
+            }
+
+            info = _getKeyInfo(combination, action);
+
+            // make sure to initialize array if this is the first time
+            // a callback is added for this key
+            self._callbacks[info.key] = self._callbacks[info.key] || [];
+
+            // remove an existing match if there is one
+            _getMatches(info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
+
+            // add this call back to the array
+            // if it is a sequence put it at the beginning
+            // if not put it at the end
+            //
+            // this is important because the way these are processed expects
+            // the sequence ones to come first
+            self._callbacks[info.key][sequenceName ? 'unshift' : 'push']({
+                callback: callback,
+                modifiers: info.modifiers,
+                action: info.action,
+                seq: sequenceName,
+                level: level,
+                combo: combination
+            });
+        }
+
+        /**
+         * binds multiple combinations to the same callback
+         *
+         * @param {Array} combinations
+         * @param {Function} callback
+         * @param {string|undefined} action
+         * @returns void
+         */
+        self._bindMultiple = function(combinations, callback, action) {
+            for (var i = 0; i < combinations.length; ++i) {
+                _bindSingle(combinations[i], callback, action);
+            }
+        };
+
+        // start!
+        _addEvent(targetElement, 'keypress', _handleKeyEvent);
+        _addEvent(targetElement, 'keydown', _handleKeyEvent);
+        _addEvent(targetElement, 'keyup', _handleKeyEvent);
+    }
+
+    /**
+     * binds an event to mousetrap
+     *
+     * can be a single key, a combination of keys separated with +,
+     * an array of keys, or a sequence of keys separated by spaces
+     *
+     * be sure to list the modifier keys first to make sure that the
+     * correct key ends up getting bound (the last key in the pattern)
+     *
+     * @param {string|Array} keys
+     * @param {Function} callback
+     * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+     * @returns void
+     */
+    Mousetrap.prototype.bind = function(keys, callback, action) {
+        var self = this;
+        keys = keys instanceof Array ? keys : [keys];
+        self._bindMultiple.call(self, keys, callback, action);
+        return self;
+    };
+
+    /**
+     * unbinds an event to mousetrap
+     *
+     * the unbinding sets the callback function of the specified key combo
+     * to an empty function and deletes the corresponding key in the
+     * _directMap dict.
+     *
+     * TODO: actually remove this from the _callbacks dictionary instead
+     * of binding an empty function
+     *
+     * the keycombo+action has to be exactly the same as
+     * it was defined in the bind method
+     *
+     * @param {string|Array} keys
+     * @param {string} action
+     * @returns void
+     */
+    Mousetrap.prototype.unbind = function(keys, action) {
+        var self = this;
+        return self.bind.call(self, keys, function() {}, action);
+    };
+
+    /**
+     * triggers an event that has already been bound
+     *
+     * @param {string} keys
+     * @param {string=} action
+     * @returns void
+     */
+    Mousetrap.prototype.trigger = function(keys, action) {
+        var self = this;
+        if (self._directMap[keys + ':' + action]) {
+            self._directMap[keys + ':' + action]({}, keys);
+        }
+        return self;
+    };
+
+    /**
+     * resets the library back to its initial state.  this is useful
+     * if you want to clear out the current keyboard shortcuts and bind
+     * new ones - for example if you switch to another page
+     *
+     * @returns void
+     */
+    Mousetrap.prototype.reset = function() {
+        var self = this;
+        self._callbacks = {};
+        self._directMap = {};
+        return self;
+    };
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @param {Element} element
+     * @return {boolean}
+     */
+    Mousetrap.prototype.stopCallback = function(e, element) {
+        var self = this;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        if (_belongsTo(element, self.target)) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || element.isContentEditable;
+    };
+
+    /**
+     * exposes _handleKey publicly so it can be overwritten by extensions
+     */
+    Mousetrap.prototype.handleKey = function() {
+        var self = this;
+        return self._handleKey.apply(self, arguments);
+    };
+
+    /**
+     * Init the global mousetrap functions
+     *
+     * This method is needed to allow the global mousetrap functions to work
+     * now that mousetrap is a constructor function.
+     */
+    Mousetrap.init = function() {
+        var documentMousetrap = Mousetrap(document);
+        for (var method in documentMousetrap) {
+            if (method.charAt(0) !== '_') {
+                Mousetrap[method] = (function(method) {
+                    return function() {
+                        return documentMousetrap[method].apply(documentMousetrap, arguments);
+                    };
+                } (method));
+            }
+        }
+    };
+
+    Mousetrap.init();
+
+    // expose mousetrap to the global object
+    window.Mousetrap = Mousetrap;
+
+    // expose as a common js module
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = Mousetrap;
+    }
+
+    // expose mousetrap as an AMD module
+    if (typeof define === 'function' && define.amd) {
+        define(function() {
+            return Mousetrap;
+        });
+    }
+}) (window, document);
+
+},{}],44:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -37893,7 +39090,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],43:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -38254,7 +39451,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":47}],44:[function(require,module,exports){
+},{"util/":49}],46:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -38279,7 +39476,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],45:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -38371,14 +39568,14 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],46:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],47:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -38968,7 +40165,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":46,"_process":45,"inherits":44}],48:[function(require,module,exports){
+},{"./support/isBuffer":48,"_process":47,"inherits":46}],50:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -39059,7 +40256,7 @@ module.exports = function extend() {
 };
 
 
-},{}],49:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -48271,7 +49468,7 @@ return jQuery;
 
 }));
 
-},{}],50:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -48364,7 +49561,7 @@ return jQuery;
   return klass
 });
 
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -60600,7 +61797,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],52:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 var $ = require('jquery');
 var injector = require("./injection/injection").defaultInjector;
 var AppModule = require('./appmodule');
@@ -60609,7 +61806,7 @@ var appModule = new AppModule();
 injector.loadModule(appModule);
 
 var container = $('#container');
-var input = document.getElementById('console_text');
+var input = $('#console_text');
 var game = injector.get("game");
 game.initialize(container);
 
@@ -60645,4 +61842,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 game.stats = stats;
-},{"./appmodule":1,"./injection/injection":37,"jquery":49}]},{},[52]);
+},{"./appmodule":1,"./injection/injection":37,"jquery":51}]},{},[54]);

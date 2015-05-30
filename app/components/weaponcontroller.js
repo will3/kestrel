@@ -1,36 +1,35 @@
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
-var Debug = require("../debug");
 
-var WeaponController = function(){
-	var targets = [];
+var WeaponController = function() {
+	Component.call(this);
 
-	var weaponController = {
-		setTarget: function(target){
-			targets = [target];
-		},
+    this.targets = [];
+};
 
-		getWeapons: function(){
-			return this.getEntity().getWeapons();
-		},
+WeaponController.prototype = Object.create(Component);
+WeaponController.prototype.constructor = WeaponController;
 
-		update: function(){
-			var target = targets.length > 0 ? targets[0] : null;
-			if(target == null){
-				return;
-			}
+WeaponController.prototype.setTarget = function(target) {
+    this.targets = [target];
+};
 
-			var weapons = this.getWeapons();
-			weapons.forEach(function(weapon){
-				weapon.fireIfReady(target);
-			})
-		}
-	};
+WeaponController.prototype.start = function(){
 
-	weaponController.__proto__ = Component();
+};
 
-	return weaponController;
-}
+WeaponController.prototype.update = function() {
+    var target = this.targets[0] || null;
+
+    if (target == null) {
+        return;
+    }
+
+    var weapons = this.entity.weapons;
+    weapons.forEach(function(weapon) {
+        weapon.fireIfReady(target);
+    })
+};
 
 module.exports = WeaponController;

@@ -14,7 +14,9 @@ var ShipModel = function(){
 			)
 
 		range.visit(function(x, y, z){
-			chunk.addBlock(new BlockCoord(x, y, z), new Block());
+			chunk.addBlock(new BlockCoord(x, y, z), new Block({
+				scale: new THREE.Vector3(1, 0.5, 1)
+			}));
 		})
 
 		return chunk;

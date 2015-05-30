@@ -10,30 +10,28 @@ var Console = function() {
 Console.prototype = {
     constructor: Console,
 
-    onKeyDown: function(e) {
+    onKeyUp: function(e) {
         if (this.displayResult) {
-            this.input.value = "";
+            this.input.val("");
             this.displayResult = false;
             return;
         }
 
-        if (e.keyIdentifier == "Enter") {
-            if (this.input.value.length == 0) {
+        if (e.keyCode == 13) {
+            if (this.input.val().length == 0) {
                 return;
             }
 
-            var command = this.getCommand(this.input.value);
+            var command = this.getCommand(this.input.val());
             this.run(command);
-            
-            this.input.value = "";
         }
     },
 
     hookInput: function(value) {
         this.input = value;
-        this.input.addEventListener('keydown', function(e) {
-            this.onKeyDown(e);
-        }.bind(this), false);
+        this.input.keyup(function(e) {
+            this.onKeyUp(e);
+        }.bind(this));
     },
 
     getCommand: function(inputValue) {
@@ -57,6 +55,8 @@ Console.prototype = {
         var result = command.execute();
         if(result != null){
             this.write(result);
+        }else{
+            this.input.val("");
         }
     },
 
@@ -65,7 +65,7 @@ Console.prototype = {
     },
 
     write: function(value) {
-        this.input.value = value;
+        this.input.val(value);
         this.displayResult = true;
     },
 

@@ -182,7 +182,6 @@ ShipController.prototype.update = function() {
     }
 };
 
-
 ShipController.prototype.accelerate = function(amount) {
     engineAmount = amount;
     var rotation = this.transform.rotation;

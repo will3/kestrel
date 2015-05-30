@@ -3,6 +3,8 @@ var THREE = require("THREE");
 var extend = require("extend");
 
 var Weapon = function() {
+    Entity.call(this);
+    
     this.fireInterval = 50;
     this.cooldown = 50;
     this.actor = null;

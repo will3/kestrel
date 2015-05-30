@@ -20,7 +20,7 @@ MoveCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.shipController.command = this;
 };
 
 MoveCommand.prototype.update = function() {

@@ -12,6 +12,7 @@ var BlockModel = function(halfSize) {
     this.object = new THREE.Object3D();
 
     this.chunkStates = {};
+    this._centerOffset = null;
 };
 
 BlockModel.prototype = {
@@ -19,62 +20,76 @@ BlockModel.prototype = {
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
-        this.updateDirty(x, y, z);
+        this._updateDirty(x, y, z);
     },
 
     remove: function(x, y, z) {
         this.chunk.remove(x, y, z);
-        this.updateDirty(x, y, z);
-    },
-
-    updateDirty: function(x, y, z) {
-        this.setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
-
-        if (this.chunk.get(x - 1, y, z) != null) {
-            this.setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x + 1, y, z) != null) {
-            this.setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y - 1, z) != null) {
-            this.setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y + 1, z) != null) {
-            this.setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y, z - 1) != null) {
-            this.setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
-        }
-        if (this.chunk.get(x, y, z + 1) != null) {
-            this.setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
-        }
-
-        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
-        this.setDirty(chunk);
-    },
-
-    setDirty: function(chunk) {
-        var chunkState = this.chunkStates[chunk.uuid];
-        if (chunkState == null) {
-            chunkState = this.chunkStates[chunk.uuid] = {};
-            chunkState.chunk = chunk;
-        }
-
-        chunkState.dirty = true;
+        this._updateDirty(x, y, z);
     },
 
     update: function() {
         for (var uuid in this.chunkStates) {
             var chunkState = this.chunkStates[uuid];
             if (chunkState.dirty) {
-                this.updateChunk(chunkState.chunk);
+                this._updateChunk(chunkState.chunk);
             }
 
             chunkState.dirty = false;
         }
     },
 
-    updateChunk: function(chunk) {
+    center: function(){
+        var xCoords = [];
+        var yCoords = [];
+        var zCoords = [];
+        this.chunk.visitBlocks(function(block, x, y, z){
+            xCoords.push(x);
+            yCoords.push(y);
+            zCoords.push(z);
+        });
+
+        var min = new THREE.Vector3(_.min(xCoords), _.min(yCoords), _.min(zCoords));
+        var max = new THREE.Vector3(_.max(xCoords), _.max(yCoords), _.max(zCoords));
+
+        var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
+
+        var offset = center.multiplyScalar(- this.gridSize);
+
+        this.object.children.forEach(function(child){
+            child.position.set(offset);
+        });
+
+        this._centerOffset = offset;
+    },
+
+    _updateDirty: function(x, y, z) {
+        this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
+
+        if (this.chunk.get(x - 1, y, z) != null) {
+            this._setDirty(this.chunk.getChunk(x - 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x + 1, y, z) != null) {
+            this._setDirty(this.chunk.getChunk(x + 1, y, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y - 1, z) != null) {
+            this._setDirty(this.chunk.getChunk(x, y - 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y + 1, z) != null) {
+            this._setDirty(this.chunk.getChunk(x, y + 1, z, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z - 1) != null) {
+            this._setDirty(this.chunk.getChunk(x, y, z - 1, this.minChunkSize));
+        }
+        if (this.chunk.get(x, y, z + 1) != null) {
+            this._setDirty(this.chunk.getChunk(x, y, z + 1, this.minChunkSize));
+        }
+
+        var chunk = this.chunk.getChunk(x, y, z, this.minChunkSize);
+        this._setDirty(chunk);
+    },
+
+    _updateChunk: function(chunk) {
         if (this.meshMapping[chunk.uuid] != null) {
             this.object.remove(this.meshMapping[chunk.uuid]);
         }
@@ -96,38 +111,58 @@ BlockModel.prototype = {
             var front = this.chunk.get(x, y, z + 1);
 
             if (left == null) {
-                this.addFace(geometry, block, 'left');
+                this._addFace(geometry, block, 'left', x, y, z);
             }
 
             if (right == null) {
-                this.addFace(geometry, block, 'right');
+                this._addFace(geometry, block, 'right', x, y, z);
             }
 
             if (bottom == null) {
-                this.addFace(geometry, block, 'bottom');
+                this._addFace(geometry, block, 'bottom', x, y, z);
             }
 
             if (top == null) {
-                this.addFace(geometry, block, 'top');
+                this._addFace(geometry, block, 'top', x, y, z);
             }
 
             if (back == null) {
-                this.addFace(geometry, block, 'back');
+                this._addFace(geometry, block, 'back', x, y, z);
             }
 
             if (front == null) {
-                this.addFace(geometry, block, 'front');
+                this._addFace(geometry, block, 'front', x, y, z);
             }
 
         }.bind(this));
 
         this.object.add(mesh);
+
+        if(this._centerOffset != null){
+            mesh.position.copy(this._centerOffset);
+        }
     },
 
-    addFace: function(geometry, block, face) {
+    _setDirty: function(chunk) {
+        var chunkState = this.chunkStates[chunk.uuid];
+        if (chunkState == null) {
+            chunkState = this.chunkStates[chunk.uuid] = {};
+            chunkState.chunk = chunk;
+        }
+
+        chunkState.dirty = true;
+    },
+
+    _addFace: function(geometry, block, face, x, y, z) {
         var verticesOffset = geometry.vertices.length;
         var result = block.getFace(face, verticesOffset);
         var vertices = result.vertices;
+
+        vertices.forEach(function(vertice) {
+            vertice.add(new THREE.Vector3(x, y, z));
+            vertice.multiplyScalar(this.gridSize);
+        }.bind(this));
+
         var triangles = result.triangles;
 
         vertices.forEach(function(vertice) {

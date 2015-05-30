@@ -6,7 +6,7 @@ var appModule = new AppModule();
 injector.loadModule(appModule);
 
 var container = $('#container');
-var input = document.getElementById('console_text');
+var input = $('#console_text');
 var game = injector.get("game");
 game.initialize(container);
 
