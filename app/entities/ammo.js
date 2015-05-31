@@ -1,31 +1,41 @@
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
-var Ammo = function(){
-	Entity.call(this);
+var Ammo = function() {
+    Entity.call(this);
 
-	this.actor = null;
-	this.target = null;
-	this.destroyable = true;
+    this.actor = null;
+    this.target = null;
+    this.destroyable = true;
 
-	this.collisionFilter = function(entity){
-		if(entity == this.actor){
-			return false;
-		}
+    this.collisionBody = {
+        type: "sphere",
+        getPosition: function() {
+            return this.position
+        }.bind(this),
+        getVelocity: function() {
+            return this.rigidBody.velocity;
+        }.bind(this)
+    }
 
-		if(entity instanceof Ammo){
-			return false;
-		}
+    this.collisionFilter = function(entity) {
+        if (entity == this.actor) {
+            return false;
+        }
 
-		return true;
-	}
+        if (entity instanceof Ammo) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 Ammo.prototype = Object.create(Entity.prototype);
 Ammo.prototype.constructor = Ammo;
 
-Ammo.prototype.createInstance = function(){
-	throw "must override";
+Ammo.prototype.createInstance = function() {
+    throw "must override";
 };
 
 module.exports = Ammo;

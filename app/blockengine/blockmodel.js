@@ -75,14 +75,23 @@ BlockModel.prototype = {
         }
 
         var coords = new THREE.Vector3().copy(position).applyMatrix4(this.getWorldInverseMatrix());
-        coords = new THREE.Vector3(parseInt(coords.x), parseInt(coords.y), parseInt(coords.z));
-        var block = this.chunk.get(coords.x, coords.y, coords.z);
 
-        return {
-            result: block != null,
-            block: block,
-            coords: coords
+        var blockRadius = Math.ceil(radius * this.gridSize);
+
+        var blockCoord = new BlockCoord(Math.round(coords.x), Math.round(coords.y), Math.round(coords.z));
+        var blockRadius = Math.ceil(radius * 2);
+
+        var block = this.chunk.get(blockCoord.x, blockCoord.y, blockCoord.z);
+
+        if (block != null) {
+            return {
+                result: true,
+                block: block,
+                coords: blockCoord
+            }
         }
+
+        return false;
     },
 
     _updateDirty: function(x, y, z) {

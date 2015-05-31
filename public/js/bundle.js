@@ -566,14 +566,23 @@ BlockModel.prototype = {
         }
 
         var coords = new THREE.Vector3().copy(position).applyMatrix4(this.getWorldInverseMatrix());
-        coords = new THREE.Vector3(parseInt(coords.x), parseInt(coords.y), parseInt(coords.z));
-        var block = this.chunk.get(coords.x, coords.y, coords.z);
 
-        return {
-            result: block != null,
-            block: block,
-            coords: coords
+        var blockRadius = Math.ceil(radius * this.gridSize);
+
+        var blockCoord = new BlockCoord(Math.round(coords.x), Math.round(coords.y), Math.round(coords.z));
+        var blockRadius = Math.ceil(radius * 2);
+
+        var block = this.chunk.get(blockCoord.x, blockCoord.y, blockCoord.z);
+
+        if (block != null) {
+            return {
+                result: true,
+                block: block,
+                coords: blockCoord
+            }
         }
+
+        return false;
     },
 
     _updateDirty: function(x, y, z) {
@@ -801,6 +810,7 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 };
 
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
+    var velocity = sphere.getVelocity();
     return block.hitTest(sphere.getPosition(), sphere.radius);
 };
 
@@ -1716,31 +1726,41 @@ module.exports = Debug;
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
-var Ammo = function(){
-	Entity.call(this);
+var Ammo = function() {
+    Entity.call(this);
 
-	this.actor = null;
-	this.target = null;
-	this.destroyable = true;
+    this.actor = null;
+    this.target = null;
+    this.destroyable = true;
 
-	this.collisionFilter = function(entity){
-		if(entity == this.actor){
-			return false;
-		}
+    this.collisionBody = {
+        type: "sphere",
+        getPosition: function() {
+            return this.position
+        }.bind(this),
+        getVelocity: function() {
+            return this.rigidBody.velocity;
+        }.bind(this)
+    }
 
-		if(entity instanceof Ammo){
-			return false;
-		}
+    this.collisionFilter = function(entity) {
+        if (entity == this.actor) {
+            return false;
+        }
 
-		return true;
-	}
+        if (entity instanceof Ammo) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 Ammo.prototype = Object.create(Entity.prototype);
 Ammo.prototype.constructor = Ammo;
 
-Ammo.prototype.createInstance = function(){
-	throw "must override";
+Ammo.prototype.createInstance = function() {
+    throw "must override";
 };
 
 module.exports = Ammo;
@@ -1758,8 +1778,6 @@ var Laser = function() {
     this.rigidBody = new RigidBody({
         defaultFriction: 1,
     });
-    
-    this.setCollisionRadius(1);
 
     this.velocity = null;
     this.game = Game.getInstance();
@@ -2335,7 +2353,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
-    this.distance = 200.0;
+    this.distance = 600.0;
     this.frameRate = 60.0;
     this.keyboard = null;
     this.nameRegistry = {};

@@ -71,6 +71,7 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 };
 
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
+    var velocity = sphere.getVelocity();
     return block.hitTest(sphere.getPosition(), sphere.radius);
 };
 

@@ -11,8 +11,6 @@ var Laser = function() {
     this.rigidBody = new RigidBody({
         defaultFriction: 1,
     });
-    
-    this.setCollisionRadius(1);
 
     this.velocity = null;
     this.game = Game.getInstance();
