@@ -4,6 +4,7 @@ var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
 var ShipRenderComponent = require("../components/shiprendercomponent");
+var Ammo = require("./ammo");
 
 var Ship = function() {
     Entity.call(this);
@@ -62,5 +63,14 @@ Ship.prototype.start = function() {
 Ship.prototype.update = function() {
     // this.smokeTrail.amount = shipController.engineAmount;
 };
+
+Ship.prototype.onCollision = function(entity, hitTest){
+    if(entity instanceof Ammo){
+        if(entity.actor != this){
+            this.model.remove(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z);
+            this.model.update();
+        }
+    }
+}
 
 module.exports = Ship;

@@ -12,9 +12,9 @@ var ShipModel = function() {
     this.addHull(0, 0, 0);
 
     this.addWeapon(3, 0, -1);
-    this.addCargo(6, 0, -3);
-    this.addCargo(8, 0, -3);
-    this.addCargo(10, 0, -3);
+    this.addCargo(6, 0, -2);
+    this.addCargo(8, 0, -2);
+    this.addCargo(10, 0, -2);
     this.addWeapon(13, 0, -1);
 
     this.center();
@@ -34,7 +34,7 @@ ShipModel.prototype.addHull = function(startX, startY, startZ) {
 };
 
 ShipModel.prototype.addCargo = function(startX, startY, startZ) {
-    for (var z = 0; z < 6; z++) {
+    for (var z = 0; z < 5; z++) {
         this.add(startX, startY, startZ + z, new Block());
     }
 };
@@ -54,64 +54,3 @@ ShipModel.prototype.addWeapon = function(startX, startY, startZ) {
 }
 
 module.exports = ShipModel;
-
-// var ShipModel = function(){
-// 	var getHull = function(){
-// 		var chunk = new BlockChunk();
-// 		var range = new BlockRange(
-// 			new BlockCoord(0, 0, 0),
-// 			new BlockCoord(17, 1, 2)
-// 			)
-
-// 		range.visit(function(x, y, z){
-// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
-// 		})
-
-// 		return chunk;
-// 	}
-
-// 	var getCargo = function(){
-// 		var chunk = new BlockChunk();
-// 		var range = new BlockRange(
-// 			new BlockCoord(0, 0, 0),
-// 			new BlockCoord(1, 1, 6)
-// 			)
-// 		range.visit(function(x, y, z){
-// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
-// 		})
-
-// 		return chunk;
-// 	}
-
-// 	var getWeapon = function(){
-// 		var chunk = new BlockChunk();
-// 		var range = new BlockRange(
-// 			new BlockCoord(0, 0 ,0),
-// 			new BlockCoord(1, 1, 6)
-// 			)
-// 		range.visit(function(x, y, z){
-// 			chunk.addBlock(new BlockCoord(x, y, z), new Block());
-// 		})
-
-// 		return chunk;
-// 	}
-
-// 	var shipModel = {
-// 		getChunk: function(){
-// 			var hull = getHull();
-// 			var cargo1 = getCargo();
-// 			var cargo2 = getCargo();
-// 			var cargo3 = getCargo();
-// 			var weapon1 = getWeapon();
-// 			var weapon2 = getWeapon();
-
-// 			return hull;
-// 		}
-// 	}
-
-// 	shipModel.__proto__ = Model();
-
-// 	return shipModel;
-// }
-
-// module.exports = ShipModel;

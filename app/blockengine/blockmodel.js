@@ -1,7 +1,6 @@
 var THREE = require("THREE");
 var BlockChunk = require("./blockchunk");
 var BlockCoord = require("./blockcoord");
-var BlockBody = require("./blockbody");
 var _ = require("lodash");
 
 var BlockModel = function(halfSize) {
@@ -14,12 +13,13 @@ var BlockModel = function(halfSize) {
 
     this.chunkStates = {};
     this._centerOffset = null;
+    this.radius = null;
 };
 
 BlockModel.prototype = {
     constructor: BlockModel,
 
-    get chunkRadius(){
+    get chunkRadius() {
         return this.chunk.radius;
     },
 
@@ -59,22 +59,30 @@ BlockModel.prototype = {
 
         var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
 
-        var offset = center.multiplyScalar(-this.gridSize);
+        this._centerOffset = center.multiplyScalar(-1);
 
-        this.object.children.forEach(function(child) {
-            child.position.set(offset);
-        });
+        this.radius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
 
-        this._centerOffset = offset;
+        for (var uuid in this.meshMapping) {
+            this._updateChunkPosition(uuid);
+        }
     },
 
-    hitTest: function(position, radius){
+    hitTest: function(position, radius) {
         var distance = position.distanceTo(this.object.position);
-        if(distance > (radius + this.chunk.radius)){
+        if (distance > (radius + this.radius)) {
             return false;
         }
 
-        return true;
+        var coords = new THREE.Vector3().copy(position).applyMatrix4(this.getWorldInverseMatrix());
+        coords = new THREE.Vector3(parseInt(coords.x), parseInt(coords.y), parseInt(coords.z));
+        var block = this.chunk.get(coords.x, coords.y, coords.z);
+
+        return {
+            result: block != null,
+            block: block,
+            coords: coords
+        }
     },
 
     _updateDirty: function(x, y, z) {
@@ -105,7 +113,7 @@ BlockModel.prototype = {
 
     _updateChunk: function(chunk) {
         if (this.meshMapping[chunk.uuid] != null) {
-            this.object.remove(this.meshMapping[chunk.uuid]);
+            this.object.remove(this.meshMapping[chunk.uuid].mesh);
         }
 
         var geometry = new THREE.Geometry();
@@ -113,7 +121,11 @@ BlockModel.prototype = {
             color: 0xffffff
         });
 
-        this.meshMapping[chunk.uuid] = mesh = new THREE.Mesh(geometry, material);
+        var mesh = new THREE.Mesh(geometry, material);
+        this.meshMapping[chunk.uuid] = {
+            mesh: mesh,
+            chunk: chunk
+        };
 
         chunk.visitBlocks(function(block, x, y, z) {
 
@@ -125,36 +137,68 @@ BlockModel.prototype = {
             var front = this.chunk.get(x, y, z + 1);
 
             if (left == null || left.hasGaps) {
-                this._addFace(geometry, block, 'left', x, y, z);
+                this._addFace(chunk, block, 'left', x, y, z);
             }
 
             if (right == null || right.hasGaps) {
-                this._addFace(geometry, block, 'right', x, y, z);
+                this._addFace(chunk, block, 'right', x, y, z);
             }
 
             if (bottom == null || bottom.hasGaps) {
-                this._addFace(geometry, block, 'bottom', x, y, z);
+                this._addFace(chunk, block, 'bottom', x, y, z);
             }
 
             if (top == null || top.hasGaps) {
-                this._addFace(geometry, block, 'top', x, y, z);
+                this._addFace(chunk, block, 'top', x, y, z);
             }
 
             if (back == null || back.hasGaps) {
-                this._addFace(geometry, block, 'back', x, y, z);
+                this._addFace(chunk, block, 'back', x, y, z);
             }
 
             if (front == null || front.hasGaps) {
-                this._addFace(geometry, block, 'front', x, y, z);
+                this._addFace(chunk, block, 'front', x, y, z);
             }
 
         }.bind(this));
 
-        this.object.add(mesh);
+        this._updateChunkPosition(chunk.uuid);
 
-        if (this._centerOffset != null) {
-            mesh.position.copy(this._centerOffset);
+        this.object.add(mesh);
+    },
+
+    getWorldMatrix: function() {
+        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
+        var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
+        var objectMatrixWorld = this.object.matrixWorld;
+
+        var m = new THREE.Matrix4();
+        m.multiply(objectMatrixWorld);
+        m.multiply(gridSize);
+        m.multiply(centerOffset);
+
+        return m;
+    },
+
+    getWorldInverseMatrix: function() {
+        return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+    },
+
+    _updateChunkPosition: function(uuid) {
+        if (this.meshMapping[uuid] == null) {
+            return;
         }
+
+        var mesh = this.meshMapping[uuid].mesh;
+        var chunk = this.meshMapping[uuid].chunk;
+
+        var meshPosition = new THREE.Vector3();
+        if (this._centerOffset != null) {
+            meshPosition.add(this._centerOffset);
+        }
+
+        meshPosition.multiplyScalar(this.gridSize);
+        mesh.position.copy(meshPosition);
     },
 
     _setDirty: function(chunk) {
@@ -167,7 +211,9 @@ BlockModel.prototype = {
         chunkState.dirty = true;
     },
 
-    _addFace: function(geometry, block, face, x, y, z) {
+    _addFace: function(chunk, block, face, x, y, z) {
+        var mesh = this.meshMapping[chunk.uuid].mesh;
+        var geometry = mesh.geometry;
         var verticesOffset = geometry.vertices.length;
         var result = block.getFace(face, verticesOffset);
         var vertices = result.vertices;

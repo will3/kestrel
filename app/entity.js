@@ -14,6 +14,7 @@ var Entity = function(){
 	this.life = null;
 	this.destroyable = false;
 	this.collisionBody = null;
+	this.collisionFilter = null;
 };
 
 Entity.prototype = {

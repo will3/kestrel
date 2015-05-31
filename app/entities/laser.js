@@ -3,6 +3,7 @@ var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
+var Game = require("../game");
 
 var Laser = function() {
     Ammo.call(this);
@@ -14,6 +15,7 @@ var Laser = function() {
     this.setCollisionRadius(1);
 
     this.velocity = null;
+    this.game = Game.getInstance();
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
@@ -103,7 +105,7 @@ Laser.prototype.onCollision = function(entity) {
         return;
     }
 
-    this.destroy();
+    this.game.removeEntity(this);
 };
 
 module.exports = Laser;

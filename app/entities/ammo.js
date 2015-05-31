@@ -7,6 +7,18 @@ var Ammo = function(){
 	this.actor = null;
 	this.target = null;
 	this.destroyable = true;
+
+	this.collisionFilter = function(entity){
+		if(entity == this.actor){
+			return false;
+		}
+
+		if(entity instanceof Ammo){
+			return false;
+		}
+
+		return true;
+	}
 }
 
 Ammo.prototype = Object.create(Entity.prototype);

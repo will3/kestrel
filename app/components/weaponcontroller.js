@@ -8,7 +8,7 @@ var WeaponController = function() {
     this.targets = [];
 };
 
-WeaponController.prototype = Object.create(Component);
+WeaponController.prototype = Object.create(Component.prototype);
 WeaponController.prototype.constructor = WeaponController;
 
 WeaponController.prototype.setTarget = function(target) {

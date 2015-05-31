@@ -24,6 +24,18 @@ Collision.prototype.visitEntities = function(callback) {
                 continue;
             }
 
+            if (entities[i].collisionFilter != null) {
+                if (!entities[i].collisionFilter(entities[j])) {
+                    continue;
+                }
+            }
+
+            if (entities[j].collisionFilter != null) {
+                if (!entities[j].collisionFilter(entities[i])) {
+                    continue;
+                }
+            }
+
             callback(entities[i], entities[j]);
         }
     }
@@ -55,7 +67,7 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 
     var collisionDistance = sphere1.radius + sphere2.radius;
 
-    return distance <= collisionDistance;
+    return (distance <= collisionDistance);
 };
 
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
@@ -72,13 +84,22 @@ Collision.prototype.start = function() {
 
 Collision.prototype.update = function() {
     this.visitEntities(function(a, b) {
-        if (this.hitTest(a.collisionBody, b.collisionBody)) {
+        var hitTest = this.hitTest(a.collisionBody, b.collisionBody);
+
+        //wrap result if hitTest returns primitive
+        if (hitTest === true || hitTest === false) {
+            hitTest = {
+                result: hitTest
+            };
+        }
+
+        if (hitTest.result) {
             if (a.onCollision != null) {
-                a.onCollision(b);
+                a.onCollision(b, hitTest);
             }
 
             if (b.onCollision != null) {
-                b.onCollision(a);
+                b.onCollision(a, hitTest);
             }
         }
     }.bind(this));
