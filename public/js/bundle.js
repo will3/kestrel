@@ -811,7 +811,20 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
     var velocity = sphere.getVelocity();
-    return block.hitTest(sphere.getPosition(), sphere.radius);
+
+    var testInterval = Math.ceil(velocity.length() * 0.5);
+    var interval = new THREE.Vector3().copy(velocity).multiplyScalar(1 / testInterval);
+
+    var position = new THREE.Vector3().copy(sphere.getPosition());
+    for (var i = 0; i < testInterval; i++) {
+        var hitTest = block.hitTest(position, sphere.radius);
+        if(hitTest.result){
+            return hitTest;
+        }
+        position.add(interval);
+    }
+
+    return false;
 };
 
 Collision.prototype.hitTestBlockAndBlock = function(block1, block2) {
@@ -1976,7 +1989,8 @@ var Ship = function() {
     var laser = new Laser();
     this.weapons = [new Weapon({
         ammo: laser,
-        actor: this
+        actor: this,
+        fireInterval: 10
     })];
 
     this.model = new ShipModel();
@@ -2101,8 +2115,6 @@ var assert = require("assert");
 var Weapon = function(params) {
     Entity.call(this);
 
-    this.cooldown = 50;
-
     if (params == null) {
         params = {};
     }
@@ -2111,6 +2123,8 @@ var Weapon = function(params) {
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
     this.game = Game.getInstance();
+
+    this.cooldown = this.fireInterval;
 }
 
 Weapon.prototype = Object.create(Entity.prototype);
@@ -2143,7 +2157,7 @@ Weapon.prototype.update = function() {
 };
 
 Weapon.prototype.fireIfReady = function(target) {
-    if(this.cooldown == this.fireInterval){
+    if (this.cooldown == this.fireInterval) {
         this.shoot(target);
         this.cooldown = 0;
     }

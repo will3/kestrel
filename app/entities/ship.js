@@ -17,7 +17,8 @@ var Ship = function() {
     var laser = new Laser();
     this.weapons = [new Weapon({
         ammo: laser,
-        actor: this
+        actor: this,
+        fireInterval: 10
     })];
 
     this.model = new ShipModel();

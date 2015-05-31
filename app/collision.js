@@ -72,7 +72,20 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
     var velocity = sphere.getVelocity();
-    return block.hitTest(sphere.getPosition(), sphere.radius);
+
+    var testInterval = Math.ceil(velocity.length() * 0.5);
+    var interval = new THREE.Vector3().copy(velocity).multiplyScalar(1 / testInterval);
+
+    var position = new THREE.Vector3().copy(sphere.getPosition());
+    for (var i = 0; i < testInterval; i++) {
+        var hitTest = block.hitTest(position, sphere.radius);
+        if(hitTest.result){
+            return hitTest;
+        }
+        position.add(interval);
+    }
+
+    return false;
 };
 
 Collision.prototype.hitTestBlockAndBlock = function(block1, block2) {

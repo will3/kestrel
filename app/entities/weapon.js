@@ -11,8 +11,6 @@ var assert = require("assert");
 var Weapon = function(params) {
     Entity.call(this);
 
-    this.cooldown = 50;
-
     if (params == null) {
         params = {};
     }
@@ -21,6 +19,8 @@ var Weapon = function(params) {
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
     this.game = Game.getInstance();
+
+    this.cooldown = this.fireInterval;
 }
 
 Weapon.prototype = Object.create(Entity.prototype);
@@ -53,7 +53,7 @@ Weapon.prototype.update = function() {
 };
 
 Weapon.prototype.fireIfReady = function(target) {
-    if(this.cooldown == this.fireInterval){
+    if (this.cooldown == this.fireInterval) {
         this.shoot(target);
         this.cooldown = 0;
     }
