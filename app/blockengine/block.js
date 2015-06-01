@@ -4,10 +4,32 @@ var Block = function() {
     this.uuid = THREE.Math.generateUUID();
     this.scale = null;
     this.hasGaps = false;
+
+    this.originalColor = new THREE.Color(1.0, 1.0, 1.0);
+    this.color = new THREE.Color(1.0, 1.0, 1.0);
+
+    this._integrity = 1.0;
 }
 
 Block.prototype = {
     constructor: Block,
+
+    set integrity(value){
+        this._integrity = value;
+        this._updateColor();
+    },
+
+    get integrity(){
+        return this._integrity;
+    },
+
+    _updateColor: function(){
+        this.color = new THREE.Color(
+            this.originalColor.r * this.integrity,
+            this.originalColor.g * this.integrity,
+            this.originalColor.b * this.integrity
+            );
+    },
 
     withScale: function(scale) {
         this.scale = scale;
@@ -93,11 +115,6 @@ Block.prototype = {
         }
 
         var vertices = this.getVertices(indices);
-
-        // var triangles = [
-        //     new THREE.Face3(indexOffset + indices[0], indexOffset + indices[1], indexOffset + indices[2]),
-        //     new THREE.Face3(indexOffset + indices[2], indexOffset + indices[3], indexOffset + indices[0])
-        // ];
 
         var triangles = [
             new THREE.Face3(indexOffset + 0, indexOffset + 1, indexOffset + 2),

@@ -8,7 +8,6 @@ var BlockModel = function(halfSize) {
     this.gridSize = 2;
     this.minChunkSize = 4;
 
-    this.meshMapping = {};
     this.object = new THREE.Object3D();
 
     this.chunkStates = {};
@@ -44,6 +43,44 @@ BlockModel.prototype = {
         }
     },
 
+    damage: function(x, y, z, amount) {
+        var block = this.chunk.get(x, y, z);
+        if (block == null) {
+            return;
+        }
+
+        var integrity = block.integrity;
+        integrity -= amount;
+        if (integrity < 0) {
+            integrity = 0;
+        }
+
+        block.integrity = integrity;
+
+        if (block.integrity == 0) {
+            this.chunk.remove(x, y, z);
+        }
+
+        this._updateDirty(x, y, z);
+    },
+
+    damageArea: function(centerX, centerY, centerZ, amount, blockRadius) {
+        for (var x = -blockRadius; x <= +blockRadius; x++) {
+            for (var y = -blockRadius; y <= +blockRadius; y++) {
+                for (var z = -blockRadius; z <= +blockRadius; z++) {
+                    var distance = Math.abs(x) + Math.abs(y) + Math.abs(z);
+                    if(distance > blockRadius){
+                        continue;
+                    }
+
+                    var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
+                    this.damage(centerX + x, centerY + y, centerZ + z, amount * ratio);
+                }
+            }
+        }
+    },
+
+    //centers model
     center: function() {
         var xCoords = [];
         var yCoords = [];
@@ -63,7 +100,7 @@ BlockModel.prototype = {
 
         this.radius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
 
-        for (var uuid in this.meshMapping) {
+        for (var uuid in this.chunkStates) {
             this._updateChunkPosition(uuid);
         }
     },
@@ -94,6 +131,23 @@ BlockModel.prototype = {
         return false;
     },
 
+    getWorldMatrix: function() {
+        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
+        var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
+        var objectMatrixWorld = this.object.matrixWorld;
+
+        var m = new THREE.Matrix4();
+        m.multiply(objectMatrixWorld);
+        m.multiply(gridSize);
+        m.multiply(centerOffset);
+
+        return m;
+    },
+
+    getWorldInverseMatrix: function() {
+        return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+    },
+
     _updateDirty: function(x, y, z) {
         this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
 
@@ -121,22 +175,36 @@ BlockModel.prototype = {
     },
 
     _updateChunk: function(chunk) {
-        if (this.meshMapping[chunk.uuid] != null) {
-            this.object.remove(this.meshMapping[chunk.uuid].mesh);
+        var chunkState = this._getChunkState(chunk);
+
+        if (chunkState.mesh != null) {
+            this.object.remove(chunkState.mesh);
         }
 
         var geometry = new THREE.Geometry();
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xffffff
-        });
-
+        var materials = [];
+        var material = new THREE.MeshFaceMaterial(materials);
         var mesh = new THREE.Mesh(geometry, material);
-        this.meshMapping[chunk.uuid] = {
-            mesh: mesh,
-            chunk: chunk
-        };
+
+        chunkState.mesh = mesh;
+
+        var materialMapping = {};
+        chunk.visitBlocks(function(block, x, y, z) {
+            if (materialMapping[block.color.getHexString()] == null) {
+                materials.push(
+                    // new THREE.MeshLambertMaterial({
+                    new THREE.MeshBasicMaterial({
+                    color: block.color
+                }));
+
+                materialMapping[block.color.getHexString()] = {
+                    index: materials.length - 1
+                }
+            }
+        })
 
         chunk.visitBlocks(function(block, x, y, z) {
+            var materialIndex = materialMapping[block.color.getHexString()].index;
 
             var left = this.chunk.get(x - 1, y, z);
             var right = this.chunk.get(x + 1, y, z);
@@ -146,60 +214,71 @@ BlockModel.prototype = {
             var front = this.chunk.get(x, y, z + 1);
 
             if (left == null || left.hasGaps) {
-                this._addFace(chunk, block, 'left', x, y, z);
+                this._addFace(chunk, block, 'left', x, y, z, materialIndex);
             }
 
             if (right == null || right.hasGaps) {
-                this._addFace(chunk, block, 'right', x, y, z);
+                this._addFace(chunk, block, 'right', x, y, z, materialIndex);
             }
 
             if (bottom == null || bottom.hasGaps) {
-                this._addFace(chunk, block, 'bottom', x, y, z);
+                this._addFace(chunk, block, 'bottom', x, y, z, materialIndex);
             }
 
             if (top == null || top.hasGaps) {
-                this._addFace(chunk, block, 'top', x, y, z);
+                this._addFace(chunk, block, 'top', x, y, z, materialIndex);
             }
 
             if (back == null || back.hasGaps) {
-                this._addFace(chunk, block, 'back', x, y, z);
+                this._addFace(chunk, block, 'back', x, y, z, materialIndex);
             }
 
             if (front == null || front.hasGaps) {
-                this._addFace(chunk, block, 'front', x, y, z);
+                this._addFace(chunk, block, 'front', x, y, z, materialIndex);
             }
 
         }.bind(this));
 
         this._updateChunkPosition(chunk.uuid);
 
+        mesh.geometry.computeFaceNormals();
+
         this.object.add(mesh);
     },
 
-    getWorldMatrix: function() {
-        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
-        var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
-        var objectMatrixWorld = this.object.matrixWorld;
+    _addFace: function(chunk, block, face, x, y, z, materialIndex) {
+        var mesh = this.chunkStates[chunk.uuid].mesh;
+        var geometry = mesh.geometry;
+        var verticesOffset = geometry.vertices.length;
+        var result = block.getFace(face, verticesOffset);
+        var vertices = result.vertices;
 
-        var m = new THREE.Matrix4();
-        m.multiply(objectMatrixWorld);
-        m.multiply(gridSize);
-        m.multiply(centerOffset);
+        var triangles = result.triangles;
 
-        return m;
-    },
+        vertices.forEach(function(vertice) {
+            vertice.add(new THREE.Vector3(x, y, z));
+            vertice.multiplyScalar(this.gridSize);
+        }.bind(this));
 
-    getWorldInverseMatrix: function() {
-        return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+        vertices.forEach(function(vertice) {
+            geometry.vertices.push(vertice);
+        }.bind(this));
+
+        triangles.forEach(function(triangle) {
+            triangle.materialIndex = materialIndex;
+            geometry.faces.push(triangle);
+        }.bind(this));
     },
 
     _updateChunkPosition: function(uuid) {
-        if (this.meshMapping[uuid] == null) {
+        var chunkState = this.chunkStates[uuid];
+
+        if (chunkState.mesh == null) {
             return;
         }
 
-        var mesh = this.meshMapping[uuid].mesh;
-        var chunk = this.meshMapping[uuid].chunk;
+        var mesh = this.chunkStates[uuid].mesh;
+        var chunk = this.chunkStates[uuid].chunk;
 
         var meshPosition = new THREE.Vector3();
         if (this._centerOffset != null) {
@@ -211,36 +290,19 @@ BlockModel.prototype = {
     },
 
     _setDirty: function(chunk) {
+        var chunkState = this._getChunkState(chunk);
+        chunkState.dirty = true;
+    },
+
+    _getChunkState: function(chunk) {
         var chunkState = this.chunkStates[chunk.uuid];
+
         if (chunkState == null) {
             chunkState = this.chunkStates[chunk.uuid] = {};
             chunkState.chunk = chunk;
         }
 
-        chunkState.dirty = true;
-    },
-
-    _addFace: function(chunk, block, face, x, y, z) {
-        var mesh = this.meshMapping[chunk.uuid].mesh;
-        var geometry = mesh.geometry;
-        var verticesOffset = geometry.vertices.length;
-        var result = block.getFace(face, verticesOffset);
-        var vertices = result.vertices;
-
-        vertices.forEach(function(vertice) {
-            vertice.add(new THREE.Vector3(x, y, z));
-            vertice.multiplyScalar(this.gridSize);
-        }.bind(this));
-
-        var triangles = result.triangles;
-
-        vertices.forEach(function(vertice) {
-            geometry.vertices.push(vertice);
-        }.bind(this));
-
-        triangles.forEach(function(triangle) {
-            geometry.faces.push(triangle);
-        }.bind(this));
+        return chunkState;
     }
 };
 

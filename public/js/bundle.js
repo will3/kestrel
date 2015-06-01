@@ -22,7 +22,6 @@ var MoveCommand = require("./commands/movecommand");
 var OrbitCommand = require("./commands/orbitcommand");
 var SelectCommand = require("./commands/selectcommand");
 var AlignCommand = require("./commands/aligncommand");
-var ShipRenderComponent = require("./components/shiprendercomponent");
 var ShipModel = require("./models/shipmodel");
 
 var AppModule = function() {
@@ -168,17 +167,39 @@ AppModule.prototype.load = function() {
 }
 
 module.exports = AppModule;
-},{"./collision":6,"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./components/rendercomponent":18,"./components/rigidbody":19,"./components/shipcontroller":20,"./components/shiprendercomponent":21,"./components/weaponcontroller":23,"./console":24,"./control":25,"./entities/laser":28,"./entities/ship":30,"./entities/smokeTrail":31,"./entities/weapon":32,"./entityrunner":34,"./game":35,"./injection/basemodule":36,"./models/shipmodel":41,"extend":51}],2:[function(require,module,exports){
+},{"./collision":6,"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./components/rendercomponent":19,"./components/rigidbody":20,"./components/shipcontroller":21,"./components/weaponcontroller":23,"./console":24,"./control":25,"./entities/laser":28,"./entities/ship":30,"./entities/smokeTrail":31,"./entities/weapon":32,"./entityrunner":34,"./game":35,"./injection/basemodule":36,"./models/shipmodel":41,"extend":51}],2:[function(require,module,exports){
 var THREE = require("THREE");
 
 var Block = function() {
     this.uuid = THREE.Math.generateUUID();
     this.scale = null;
     this.hasGaps = false;
+
+    this.originalColor = new THREE.Color(1.0, 1.0, 1.0);
+    this.color = new THREE.Color(1.0, 1.0, 1.0);
+
+    this._integrity = 1.0;
 }
 
 Block.prototype = {
     constructor: Block,
+
+    set integrity(value){
+        this._integrity = value;
+        this._updateColor();
+    },
+
+    get integrity(){
+        return this._integrity;
+    },
+
+    _updateColor: function(){
+        this.color = new THREE.Color(
+            this.originalColor.r * this.integrity,
+            this.originalColor.g * this.integrity,
+            this.originalColor.b * this.integrity
+            );
+    },
 
     withScale: function(scale) {
         this.scale = scale;
@@ -264,11 +285,6 @@ Block.prototype = {
         }
 
         var vertices = this.getVertices(indices);
-
-        // var triangles = [
-        //     new THREE.Face3(indexOffset + indices[0], indexOffset + indices[1], indexOffset + indices[2]),
-        //     new THREE.Face3(indexOffset + indices[2], indexOffset + indices[3], indexOffset + indices[0])
-        // ];
 
         var triangles = [
             new THREE.Face3(indexOffset + 0, indexOffset + 1, indexOffset + 2),
@@ -499,7 +515,6 @@ var BlockModel = function(halfSize) {
     this.gridSize = 2;
     this.minChunkSize = 4;
 
-    this.meshMapping = {};
     this.object = new THREE.Object3D();
 
     this.chunkStates = {};
@@ -535,6 +550,44 @@ BlockModel.prototype = {
         }
     },
 
+    damage: function(x, y, z, amount) {
+        var block = this.chunk.get(x, y, z);
+        if (block == null) {
+            return;
+        }
+
+        var integrity = block.integrity;
+        integrity -= amount;
+        if (integrity < 0) {
+            integrity = 0;
+        }
+
+        block.integrity = integrity;
+
+        if (block.integrity == 0) {
+            this.chunk.remove(x, y, z);
+        }
+
+        this._updateDirty(x, y, z);
+    },
+
+    damageArea: function(centerX, centerY, centerZ, amount, blockRadius) {
+        for (var x = -blockRadius; x <= +blockRadius; x++) {
+            for (var y = -blockRadius; y <= +blockRadius; y++) {
+                for (var z = -blockRadius; z <= +blockRadius; z++) {
+                    var distance = Math.abs(x) + Math.abs(y) + Math.abs(z);
+                    if(distance > blockRadius){
+                        continue;
+                    }
+
+                    var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
+                    this.damage(centerX + x, centerY + y, centerZ + z, amount * ratio);
+                }
+            }
+        }
+    },
+
+    //centers model
     center: function() {
         var xCoords = [];
         var yCoords = [];
@@ -554,7 +607,7 @@ BlockModel.prototype = {
 
         this.radius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
 
-        for (var uuid in this.meshMapping) {
+        for (var uuid in this.chunkStates) {
             this._updateChunkPosition(uuid);
         }
     },
@@ -585,6 +638,23 @@ BlockModel.prototype = {
         return false;
     },
 
+    getWorldMatrix: function() {
+        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
+        var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
+        var objectMatrixWorld = this.object.matrixWorld;
+
+        var m = new THREE.Matrix4();
+        m.multiply(objectMatrixWorld);
+        m.multiply(gridSize);
+        m.multiply(centerOffset);
+
+        return m;
+    },
+
+    getWorldInverseMatrix: function() {
+        return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+    },
+
     _updateDirty: function(x, y, z) {
         this._setDirty(this.chunk.getChunk(x, y, z, this.minChunkSize));
 
@@ -612,22 +682,36 @@ BlockModel.prototype = {
     },
 
     _updateChunk: function(chunk) {
-        if (this.meshMapping[chunk.uuid] != null) {
-            this.object.remove(this.meshMapping[chunk.uuid].mesh);
+        var chunkState = this._getChunkState(chunk);
+
+        if (chunkState.mesh != null) {
+            this.object.remove(chunkState.mesh);
         }
 
         var geometry = new THREE.Geometry();
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xffffff
-        });
-
+        var materials = [];
+        var material = new THREE.MeshFaceMaterial(materials);
         var mesh = new THREE.Mesh(geometry, material);
-        this.meshMapping[chunk.uuid] = {
-            mesh: mesh,
-            chunk: chunk
-        };
+
+        chunkState.mesh = mesh;
+
+        var materialMapping = {};
+        chunk.visitBlocks(function(block, x, y, z) {
+            if (materialMapping[block.color.getHexString()] == null) {
+                materials.push(
+                    // new THREE.MeshLambertMaterial({
+                    new THREE.MeshBasicMaterial({
+                    color: block.color
+                }));
+
+                materialMapping[block.color.getHexString()] = {
+                    index: materials.length - 1
+                }
+            }
+        })
 
         chunk.visitBlocks(function(block, x, y, z) {
+            var materialIndex = materialMapping[block.color.getHexString()].index;
 
             var left = this.chunk.get(x - 1, y, z);
             var right = this.chunk.get(x + 1, y, z);
@@ -637,60 +721,71 @@ BlockModel.prototype = {
             var front = this.chunk.get(x, y, z + 1);
 
             if (left == null || left.hasGaps) {
-                this._addFace(chunk, block, 'left', x, y, z);
+                this._addFace(chunk, block, 'left', x, y, z, materialIndex);
             }
 
             if (right == null || right.hasGaps) {
-                this._addFace(chunk, block, 'right', x, y, z);
+                this._addFace(chunk, block, 'right', x, y, z, materialIndex);
             }
 
             if (bottom == null || bottom.hasGaps) {
-                this._addFace(chunk, block, 'bottom', x, y, z);
+                this._addFace(chunk, block, 'bottom', x, y, z, materialIndex);
             }
 
             if (top == null || top.hasGaps) {
-                this._addFace(chunk, block, 'top', x, y, z);
+                this._addFace(chunk, block, 'top', x, y, z, materialIndex);
             }
 
             if (back == null || back.hasGaps) {
-                this._addFace(chunk, block, 'back', x, y, z);
+                this._addFace(chunk, block, 'back', x, y, z, materialIndex);
             }
 
             if (front == null || front.hasGaps) {
-                this._addFace(chunk, block, 'front', x, y, z);
+                this._addFace(chunk, block, 'front', x, y, z, materialIndex);
             }
 
         }.bind(this));
 
         this._updateChunkPosition(chunk.uuid);
 
+        mesh.geometry.computeFaceNormals();
+
         this.object.add(mesh);
     },
 
-    getWorldMatrix: function() {
-        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
-        var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
-        var objectMatrixWorld = this.object.matrixWorld;
+    _addFace: function(chunk, block, face, x, y, z, materialIndex) {
+        var mesh = this.chunkStates[chunk.uuid].mesh;
+        var geometry = mesh.geometry;
+        var verticesOffset = geometry.vertices.length;
+        var result = block.getFace(face, verticesOffset);
+        var vertices = result.vertices;
 
-        var m = new THREE.Matrix4();
-        m.multiply(objectMatrixWorld);
-        m.multiply(gridSize);
-        m.multiply(centerOffset);
+        var triangles = result.triangles;
 
-        return m;
-    },
+        vertices.forEach(function(vertice) {
+            vertice.add(new THREE.Vector3(x, y, z));
+            vertice.multiplyScalar(this.gridSize);
+        }.bind(this));
 
-    getWorldInverseMatrix: function() {
-        return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+        vertices.forEach(function(vertice) {
+            geometry.vertices.push(vertice);
+        }.bind(this));
+
+        triangles.forEach(function(triangle) {
+            triangle.materialIndex = materialIndex;
+            geometry.faces.push(triangle);
+        }.bind(this));
     },
 
     _updateChunkPosition: function(uuid) {
-        if (this.meshMapping[uuid] == null) {
+        var chunkState = this.chunkStates[uuid];
+
+        if (chunkState.mesh == null) {
             return;
         }
 
-        var mesh = this.meshMapping[uuid].mesh;
-        var chunk = this.meshMapping[uuid].chunk;
+        var mesh = this.chunkStates[uuid].mesh;
+        var chunk = this.chunkStates[uuid].chunk;
 
         var meshPosition = new THREE.Vector3();
         if (this._centerOffset != null) {
@@ -702,36 +797,19 @@ BlockModel.prototype = {
     },
 
     _setDirty: function(chunk) {
+        var chunkState = this._getChunkState(chunk);
+        chunkState.dirty = true;
+    },
+
+    _getChunkState: function(chunk) {
         var chunkState = this.chunkStates[chunk.uuid];
+
         if (chunkState == null) {
             chunkState = this.chunkStates[chunk.uuid] = {};
             chunkState.chunk = chunk;
         }
 
-        chunkState.dirty = true;
-    },
-
-    _addFace: function(chunk, block, face, x, y, z) {
-        var mesh = this.meshMapping[chunk.uuid].mesh;
-        var geometry = mesh.geometry;
-        var verticesOffset = geometry.vertices.length;
-        var result = block.getFace(face, verticesOffset);
-        var vertices = result.vertices;
-
-        vertices.forEach(function(vertice) {
-            vertice.add(new THREE.Vector3(x, y, z));
-            vertice.multiplyScalar(this.gridSize);
-        }.bind(this));
-
-        var triangles = result.triangles;
-
-        vertices.forEach(function(vertice) {
-            geometry.vertices.push(vertice);
-        }.bind(this));
-
-        triangles.forEach(function(triangle) {
-            geometry.faces.push(triangle);
-        }.bind(this));
+        return chunkState;
     }
 };
 
@@ -1221,6 +1299,26 @@ Component.prototype = {
 
 module.exports = Component;
 },{"klass":53}],17:[function(require,module,exports){
+var RenderComponent = require('./rendercomponent');
+var assert = require("assert");
+
+var ModelRenderComponent = function(model){
+	RenderComponent.call(this);
+	this.model = model;
+}
+
+ModelRenderComponent.prototype = Object.create(RenderComponent.prototype);
+ModelRenderComponent.prototype.constructor = RenderComponent;
+
+ModelRenderComponent.prototype.initObject = function(){
+	assert(this.model != null, "model cannot be empty");
+
+	this.model.update();
+	return this.model.object;
+}
+
+module.exports = ModelRenderComponent;
+},{"./rendercomponent":19,"assert":46}],18:[function(require,module,exports){
 var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
@@ -1248,7 +1346,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
 };
 
 module.exports = PointSpriteRenderComponent;
-},{"../textureloader":43,"./rendercomponent":18,"THREE":45}],18:[function(require,module,exports){
+},{"../textureloader":43,"./rendercomponent":19,"THREE":45}],19:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1312,7 +1410,7 @@ RenderComponent.prototype.initObject = function(geometry, material) {
 
 module.exports = RenderComponent;
 
-},{"../component":16,"../game":35,"../mathutils":40,"THREE":45,"assert":46,"lodash":54}],19:[function(require,module,exports){
+},{"../component":16,"../game":35,"../mathutils":40,"THREE":45,"assert":46,"lodash":54}],20:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1355,7 +1453,7 @@ RigidBody.prototype.applyFriction = function(friction) {
 };
 
 module.exports = RigidBody;
-},{"../component":16,"THREE":45}],20:[function(require,module,exports){
+},{"../component":16,"THREE":45}],21:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1510,27 +1608,7 @@ ShipController.prototype._bankForYawVelocity = function(yawVelocity) {
 };
 
 module.exports = ShipController;
-},{"../component":16,"../mathutils":40,"THREE":45,"lodash":54}],21:[function(require,module,exports){
-var RenderComponent = require('./rendercomponent');
-var assert = require("assert");
-
-var ShipRenderComponent = function(model){
-	RenderComponent.call(this);
-	this.model = model;
-}
-
-ShipRenderComponent.prototype = Object.create(RenderComponent.prototype);
-ShipRenderComponent.prototype.constructor = RenderComponent;
-
-ShipRenderComponent.prototype.initObject = function(){
-	assert(this.model != null, "model cannot be empty");
-
-	this.model.update();
-	return this.model.object;
-}
-
-module.exports = ShipRenderComponent;
-},{"./rendercomponent":18,"assert":46}],22:[function(require,module,exports){
+},{"../component":16,"../mathutils":40,"THREE":45,"lodash":54}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1887,7 +1965,7 @@ Laser.prototype.onCollision = function(entity) {
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":19,"../game":35,"./ammo":27,"./pointsprite":29,"THREE":45,"assert":46}],29:[function(require,module,exports){
+},{"../components/rigidbody":20,"../game":35,"./ammo":27,"./pointsprite":29,"THREE":45,"assert":46}],29:[function(require,module,exports){
 var Entity = require("../entity");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
@@ -1969,13 +2047,13 @@ PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc) {
 }
 
 module.exports = PointSprite;
-},{"../components/pointspriterendercomponent":17,"../components/rigidbody":19,"../entity":33,"assert":46}],30:[function(require,module,exports){
+},{"../components/pointspriterendercomponent":18,"../components/rigidbody":20,"../entity":33,"assert":46}],30:[function(require,module,exports){
 var Entity = require("../entity");
 var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
-var ShipRenderComponent = require("../components/shiprendercomponent");
+var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
 
 var Ship = function() {
@@ -1990,11 +2068,11 @@ var Ship = function() {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 10
+        fireInterval: 50
     })];
 
     this.model = new ShipModel();
-    this.renderComponent = new ShipRenderComponent(this.model);
+    this.renderComponent = new ModelRenderComponent(this.model);
     this.smokeTrail = null;
     this.destroyable = true;
     
@@ -2040,14 +2118,14 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest){
     if(entity instanceof Ammo){
         if(entity.actor != this){
-            this.model.remove(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z);
+            this.model.damageArea(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z, 0.4, 2);
             this.model.update();
         }
     }
 }
 
 module.exports = Ship;
-},{"../components/shiprendercomponent":21,"../entity":33,"../models/shipmodel":41,"./ammo":27,"./laser":28,"./weapon":32,"assert":46}],31:[function(require,module,exports){
+},{"../components/modelrendercomponent":17,"../entity":33,"../models/shipmodel":41,"./ammo":27,"./laser":28,"./weapon":32,"assert":46}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2367,7 +2445,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
-    this.distance = 600.0;
+    this.distance = 800.0;
     this.frameRate = 60.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -2380,8 +2458,8 @@ var Game = function() {
     this.container = null;
 }
 
-Game.getInstance = function(){
-    if(Game.instance == null){
+Game.getInstance = function() {
+    if (Game.instance == null) {
         Game.instance = new Game();
     }
 
@@ -2442,6 +2520,14 @@ Game.prototype = {
         this.scene.add(this.camera);
 
         THREEx.WindowResize(this.renderer, this.camera);
+
+        // var directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        // directionalLight.position.set(1, 1, 1).normalize();
+
+        // var ambientLight = new THREE.AmbientLight(new THREE.Color(0.8, 0.8, 0.8).getHex());
+
+        // this.scene.add(directionalLight);
+        // this.scene.add(ambientLight);
 
         Mousetrap.bind('`', function() {
             this.console.focus();
@@ -61839,17 +61925,27 @@ var console = injector.get("console");
 console.hookInput(input);
 
 console.runScenario(
-		[
-			"add ship",
-			"add ship 150 0 150",
-			"select ship1",
-			"orbit ship0 200",
-			"attack ship0",
-			// "select ship0",
-			// "orbit ship1 100",
-			// "attack ship1",
-		]
-	);
+    [
+        "add ship",
+        "add ship 150 0 150",
+        "select ship1",
+        "orbit ship0 200",
+        "attack ship0",
+
+        // "add ship -150 0 150",
+        // "select ship2",
+        // "orbit ship0 200",
+        // "attack ship0",
+
+        // "add ship -150 0 -150",
+        // "select ship3",
+        // "orbit ship0 200",
+        // "attack ship0",
+        // "select ship0",
+        // "orbit ship1 100",
+        // "attack ship1",
+    ]
+);
 
 var stats = new Stats();
 stats.setMode(0);
@@ -61861,5 +61957,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 game.stats = stats;
-
 },{"./appmodule":1,"./injection/injection":38,"jquery":52}]},{},[55]);

@@ -3,7 +3,7 @@ var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
-var ShipRenderComponent = require("../components/shiprendercomponent");
+var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
 
 var Ship = function() {
@@ -18,11 +18,11 @@ var Ship = function() {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 10
+        fireInterval: 50
     })];
 
     this.model = new ShipModel();
-    this.renderComponent = new ShipRenderComponent(this.model);
+    this.renderComponent = new ModelRenderComponent(this.model);
     this.smokeTrail = null;
     this.destroyable = true;
     
@@ -68,7 +68,7 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest){
     if(entity instanceof Ammo){
         if(entity.actor != this){
-            this.model.remove(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z);
+            this.model.damageArea(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z, 0.4, 2);
             this.model.update();
         }
     }

@@ -21,7 +21,6 @@ var MoveCommand = require("./commands/movecommand");
 var OrbitCommand = require("./commands/orbitcommand");
 var SelectCommand = require("./commands/selectcommand");
 var AlignCommand = require("./commands/aligncommand");
-var ShipRenderComponent = require("./components/shiprendercomponent");
 var ShipModel = require("./models/shipmodel");
 
 var AppModule = function() {
