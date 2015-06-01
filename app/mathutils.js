@@ -3,16 +3,10 @@ var THREE = require('THREE');
 var MathUtils = (function(){
 	return{
 		yAxis: new THREE.Vector3(0, 1, 0),
-		
-		getRotationMatrix: function(yaw, pitch, roll){
-			var m = new THREE.Matrix4();
-			m.makeRotationFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ'));
-			return m;
-		},
 
-		getUnitVector: function(yaw, pitch, roll){
+		getUnitVector: function(euler){
 			var unitZ = new THREE.Vector3(0, 0, 1);
-			var m = this.getRotationMatrix(yaw, pitch, roll);
+			var m = new THREE.Matrix4().makeRotationFromEuler(euler);
 			unitZ.applyMatrix4(m);
 
 			return unitZ;

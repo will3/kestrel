@@ -98,9 +98,9 @@ ShipController.prototype.update = function() {
 
 ShipController.prototype.accelerate = function(amount) {
     this.engineEmission = amount;
-    
+
     var rotation = this.transform.rotation;
-    var vector = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
+    var vector = MathUtils.getUnitVector(this.transform.rotation);
     vector.multiplyScalar(amount * this.force);
     this.rigidBody.applyForce(vector);
 };
@@ -134,7 +134,7 @@ ShipController.prototype.move = function(point) {
 ShipController.prototype.getUnitFacing = function() {
     var position = this.transform.position;
     var rotation = this.transform.rotation;
-    var unitFacing = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
+    var unitFacing = MathUtils.getUnitVector(rotation);
     var c = new THREE.Vector3();
     c.addVectors(position, unitFacing);
 

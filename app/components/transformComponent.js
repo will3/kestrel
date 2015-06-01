@@ -5,8 +5,8 @@ var TransformComponent = function() {
 	Component.call(this);
 
     this.position = new THREE.Vector3();
-    //yaw pitch row
-    this.rotation = new THREE.Vector3();
+    this.rotation = new THREE.Euler();
+    this.rotation.order = 'YXZ';
     this.scale = new THREE.Vector3(1, 1, 1);
 }
 

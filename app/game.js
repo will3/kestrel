@@ -13,7 +13,8 @@ var Game = function() {
     this.renderer = null;
     this.control = new Control();
     this.target = new THREE.Vector3();
-    this.cameraRotation = new THREE.Vector3();
+    this.cameraRotation = new THREE.Euler();
+    this.cameraRotation.order = 'YXZ';
     this.distance = 800.0;
     this.frameRate = 60.0;
     this.keyboard = null;
@@ -47,13 +48,11 @@ Game.prototype = {
         var yaw = this.cameraRotation.y;
         var pitch = this.cameraRotation.x;
         var roll = this.cameraRotation.z;
-        var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
-        var unitZ = new THREE.Vector3(0, 0, 1);
-        unitZ.applyMatrix4(matrix);
-        unitZ.setLength(this.distance);
+        var unitVector = MathUtils.getUnitVector(this.cameraRotation);
+        unitVector.setLength(this.distance);
 
         var position = new THREE.Vector3();
-        position.subVectors(this.target, unitZ);
+        position.subVectors(this.target, unitVector);
 
         this.camera.position.set(position.x, position.y, position.z);
         this.camera.lookAt(this.target);

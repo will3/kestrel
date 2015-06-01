@@ -120,6 +120,28 @@ Entity.prototype = {
         } while (entity != null);
 
         return position;
+    },
+
+    getTransformMatrix: function(){
+    	var m = new THREE.Matrix4();
+    	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
+    	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
+    	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
+
+		m.multiply(rotation);
+    	m.multiply(scale);
+    	m.multiply(position);
+    },
+
+    getWorldTransformMatrix: function(){
+    	var m = this.getTransformMatrix();
+		var entity = this;
+    	while(entity.parent != null){
+    		entity = entity.parent;
+    		m.multiply(entity.getTransformMatrix());
+    	}
+
+    	return m;
     }
 }
 

@@ -30,7 +30,7 @@ SmokeTrail.prototype.emit = function(position, speed, size, life) {
 };
 
 SmokeTrail.prototype.start = function() {
-
+    
 };
 
 SmokeTrail.prototype.update = function() {

@@ -1414,9 +1414,9 @@ ShipController.prototype.update = function() {
 
 ShipController.prototype.accelerate = function(amount) {
     this.engineEmission = amount;
-    
+
     var rotation = this.transform.rotation;
-    var vector = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
+    var vector = MathUtils.getUnitVector(this.transform.rotation);
     vector.multiplyScalar(amount * this.force);
     this.rigidBody.applyForce(vector);
 };
@@ -1450,7 +1450,7 @@ ShipController.prototype.move = function(point) {
 ShipController.prototype.getUnitFacing = function() {
     var position = this.transform.position;
     var rotation = this.transform.rotation;
-    var unitFacing = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
+    var unitFacing = MathUtils.getUnitVector(rotation);
     var c = new THREE.Vector3();
     c.addVectors(position, unitFacing);
 
@@ -1479,8 +1479,8 @@ var TransformComponent = function() {
 	Component.call(this);
 
     this.position = new THREE.Vector3();
-    //yaw pitch row
-    this.rotation = new THREE.Vector3();
+    this.rotation = new THREE.Euler();
+    this.rotation.order = 'YXZ';
     this.scale = new THREE.Vector3(1, 1, 1);
 }
 
@@ -2056,7 +2056,7 @@ SmokeTrail.prototype.emit = function(position, speed, size, life) {
 };
 
 SmokeTrail.prototype.start = function() {
-
+    
 };
 
 SmokeTrail.prototype.update = function() {
@@ -2253,6 +2253,28 @@ Entity.prototype = {
         } while (entity != null);
 
         return position;
+    },
+
+    getTransformMatrix: function(){
+    	var m = new THREE.Matrix4();
+    	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
+    	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
+    	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
+
+		m.multiply(rotation);
+    	m.multiply(scale);
+    	m.multiply(position);
+    },
+
+    getWorldTransformMatrix: function(){
+    	var m = this.getTransformMatrix();
+		var entity = this;
+    	while(entity.parent != null){
+    		entity = entity.parent;
+    		m.multiply(entity.getTransformMatrix());
+    	}
+
+    	return m;
     }
 }
 
@@ -2343,7 +2365,8 @@ var Game = function() {
     this.renderer = null;
     this.control = new Control();
     this.target = new THREE.Vector3();
-    this.cameraRotation = new THREE.Vector3();
+    this.cameraRotation = new THREE.Euler();
+    this.cameraRotation.order = 'YXZ';
     this.distance = 800.0;
     this.frameRate = 60.0;
     this.keyboard = null;
@@ -2377,13 +2400,11 @@ Game.prototype = {
         var yaw = this.cameraRotation.y;
         var pitch = this.cameraRotation.x;
         var roll = this.cameraRotation.z;
-        var matrix = MathUtils.getRotationMatrix(yaw, pitch, roll);
-        var unitZ = new THREE.Vector3(0, 0, 1);
-        unitZ.applyMatrix4(matrix);
-        unitZ.setLength(this.distance);
+        var unitVector = MathUtils.getUnitVector(this.cameraRotation);
+        unitVector.setLength(this.distance);
 
         var position = new THREE.Vector3();
-        position.subVectors(this.target, unitZ);
+        position.subVectors(this.target, unitVector);
 
         this.camera.position.set(position.x, position.y, position.z);
         this.camera.lookAt(this.target);
@@ -2555,16 +2576,10 @@ var THREE = require('THREE');
 var MathUtils = (function(){
 	return{
 		yAxis: new THREE.Vector3(0, 1, 0),
-		
-		getRotationMatrix: function(yaw, pitch, roll){
-			var m = new THREE.Matrix4();
-			m.makeRotationFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ'));
-			return m;
-		},
 
-		getUnitVector: function(yaw, pitch, roll){
+		getUnitVector: function(euler){
 			var unitZ = new THREE.Vector3(0, 0, 1);
-			var m = this.getRotationMatrix(yaw, pitch, roll);
+			var m = new THREE.Matrix4().makeRotationFromEuler(euler);
 			unitZ.applyMatrix4(m);
 
 			return unitZ;
