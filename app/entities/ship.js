@@ -1,17 +1,20 @@
 var Entity = require("../entity");
-var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
 var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
+var ShipController = require("../components/shipcontroller");
+var WeaponController = require("../components/weaponcontroller");
+var RigidBody = require("../components/rigidbody");
+var SmokeTrail = require("../entities/smoketrail");
 
 var Ship = function() {
     Entity.call(this);
 
-    this.shipController = null;
-    this.rigidBody = null;
-    this.weaponController = null;
+    this.shipController = new ShipController();
+    this.rigidBody = new RigidBody();
+    this.weaponController = new WeaponController();
 
     //weapons
     var laser = new Laser();
@@ -23,7 +26,7 @@ var Ship = function() {
 
     this.model = new ShipModel();
     this.renderComponent = new ModelRenderComponent(this.model);
-    this.smokeTrail = null;
+    this.smokeTrail = new SmokeTrail();
     this.destroyable = true;
     
     this.collisionBody = {
@@ -41,13 +44,6 @@ Ship.prototype.constructor = Ship;
 Ship.prototype.start = function() {
     Ship.id++;
 
-    assert(this.shipController != null, "shipController cannot be empty");
-    assert(this.rigidBody != null, "rigidBody cannot be empty");
-    assert(this.weaponController != null, "weaponController cannot be empty");
-    assert(this.weapons != null, "weapons cannot be empty");
-    assert(this.smokeTrail != null, "smokeTrail cannot be empty");
-    assert(this.renderComponent != null, "renderComponent cannot be empty");
-
     this.addComponent(this.renderComponent);
     this.addComponent(this.rigidBody);
     this.addComponent(this.shipController);
@@ -57,8 +53,8 @@ Ship.prototype.start = function() {
         this.addEntity(weapon);
     }.bind(this));
 
-    this.smokeTrail.ship = this;
-    this.addEntity(this.smokeTrail);
+    // this.smokeTrail.ship = this;
+    // this.addEntity(this.smokeTrail);
 };
 
 Ship.prototype.update = function() {

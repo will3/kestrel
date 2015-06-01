@@ -1,17 +1,55 @@
 var $ = require('jquery');
-var injector = require("./injection/injection").defaultInjector;
-var AppModule = require('./appmodule');
-var appModule = new AppModule();
-
-injector.loadModule(appModule);
+var AddCommand = require("./commands/addcommand");
+var AttackCommand = require("./commands/attackcommand");
+var ListCommand = require("./commands/listcommand");
+var DestroyCommand = require("./commands/destroycommand");
+var MoveCommand = require("./commands/movecommand");
+var OrbitCommand = require("./commands/orbitcommand");
+var SelectCommand = require("./commands/selectcommand");
+var AlignCommand = require("./commands/aligncommand");
+var Game = require("./game");
+var Ship = require("./entities/ship");
+var Console = require("./console");
 
 var container = $('#container');
 var input = $('#console_text');
-var game = injector.get("game");
+var game = new Game();
+
 game.initialize(container);
 
-var console = injector.get("console");
+var console = new Console();
+
 console.hookInput(input);
+console.commandMapping = {
+    add: function() {
+        return new AddCommand({
+            ship: function() {
+                return new Ship();
+            }
+        });
+    },
+    attack: function() {
+        return new AttackCommand();
+    },
+    list: function() {
+        return new ListCommand();
+    },
+    remove: function() {
+        return new DestroyCommand();
+    },
+    move: function() {
+        return new MoveCommand();
+    },
+    orbit: function() {
+        return new OrbitCommand();
+    },
+    select: function() {
+        return new SelectCommand();
+    },
+    align: function() {
+        return new AlignCommand();
+    }
+};
 
 console.runScenario(
     [

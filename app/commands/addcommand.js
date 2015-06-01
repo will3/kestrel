@@ -1,12 +1,13 @@
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
+var Game = require("../game");
 
-var AddCommand = function() {
+var AddCommand = function(objectMapping) {
     Command.call(this);
 
-    this.objectMapping = null;
-    this.game = null;
+    this.objectMapping = objectMapping;
+    this.game = Game.instance;
 }
 
 AddCommand.prototype = Object.create(Command.prototype);

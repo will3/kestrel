@@ -1,173 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Game = require("./game");
-var EntityRunner = require("./entityrunner");
-var Collision = require("./collision");
-var ShipController = require("./components/shipcontroller");
-var WeaponController = require("./components/weaponcontroller");
-var BaseModule = require("./injection/basemodule");
-var Weapon = require("./entities/weapon");
-var SmokeTrail = require("./entities/smokeTrail");
-var Ship = require("./entities/ship");
-var extend = require("extend");
-var RigidBody = require("./components/rigidbody");
-var Laser = require("./entities/laser");
-var RenderComponent = require("./components/rendercomponent");
-var Console = require("./console");
-var Control = require("./control");
-var AddCommand = require("./commands/addcommand");
-var AttackCommand = require("./commands/attackcommand");
-var ListCommand = require("./commands/listcommand");
-var DestroyCommand = require("./commands/destroycommand");
-var MoveCommand = require("./commands/movecommand");
-var OrbitCommand = require("./commands/orbitcommand");
-var SelectCommand = require("./commands/selectcommand");
-var AlignCommand = require("./commands/aligncommand");
-var ShipModel = require("./models/shipmodel");
-
-var AppModule = function() {
-    BaseModule.call(this);
-}
-
-AppModule.prototype = Object.create(BaseModule.prototype);
-AppModule.prototype.constructor = AppModule;
-
-AppModule.prototype.load = function() {
-    this.bindKey("entityRunner").to(new EntityRunner());
-    this.bindKey("collision").to(function() {
-        return new Collision();
-    });
-
-    this.bindKey("shipController").to(function() {
-        return new ShipController();
-    });
-
-    this.bindKey("weaponController").to(function() {
-        return new WeaponController();
-    });
-
-    this.bindKey("rigidBody").withTag("ship").to(function() {
-        var rigidBody = new RigidBody();
-        return rigidBody;
-    });
-
-    this.bindKey("smokeTrail").to(function() {
-        return new SmokeTrail();
-    });
-
-    this.bindKey("ship").to(function() {
-        return new Ship();
-    }).withProperties(function() {
-        return {
-            shipController: this.get("shipController"),
-            rigidBody: this.get("rigidBody", "ship"),
-            weaponController: this.get("weaponController"),
-            smokeTrail: this.get("smokeTrail"),
-        };
-    }.bind(this));
-
-    this.bindKey("game").to(Game.getInstance()).withProperties(function() {
-        return {
-            entityRunner: this.get("entityRunner"),
-            collision: this.get("collision"),
-            control: this.get("control"),
-            keyMap: this.get("keyMap"),
-            console: this.get("console")
-        };
-    }.bind(this));
-
-    var getShip = function() {
-        return this.get("ship");
-    }.bind(this);
-
-    this.bindKey("objectMapping").to(function() {
-        return {
-            ship: getShip
-        };
-    });
-
-    this.bindKey("addCommand").toType(AddCommand).withProperties(function() {
-        return {
-            objectMapping: this.get("objectMapping"),
-            game: this.get("game")
-        };
-    }.bind(this));
-    this.bindKey("attackCommand").toType(AttackCommand).withProperties(function() {
-        return {
-            game: this.get("game")
-        };
-    }.bind(this));
-    this.bindKey("listCommand").toType(ListCommand).withProperties(function() {
-        return {
-            game: this.get("game")
-        };
-    }.bind(this));
-    this.bindKey("destroyCommand").toType(DestroyCommand).withProperties(function() {
-        return {
-            game: this.get("game")
-        };
-    }.bind(this));
-    this.bindKey("moveCommand").toType(MoveCommand);
-    this.bindKey("orbitCommand").toType(OrbitCommand).withProperties(function() {
-        return {
-            game: this.get("game")
-        };
-    }.bind(this));
-    this.bindKey("selectCommand").toType(SelectCommand).withProperties(function() {
-        return {
-            game: this.get("game"),
-            console: this.get("console")
-        };
-    }.bind(this));
-    this.bindKey("alignCommand").toType(AlignCommand);
-
-    this.bindKey("commandMapping").to(function() {
-        return {
-            add: function() {
-                return this.get("addCommand");
-            }.bind(this),
-            attack: function() {
-                return this.get("attackCommand");
-            }.bind(this),
-            list: function() {
-                return this.get("listCommand");
-            }.bind(this),
-            remove: function() {
-                return this.get("destroyCommand");
-            }.bind(this),
-            move: function() {
-                return this.get("moveCommand");
-            }.bind(this),
-            orbit: function() {
-                return this.get("orbitCommand");
-            }.bind(this),
-            select: function() {
-                return this.get("selectCommand");
-            }.bind(this),
-            align: function() {
-                return this.get("alignCommand");
-            }.bind(this)
-        };
-    }.bind(this));
-
-    this.bindKey("console").to(new Console()).withProperties(function() {
-        return {
-            commandMapping: this.get("commandMapping")
-        };
-    }.bind(this));
-
-    this.bindKey("keyMap").to({
-        console: "q",
-        zoomIn: "pageup",
-        zoomOut: "pagedown"
-    });
-
-    this.bindKey("control").to(
-        new Control()
-    );
-}
-
-module.exports = AppModule;
-},{"./collision":6,"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./components/rendercomponent":19,"./components/rigidbody":20,"./components/shipcontroller":21,"./components/weaponcontroller":23,"./console":24,"./control":25,"./entities/laser":28,"./entities/ship":30,"./entities/smokeTrail":31,"./entities/weapon":32,"./entityrunner":34,"./game":35,"./injection/basemodule":36,"./models/shipmodel":41,"extend":52}],2:[function(require,module,exports){
 var THREE = require("THREE");
 
 var Block = function() {
@@ -299,7 +130,7 @@ Block.prototype = {
 }
 
 module.exports = Block;
-},{"THREE":46}],3:[function(require,module,exports){
+},{"THREE":41}],2:[function(require,module,exports){
 var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
 var assert = require("assert");
@@ -504,7 +335,7 @@ BlockChunk.prototype = {
 };
 
 module.exports = BlockChunk;
-},{"./block":2,"./blockcoord":4,"THREE":46,"assert":47,"lodash":55}],4:[function(require,module,exports){
+},{"./block":1,"./blockcoord":3,"THREE":41,"assert":42,"lodash":50}],3:[function(require,module,exports){
 var BlockCoord = function(x, y, z) {
     this.type = "BlockCoord";
     this.x = x || 0;
@@ -529,7 +360,7 @@ BlockCoord.prototype = {
 }
 
 module.exports = BlockCoord;
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var THREE = require("THREE");
 var BlockChunk = require("./blockchunk");
 var BlockCoord = require("./blockcoord");
@@ -852,7 +683,7 @@ BlockModel.prototype = {
 };
 
 module.exports = BlockModel;
-},{"./blockchunk":3,"./blockcoord":4,"CANNON":44,"THREE":46,"lodash":55}],6:[function(require,module,exports){
+},{"./blockchunk":2,"./blockcoord":3,"CANNON":39,"THREE":41,"lodash":50}],5:[function(require,module,exports){
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
@@ -975,7 +806,7 @@ Collision.prototype.update = function() {
 };
 
 module.exports = Collision;
-},{"./entity":33,"./game":35,"THREE":46,"lodash":55}],7:[function(require,module,exports){
+},{"./entity":32,"./game":34,"THREE":41,"lodash":50}],6:[function(require,module,exports){
 var Command = function() {
     this.actor = null;
     this.params = null;
@@ -994,16 +825,17 @@ Command.prototype = {
 }
 
 module.exports = Command;
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
+var Game = require("../game");
 
-var AddCommand = function() {
+var AddCommand = function(objectMapping) {
     Command.call(this);
 
-    this.objectMapping = null;
-    this.game = null;
+    this.objectMapping = objectMapping;
+    this.game = Game.instance;
 }
 
 AddCommand.prototype = Object.create(Command.prototype);
@@ -1034,7 +866,7 @@ AddCommand.prototype.execute = function() {
 };
 
 module.exports = AddCommand;
-},{"../command":7,"THREE":46,"assert":47}],9:[function(require,module,exports){
+},{"../command":6,"../game":34,"THREE":41,"assert":42}],8:[function(require,module,exports){
 var Command = require('../command');
 var THREE = require("THREE");
 
@@ -1063,26 +895,22 @@ AlignCommand.prototype.update = function() {
 };
 
 module.exports = AlignCommand;
-},{"../command":7,"THREE":46}],10:[function(require,module,exports){
+},{"../command":6,"THREE":41}],9:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
-var assert = require("assert");
 
 var AttackCommand = function() {
 	Command.call(this);
 
     this.target = null;
-    this.game = null;
+    this.game = Game.instance;
 }
 
 AttackCommand.prototype = Object.create(Command.prototype);
 AttackCommand.prototype.constructor = AttackCommand;
 
 AttackCommand.prototype.execute = function() {
-    assert(this.game != null, "game cannot be empty");
-	assert(this.actor != null, "actor cannot be empty");
-
     var targetName = this.params[0];
     this.target = this.game.getEntity(targetName);
 
@@ -1090,22 +918,20 @@ AttackCommand.prototype.execute = function() {
 };
 
 module.exports = AttackCommand;
-},{"../command":7,"../game":35,"THREE":46,"assert":47}],11:[function(require,module,exports){
+},{"../command":6,"../game":34,"THREE":41}],10:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
-var assert = require("assert")
+var Game = require("../game");
 
 var DestroyCommand = function() {
 	Command.call(this);
-    this.game = null;
+    this.game = Game.instance;
 }
 
 DestroyCommand.prototype = Object.create(Command.prototype);
 DestroyCommand.prototype.constructor = DestroyCommand;
 
 DestroyCommand.prototype.execute = function() {
-	assert(this.game != null, "game cannot be empty");
-
     var param = this.params == null ? null : this.params[0];
 
     if (param == "all") {
@@ -1127,15 +953,16 @@ DestroyCommand.prototype.execute = function() {
 
 
 module.exports = DestroyCommand;
-},{"../command":7,"assert":47,"lodash":55}],12:[function(require,module,exports){
+},{"../command":6,"../game":34,"lodash":50}],11:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var assert = require("assert");
+var Game = require("../game");
 
 var ListCommand = function() {
     Command.call(this);
 
-    this.game = null;
+    this.game = Game.instance;
 }
 
 ListCommand.prototype = Object.create(Command.prototype);
@@ -1161,7 +988,7 @@ ListCommand.prototype.execute = function() {
 };
 
 module.exports = ListCommand;
-},{"../command":7,"assert":47,"lodash":55}],13:[function(require,module,exports){
+},{"../command":6,"../game":34,"assert":42,"lodash":50}],12:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
@@ -1193,17 +1020,18 @@ MoveCommand.prototype.update = function() {
 };
 
 module.exports = MoveCommand;
-},{"../command":7,"THREE":46,"assert":47}],14:[function(require,module,exports){
+},{"../command":6,"THREE":41,"assert":42}],13:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Entity = require("../entity");
+var Game = require("../game");
 var assert = require("assert");
 
 var OrbitCommand = function() {
     Command.call(this);
 
-    this.game = null;
+    this.game = Game.instance;
     this.target = null;
     this.distance = 0;
 }
@@ -1212,7 +1040,6 @@ OrbitCommand.prototype = Object.create(Command);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
 OrbitCommand.prototype.execute = function() {
-    assert(this.game != null, "game cannot be empty");
     assert(this.actor != null, "target cannot be empty");
 
     var params = this.params || [];
@@ -1283,15 +1110,16 @@ OrbitCommand.prototype.update = function() {
 };
 
 module.exports = OrbitCommand;
-},{"../command":7,"../entity":33,"../mathutils":40,"THREE":46,"assert":47}],15:[function(require,module,exports){
+},{"../command":6,"../entity":32,"../game":34,"../mathutils":35,"THREE":41,"assert":42}],14:[function(require,module,exports){
 var Command = require("../command");
 var Console = require("../console");
+var Game = require("../game");
 
 var SelectCommand = function() {
     Command.call(this);
 
-    this.game = null;
-    this.console = null;
+    this.game = Game.instance;
+    this.console = Console.instance;
 };
 
 SelectCommand.prototype = Object.create(Command.prototype);
@@ -1303,7 +1131,7 @@ SelectCommand.prototype.execute = function() {
 };
 
 module.exports = SelectCommand;
-},{"../command":7,"../console":24}],16:[function(require,module,exports){
+},{"../command":6,"../console":23,"../game":34}],15:[function(require,module,exports){
 var klass = require("klass");
 
 var Component = function(){
@@ -1336,7 +1164,7 @@ Component.prototype = {
 }
 
 module.exports = Component;
-},{"klass":54}],17:[function(require,module,exports){
+},{"klass":49}],16:[function(require,module,exports){
 var RenderComponent = require('./rendercomponent');
 var assert = require("assert");
 
@@ -1356,7 +1184,7 @@ ModelRenderComponent.prototype.initObject = function(){
 }
 
 module.exports = ModelRenderComponent;
-},{"./rendercomponent":19,"assert":47}],18:[function(require,module,exports){
+},{"./rendercomponent":18,"assert":42}],17:[function(require,module,exports){
 var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
@@ -1384,7 +1212,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
 };
 
 module.exports = PointSpriteRenderComponent;
-},{"../textureloader":43,"./rendercomponent":19,"THREE":46}],19:[function(require,module,exports){
+},{"../textureloader":38,"./rendercomponent":18,"THREE":41}],18:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1396,7 +1224,7 @@ var RenderComponent = function() {
     Component.call(this);
     
     this.innerObject = null;
-    this.game = Game.getInstance();
+    this.game = Game.instance;
     this.geometry = null;
     this.material = null;
 };
@@ -1448,7 +1276,7 @@ RenderComponent.prototype.initObject = function(geometry, material) {
 
 module.exports = RenderComponent;
 
-},{"../component":16,"../game":35,"../mathutils":40,"THREE":46,"assert":47,"lodash":55}],20:[function(require,module,exports){
+},{"../component":15,"../game":34,"../mathutils":35,"THREE":41,"assert":42,"lodash":50}],19:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1491,7 +1319,7 @@ RigidBody.prototype.applyFriction = function(friction) {
 };
 
 module.exports = RigidBody;
-},{"../component":16,"THREE":46}],21:[function(require,module,exports){
+},{"../component":15,"THREE":41}],20:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1646,7 +1474,7 @@ ShipController.prototype._bankForYawVelocity = function(yawVelocity) {
 };
 
 module.exports = ShipController;
-},{"../component":16,"../mathutils":40,"THREE":46,"lodash":55}],22:[function(require,module,exports){
+},{"../component":15,"../mathutils":35,"THREE":41,"lodash":50}],21:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 
@@ -1664,7 +1492,7 @@ TransformComponent.prototype.constructor = TransformComponent;
 
 module.exports = TransformComponent;
 
-},{"../component":16,"THREE":46}],23:[function(require,module,exports){
+},{"../component":15,"THREE":41}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
 var Game = require("../game");
@@ -1700,7 +1528,9 @@ WeaponController.prototype.update = function() {
 };
 
 module.exports = WeaponController;
-},{"../component":16,"../game":35,"THREE":46}],24:[function(require,module,exports){
+},{"../component":15,"../game":34,"THREE":41}],23:[function(require,module,exports){
+var Mousetrap = require("Mousetrap");
+
 var Console = function() {
     this.commandMapping = null;
 
@@ -1708,6 +1538,12 @@ var Console = function() {
     this.displayResult = false;
     this.lastCommand = null;
     this.selectedEntity = null;
+
+    if(Console.instance != null){
+        throw "cannot create two console instances";
+    }
+
+    Console.instance = this;
 }
 
 Console.prototype = {
@@ -1735,6 +1571,10 @@ Console.prototype = {
         this.input.keyup(function(e) {
             this.onKeyUp(e);
         }.bind(this));
+
+        Mousetrap.bind('`', function() {
+            this.focus();
+        }.bind(this), 'keyup');
     },
 
     getCommand: function(inputValue) {
@@ -1745,6 +1585,7 @@ Console.prototype = {
         if (this.commandMapping[commandName] == null) {
             throw commandName + " is not a valid command";
         }
+
 
         var command = this.commandMapping[commandName]();
         params.splice(0, 1);
@@ -1781,7 +1622,7 @@ Console.prototype = {
 };
 
 module.exports = Console;
-},{}],25:[function(require,module,exports){
+},{"Mousetrap":40}],24:[function(require,module,exports){
 var Control = function() {
     this.mouseX = null;
     this.mouseY = null;
@@ -1823,14 +1664,12 @@ Control.prototype.hookContainer = function(container) {
 };
 
 module.exports = Control;
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var PointSprite = require("./entities/pointsprite");
-var injector = require("./injection/injection").defaultInjector;
+var Game = require("./game");
 
 var Debug = function(){
-	var getGame = function(){
-		return injector.get("game");
-	};
+	var game = Game.instance;
 
 	return {
 		addIndicator: function(point, duration){
@@ -1851,7 +1690,7 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/pointsprite":29,"./injection/injection":38}],27:[function(require,module,exports){
+},{"./entities/pointsprite":28,"./game":34}],26:[function(require,module,exports){
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
@@ -1893,7 +1732,7 @@ Ammo.prototype.createInstance = function() {
 };
 
 module.exports = Ammo;
-},{"../entity.js":33,"THREE":46}],28:[function(require,module,exports){
+},{"../entity.js":32,"THREE":41}],27:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
@@ -1909,7 +1748,7 @@ var Laser = function() {
     });
 
     this.velocity = null;
-    this.game = Game.getInstance();
+    this.game = Game.instance;
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
@@ -2003,7 +1842,7 @@ Laser.prototype.onCollision = function(entity) {
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":20,"../game":35,"./ammo":27,"./pointsprite":29,"THREE":46,"assert":47}],29:[function(require,module,exports){
+},{"../components/rigidbody":19,"../game":34,"./ammo":26,"./pointsprite":28,"THREE":41,"assert":42}],28:[function(require,module,exports){
 var Entity = require("../entity");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
@@ -2085,21 +1924,24 @@ PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc) {
 }
 
 module.exports = PointSprite;
-},{"../components/pointspriterendercomponent":18,"../components/rigidbody":20,"../entity":33,"assert":47}],30:[function(require,module,exports){
+},{"../components/pointspriterendercomponent":17,"../components/rigidbody":19,"../entity":32,"assert":42}],29:[function(require,module,exports){
 var Entity = require("../entity");
-var assert = require("assert");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
 var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
+var ShipController = require("../components/shipcontroller");
+var WeaponController = require("../components/weaponcontroller");
+var RigidBody = require("../components/rigidbody");
+var SmokeTrail = require("../entities/smoketrail");
 
 var Ship = function() {
     Entity.call(this);
 
-    this.shipController = null;
-    this.rigidBody = null;
-    this.weaponController = null;
+    this.shipController = new ShipController();
+    this.rigidBody = new RigidBody();
+    this.weaponController = new WeaponController();
 
     //weapons
     var laser = new Laser();
@@ -2111,7 +1953,7 @@ var Ship = function() {
 
     this.model = new ShipModel();
     this.renderComponent = new ModelRenderComponent(this.model);
-    this.smokeTrail = null;
+    this.smokeTrail = new SmokeTrail();
     this.destroyable = true;
     
     this.collisionBody = {
@@ -2129,13 +1971,6 @@ Ship.prototype.constructor = Ship;
 Ship.prototype.start = function() {
     Ship.id++;
 
-    assert(this.shipController != null, "shipController cannot be empty");
-    assert(this.rigidBody != null, "rigidBody cannot be empty");
-    assert(this.weaponController != null, "weaponController cannot be empty");
-    assert(this.weapons != null, "weapons cannot be empty");
-    assert(this.smokeTrail != null, "smokeTrail cannot be empty");
-    assert(this.renderComponent != null, "renderComponent cannot be empty");
-
     this.addComponent(this.renderComponent);
     this.addComponent(this.rigidBody);
     this.addComponent(this.shipController);
@@ -2145,8 +1980,8 @@ Ship.prototype.start = function() {
         this.addEntity(weapon);
     }.bind(this));
 
-    this.smokeTrail.ship = this;
-    this.addEntity(this.smokeTrail);
+    // this.smokeTrail.ship = this;
+    // this.addEntity(this.smokeTrail);
 };
 
 Ship.prototype.update = function() {
@@ -2163,7 +1998,7 @@ Ship.prototype.onCollision = function(entity, hitTest){
 }
 
 module.exports = Ship;
-},{"../components/modelrendercomponent":17,"../entity":33,"../models/shipmodel":41,"./ammo":27,"./laser":28,"./weapon":32,"assert":47}],31:[function(require,module,exports){
+},{"../components/modelrendercomponent":16,"../components/rigidbody":19,"../components/shipcontroller":20,"../components/weaponcontroller":22,"../entities/smoketrail":30,"../entity":32,"../models/shipmodel":36,"./ammo":26,"./laser":27,"./weapon":31}],30:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2217,7 +2052,7 @@ SmokeTrail.prototype.update = function() {
 };
 
 module.exports = SmokeTrail;
-},{"../debug":26,"../entity":33,"../mathutils":40,"./pointsprite":29,"THREE":46}],32:[function(require,module,exports){
+},{"../debug":25,"../entity":32,"../mathutils":35,"./pointsprite":28,"THREE":41}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -2238,7 +2073,7 @@ var Weapon = function(params) {
     this.ammo = params.ammo;
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
-    this.game = Game.getInstance();
+    this.game = Game.instance;
 
     this.cooldown = this.fireInterval;
 }
@@ -2280,7 +2115,7 @@ Weapon.prototype.fireIfReady = function(target) {
 };
 
 module.exports = Weapon;
-},{"../entity":33,"../game":35,"THREE":46,"assert":47,"extend":52}],33:[function(require,module,exports){
+},{"../entity":32,"../game":34,"THREE":41,"assert":42,"extend":47}],32:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
@@ -2394,7 +2229,7 @@ Entity.prototype = {
 }
 
 module.exports = Entity;
-},{"./components/transformcomponent":22,"./mathutils":40,"THREE":46,"lodash":55}],34:[function(require,module,exports){
+},{"./components/transformcomponent":21,"./mathutils":35,"THREE":41,"lodash":50}],33:[function(require,module,exports){
 var _ = require("lodash");
 
 var EntityRunner = function() {
@@ -2464,46 +2299,40 @@ EntityRunner.prototype = {
 
 module.exports = EntityRunner;
 
-},{"lodash":55}],35:[function(require,module,exports){
+},{"lodash":50}],34:[function(require,module,exports){
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
-var Collision = require("./collision");
 var MathUtils = require("./mathutils");
 var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
-var assert = require("assert");
-var Mousetrap = require("Mousetrap");
 var CANNON = require("CANNON");
+var Collision = require("./collision");
 
 var Game = function() {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.control = null;
+    this.control = new Control();
     this.target = new THREE.Vector3();
-    //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
     this.distance = 800.0;
     this.frameRate = 60.0;
     this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
-    this.console = null;
 
-    this.entityRunner = null;
+    this.entityRunner = new EntityRunner();
     this.keyMap = null;
-    this.collision = null;
+    this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
-}
 
-Game.getInstance = function() {
-    if (Game.instance == null) {
-        Game.instance = new Game();
+    if(Game.instance != null){
+        throw "cannot create two game instances";
     }
 
-    return Game.instance;
+    Game.instance = this;
 }
 
 Game.prototype = {
@@ -2560,18 +2389,6 @@ Game.prototype = {
         this.scene.add(this.camera);
 
         THREEx.WindowResize(this.renderer, this.camera);
-
-        // var directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        // directionalLight.position.set(1, 1, 1).normalize();
-
-        // var ambientLight = new THREE.AmbientLight(new THREE.Color(0.8, 0.8, 0.8).getHex());
-
-        // this.scene.add(directionalLight);
-        // this.scene.add(ambientLight);
-
-        Mousetrap.bind('`', function() {
-            this.console.focus();
-        }.bind(this), 'keyup');
     },
 
     zoomIn: function() {
@@ -2633,10 +2450,6 @@ Game.prototype = {
     },
 
     initialize: function(container) {
-        assert(this.control != null, "control cannot be empty");
-        assert(this.entityRunner != null, "entityRunner cannot be empty");
-        assert(this.collision != null, "collision cannot be empty");
-
         this.container = container;
         this.initScene();
         this.initControl();
@@ -2703,166 +2516,7 @@ Game.prototype = {
 }
 
 module.exports = Game;
-},{"./collision":6,"./console":24,"./control":25,"./entityrunner":34,"./mathutils":40,"CANNON":44,"Mousetrap":45,"THREE":46,"assert":47,"lodash":55}],36:[function(require,module,exports){
-var _ = require("lodash");
-var extend = require("extend");
-var Bindable = require("./bindable");
-
-var BaseModule = function() {
-    this.bindings = [];
-    this.subModules = [];
-};
-
-BaseModule.prototype = {
-    constructor: BaseModule,
-
-    load: function() {
-        throw "must override";
-    },
-
-    bindKey: function(key) {
-        var binding = new Bindable(key);
-        this.bindings.push(binding);
-        return binding;
-    },
-
-    getBindings: function(key, tag) {
-        return _.filter(this.bindings, function(binding) {
-            return (binding.key == key) && (tag == null || binding.tag == tag);
-        });
-    },
-
-    get: function(key, tag) {
-        var bindings = this.getBindings(key, tag);
-        this.subModules.forEach(function(subModule){
-        	bindings = bindings.concat(subModule.getBindings);
-        }.bind(this));
-
-        if (bindings.length == 0) {
-            var desc = (key + " " + (tag || "")).trim();
-            throw "no bindings found for " + desc;
-        }
-
-        return bindings[0].get();
-    }
-};
-
-module.exports = BaseModule;
-},{"./bindable":37,"extend":52,"lodash":55}],37:[function(require,module,exports){
-var _ = require("lodash");
-
-var Bindable = function(key) {
-    var instance = null;
-    var properties = null;
-
-    var getInstance = function(instanceOrFunc) {
-        if (_.isFunction(instanceOrFunc)) {
-            return instanceOrFunc();
-        }
-
-        return instanceOrFunc;
-    };
-
-    return {
-        key: key,
-        tag: null,
-
-        to: function(instanceValue) {
-            instance = instanceValue;
-            return this;
-        },
-
-        toType: function(type){
-        	instance = function(){
-        		return new type();
-        	}
-        	return this;
-        },
-
-        withTag: function(tag) {
-            this.tag = tag;
-            return this;
-        },
-
-        withProperties: function(propertiesValue) {
-            properties = propertiesValue;
-            return this;
-        },
-
-        get: function() {
-            var object = getInstance(instance);
-
-            if (object == null) {
-                throw "failed to initialize object";
-            }
-
-            var propertiesInstance = getInstance(properties);
-            if (propertiesInstance != null) {
-                for (var property in propertiesInstance) {
-                    if (propertiesInstance.hasOwnProperty(property)) {
-                        if (!object.hasOwnProperty(property)) {
-                            throw "attempt to inject " + property + " to " + object;
-                        }
-                    }
-
-                    object[property] = propertiesInstance[property];
-                }
-            }
-
-            return object;
-        }
-    }
-}
-
-module.exports = Bindable;
-},{"lodash":55}],38:[function(require,module,exports){
-var Injector = require("./injector");
-var BaseModule = require("./basemodule");
-
-var Injection = {
-	Injector: Injector,
-	BaseModule: BaseModule,
-	defaultInjector: new Injector()
-}
-
-module.exports = Injection;
-},{"./basemodule":36,"./injector":39}],39:[function(require,module,exports){
-var BaseModule = require("./basemodule");
-
-var Injector = function() {
-    this.module = null;
-
-    return {
-        loadModule: function(mod) {
-            if(!mod instanceof BaseModule){
-                throw "attempt to load non module object";
-            }
-
-        	this.module = mod;
-        	this.module.load();
-        },
-
-        get: function(key, tag) {
-            if(this.module == null){
-                throw "no modules loaded";
-            }
-
-            var desc = key + ((tag != null) ? (" " + tag) : "");
-
-        	var object = this.module.get(key, tag);
-
-        	if(object == null){
-        		throw "failed to get " + desc;
-        	}
-
-        	return object;
-        }
-    }
-};
-
-module.exports = Injector;
-
-},{"./basemodule":36}],40:[function(require,module,exports){
+},{"./collision":5,"./console":23,"./control":24,"./entityrunner":33,"./mathutils":35,"CANNON":39,"THREE":41,"lodash":50}],35:[function(require,module,exports){
 var THREE = require('THREE');
 
 var MathUtils = (function(){
@@ -2952,7 +2606,7 @@ var MathUtils = (function(){
 })();
 
 module.exports = MathUtils;
-},{"THREE":46}],41:[function(require,module,exports){
+},{"THREE":41}],36:[function(require,module,exports){
 var BlockModel = require("../blockengine/blockmodel");
 var Block = require("../blockengine/block");
 var BlockCoord = require("../blockengine/blockcoord");
@@ -3009,7 +2663,7 @@ ShipModel.prototype.addWeapon = function(startX, startY, startZ) {
 }
 
 module.exports = ShipModel;
-},{"../blockengine/block":2,"../blockengine/blockcoord":4,"../blockengine/blockmodel":5,"../testblock":42,"THREE":46}],42:[function(require,module,exports){
+},{"../blockengine/block":1,"../blockengine/blockcoord":3,"../blockengine/blockmodel":4,"../testblock":37,"THREE":41}],37:[function(require,module,exports){
 var Block = require("./blockengine/block");
 var THREE = require("THREE");
 
@@ -3045,7 +2699,7 @@ TestBlock.prototype.getStandardVertice = function(index) {
 };
 
 module.exports = TestBlock;
-},{"./blockengine/block":2,"THREE":46}],43:[function(require,module,exports){
+},{"./blockengine/block":1,"THREE":41}],38:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -3070,7 +2724,7 @@ var TextureLoader = function(){
 }();
 
 module.exports = TextureLoader;
-},{"THREE":46}],44:[function(require,module,exports){
+},{"THREE":41}],39:[function(require,module,exports){
 (function (global){
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -16760,7 +16414,7 @@ World.prototype.clearForces = function(){
 (2)
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],45:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2015 Craig Campbell
@@ -17783,7 +17437,7 @@ World.prototype.clearForces = function(){
     }
 }) (window, document);
 
-},{}],46:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -52931,7 +52585,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],47:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -53292,7 +52946,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":51}],48:[function(require,module,exports){
+},{"util/":46}],43:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -53317,7 +52971,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],49:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -53409,14 +53063,14 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],50:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],51:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -54006,7 +53660,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":50,"_process":49,"inherits":48}],52:[function(require,module,exports){
+},{"./support/isBuffer":45,"_process":44,"inherits":43}],47:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var undefined;
@@ -54097,7 +53751,7 @@ module.exports = function extend() {
 };
 
 
-},{}],53:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -63309,7 +62963,7 @@ return jQuery;
 
 }));
 
-},{}],54:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /*!
   * klass: a classical JS OOP façade
   * https://github.com/ded/klass
@@ -63402,7 +63056,7 @@ return jQuery;
   return klass
 });
 
-},{}],55:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -75638,21 +75292,59 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],56:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 var $ = require('jquery');
-var injector = require("./injection/injection").defaultInjector;
-var AppModule = require('./appmodule');
-var appModule = new AppModule();
-
-injector.loadModule(appModule);
+var AddCommand = require("./commands/addcommand");
+var AttackCommand = require("./commands/attackcommand");
+var ListCommand = require("./commands/listcommand");
+var DestroyCommand = require("./commands/destroycommand");
+var MoveCommand = require("./commands/movecommand");
+var OrbitCommand = require("./commands/orbitcommand");
+var SelectCommand = require("./commands/selectcommand");
+var AlignCommand = require("./commands/aligncommand");
+var Game = require("./game");
+var Ship = require("./entities/ship");
+var Console = require("./console");
 
 var container = $('#container');
 var input = $('#console_text');
-var game = injector.get("game");
+var game = new Game();
+
 game.initialize(container);
 
-var console = injector.get("console");
+var console = new Console();
+
 console.hookInput(input);
+console.commandMapping = {
+    add: function() {
+        return new AddCommand({
+            ship: function() {
+                return new Ship();
+            }
+        });
+    },
+    attack: function() {
+        return new AttackCommand();
+    },
+    list: function() {
+        return new ListCommand();
+    },
+    remove: function() {
+        return new DestroyCommand();
+    },
+    move: function() {
+        return new MoveCommand();
+    },
+    orbit: function() {
+        return new OrbitCommand();
+    },
+    select: function() {
+        return new SelectCommand();
+    },
+    align: function() {
+        return new AlignCommand();
+    }
+};
 
 console.runScenario(
     [
@@ -75687,4 +75379,4 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 game.stats = stats;
-},{"./appmodule":1,"./injection/injection":38,"jquery":53}]},{},[56]);
+},{"./commands/addcommand":7,"./commands/aligncommand":8,"./commands/attackcommand":9,"./commands/destroycommand":10,"./commands/listcommand":11,"./commands/movecommand":12,"./commands/orbitcommand":13,"./commands/selectcommand":14,"./console":23,"./entities/ship":29,"./game":34,"jquery":48}]},{},[51]);

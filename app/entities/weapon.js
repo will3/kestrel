@@ -18,7 +18,7 @@ var Weapon = function(params) {
     this.ammo = params.ammo;
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
-    this.game = Game.getInstance();
+    this.game = Game.instance;
 
     this.cooldown = this.fireInterval;
 }

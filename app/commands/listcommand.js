@@ -1,11 +1,12 @@
 var Command = require("../command");
 var _ = require("lodash");
 var assert = require("assert");
+var Game = require("../game");
 
 var ListCommand = function() {
     Command.call(this);
 
-    this.game = null;
+    this.game = Game.instance;
 }
 
 ListCommand.prototype = Object.create(Command.prototype);

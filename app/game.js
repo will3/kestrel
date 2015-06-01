@@ -1,42 +1,36 @@
 var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
-var Collision = require("./collision");
 var MathUtils = require("./mathutils");
 var Control = require("./control");
 var _ = require("lodash");
 var Console = require("./console");
-var assert = require("assert");
-var Mousetrap = require("Mousetrap");
 var CANNON = require("CANNON");
+var Collision = require("./collision");
 
 var Game = function() {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.control = null;
+    this.control = new Control();
     this.target = new THREE.Vector3();
-    //yaw pitch roll
     this.cameraRotation = new THREE.Vector3();
     this.distance = 800.0;
     this.frameRate = 60.0;
     this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
-    this.console = null;
 
-    this.entityRunner = null;
+    this.entityRunner = new EntityRunner();
     this.keyMap = null;
-    this.collision = null;
+    this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
-}
 
-Game.getInstance = function() {
-    if (Game.instance == null) {
-        Game.instance = new Game();
+    if(Game.instance != null){
+        throw "cannot create two game instances";
     }
 
-    return Game.instance;
+    Game.instance = this;
 }
 
 Game.prototype = {
@@ -93,18 +87,6 @@ Game.prototype = {
         this.scene.add(this.camera);
 
         THREEx.WindowResize(this.renderer, this.camera);
-
-        // var directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        // directionalLight.position.set(1, 1, 1).normalize();
-
-        // var ambientLight = new THREE.AmbientLight(new THREE.Color(0.8, 0.8, 0.8).getHex());
-
-        // this.scene.add(directionalLight);
-        // this.scene.add(ambientLight);
-
-        Mousetrap.bind('`', function() {
-            this.console.focus();
-        }.bind(this), 'keyup');
     },
 
     zoomIn: function() {
@@ -166,10 +148,6 @@ Game.prototype = {
     },
 
     initialize: function(container) {
-        assert(this.control != null, "control cannot be empty");
-        assert(this.entityRunner != null, "entityRunner cannot be empty");
-        assert(this.collision != null, "collision cannot be empty");
-
         this.container = container;
         this.initScene();
         this.initControl();

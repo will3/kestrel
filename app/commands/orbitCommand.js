@@ -2,12 +2,13 @@ var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var Entity = require("../entity");
+var Game = require("../game");
 var assert = require("assert");
 
 var OrbitCommand = function() {
     Command.call(this);
 
-    this.game = null;
+    this.game = Game.instance;
     this.target = null;
     this.distance = 0;
 }
@@ -16,7 +17,6 @@ OrbitCommand.prototype = Object.create(Command);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
 OrbitCommand.prototype.execute = function() {
-    assert(this.game != null, "game cannot be empty");
     assert(this.actor != null, "target cannot be empty");
 
     var params = this.params || [];
