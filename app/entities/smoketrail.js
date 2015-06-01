@@ -3,13 +3,13 @@ var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
 var THREE = require("THREE");
+var Game = require("../game");
 
 var SmokeTrail = function() {
 	Entity.call(this);
 	
     this.amount = 0;
-    this.ship = null;
-    this.game = null;
+    this.game = Game.getInstance();
 }
 
 SmokeTrail.prototype = Object.create(Entity.prototype);
@@ -17,21 +17,18 @@ SmokeTrail.prototype.constructor = SmokeTrail;
 
 SmokeTrail.prototype.createSprite = function(velocity, size, life) {
     var pointsprite = new PointSprite();
-    pointsprite.setSize(size);
-    pointsprite.setLife(life);
+    pointsprite.size = size;
+    pointsprite.life = life;
     pointsprite.sizeOverTime(function(time) {
         return size - time * (size / life);
     });
-    pointsprite.setVelocity(velocity);
+    pointsprite.velocity = velocity;
 
     return pointsprite;
 };
 
-SmokeTrail.prototype.emit = function(position, offset, speed, size, life) {
-    var rotation = this.ship.rotation;
-    var rotationMatrix = MathUtils.getRotationMatrix(rotation.x, rotation.y, rotation.z);
-    offset.applyMatrix4(rotationMatrix);
-    this.game.addEntity(createSprite(speed, size, life), position.add(offset));
+SmokeTrail.prototype.emit = function(position, speed, size, life) {
+    this.game.addEntity(this.createSprite(speed, size, life), position);
 };
 
 SmokeTrail.prototype.start = function() {
@@ -43,11 +40,8 @@ SmokeTrail.prototype.update = function() {
         return;
     }
 
-    var rotation = ship.rotation;
-    var vector = MathUtils.getUnitVector(this.rotation.x, this.rotation.y, this.rotation.z);
-    vector.setLength(-1);
-
-    emit(this.getWorldPosition(), ship.getHull().getEngineEmissionPoint(), vector, 3, 8);
+    //todo
+    // this.emit(this.getWorldPosition(), new THREE.Vector3(0,1,0), 5, 8);
 };
 
 module.exports = SmokeTrail;

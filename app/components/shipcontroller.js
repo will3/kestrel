@@ -56,7 +56,9 @@ var ShipController = function() {
     //yaw
     this.yawForce = 0.015;
     this.command = null;
-    this.engineAmount = 0.0;
+    this.engineEmission = 0.0;
+
+    this.engines = null;
 };
 
 ShipController.prototype = Object.create(Component.prototype);
@@ -95,7 +97,8 @@ ShipController.prototype.update = function() {
 };
 
 ShipController.prototype.accelerate = function(amount) {
-    this.engineAmount = amount;
+    this.engineEmission = amount;
+    
     var rotation = this.transform.rotation;
     var vector = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
     vector.multiplyScalar(amount * this.force);
