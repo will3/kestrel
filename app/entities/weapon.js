@@ -1,7 +1,6 @@
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
-var Game = require("../game");
 var assert = require("assert");
 
 //params
@@ -18,7 +17,6 @@ var Weapon = function(params) {
     this.ammo = params.ammo;
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
-    this.game = Game.getInstance();
 
     this.cooldown = this.fireInterval;
 }
@@ -39,7 +37,7 @@ Weapon.prototype.shoot = function(target) {
     ammoInstance.target = target;
     ammoInstance.position = this.actor.getWorldPosition();
 
-    this.game.addEntity(ammoInstance);
+    this.root.addEntity(ammoInstance);
 };
 
 Weapon.prototype.start = function() {

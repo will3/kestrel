@@ -25,11 +25,12 @@ var Game = function() {
     this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
+    this.position = new THREE.Vector3(0, 0, 0);
 }
 
 Game._instance = null;
-Game.getInstance = function(){
-    if(Game._instance == null){
+Game.getInstance = function() {
+    if (Game._instance == null) {
         Game._instance = new Game();
     }
     return Game._instance;
@@ -163,11 +164,13 @@ Game.prototype = {
             entity.position = position;
         }
 
+        entity.parent = this;
         this.entityRunner.addEntity(entity);
     },
 
     removeEntity: function(entity) {
         entity.destroy();
+        entity.parent = null;
         this.entityRunner.removeEntity(entity);
     },
 

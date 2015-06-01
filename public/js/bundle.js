@@ -1755,7 +1755,6 @@ var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
-var Game = require("../game");
 
 var Laser = function() {
     Ammo.call(this);
@@ -1765,7 +1764,6 @@ var Laser = function() {
     });
 
     this.velocity = null;
-    this.game = Game.getInstance();
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
@@ -1855,11 +1853,11 @@ Laser.prototype.onCollision = function(entity) {
         return;
     }
 
-    this.game.removeEntity(this);
+    this.parent.removeEntity(this);
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":19,"../game":35,"./ammo":26,"./pointsprite":29,"THREE":42,"assert":43}],29:[function(require,module,exports){
+},{"../components/rigidbody":19,"./ammo":26,"./pointsprite":29,"THREE":42,"assert":43}],29:[function(require,module,exports){
 var Entity = require("../entity");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
@@ -2031,13 +2029,11 @@ var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
 var THREE = require("THREE");
-var Game = require("../game");
 
 var SmokeTrail = function() {
 	Entity.call(this);
 	
     this.amount = 0;
-    this.game = Game.getInstance();
 }
 
 SmokeTrail.prototype = Object.create(Entity.prototype);
@@ -2056,7 +2052,7 @@ SmokeTrail.prototype.createSprite = function(velocity, size, life) {
 };
 
 SmokeTrail.prototype.emit = function(position, speed, size, life) {
-    this.game.addEntity(this.createSprite(speed, size, life), position);
+    this.root.addEntity(this.createSprite(speed, size, life), position);
 };
 
 SmokeTrail.prototype.start = function() {
@@ -2073,11 +2069,10 @@ SmokeTrail.prototype.update = function() {
 };
 
 module.exports = SmokeTrail;
-},{"../debug":25,"../entity":33,"../game":35,"../mathutils":36,"./pointsprite":29,"THREE":42}],32:[function(require,module,exports){
+},{"../debug":25,"../entity":33,"../mathutils":36,"./pointsprite":29,"THREE":42}],32:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
-var Game = require("../game");
 var assert = require("assert");
 
 //params
@@ -2094,7 +2089,6 @@ var Weapon = function(params) {
     this.ammo = params.ammo;
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
-    this.game = Game.getInstance();
 
     this.cooldown = this.fireInterval;
 }
@@ -2115,7 +2109,7 @@ Weapon.prototype.shoot = function(target) {
     ammoInstance.target = target;
     ammoInstance.position = this.actor.getWorldPosition();
 
-    this.game.addEntity(ammoInstance);
+    this.root.addEntity(ammoInstance);
 };
 
 Weapon.prototype.start = function() {
@@ -2136,117 +2130,130 @@ Weapon.prototype.fireIfReady = function(target) {
 };
 
 module.exports = Weapon;
-},{"../entity":33,"../game":35,"THREE":42,"assert":43,"extend":48}],33:[function(require,module,exports){
+},{"../entity":33,"THREE":42,"assert":43,"extend":48}],33:[function(require,module,exports){
 var TransformComponent = require("./components/transformcomponent");
 var THREE = require("THREE");
 var _ = require("lodash");
 var MathUtils = require("./mathutils");
 
-var Entity = function(){
-	this.name = null;
-	this.transform = new TransformComponent();
-	this.components = [];
-	this.childEntities = [];
-	this.frameAge = 0;
-	this.parentEntity = null;
-	this.started = false;
-	this.life = null;
-	this.destroyable = false;
-	this.collisionBody = null;
-	this.collisionFilter = null;
+var Entity = function() {
+    this.name = null;
+    this.transform = new TransformComponent();
+    this.components = [];
+    this.childEntities = [];
+    this.frameAge = 0;
+    this.parent = null;
+    this.started = false;
+    this.life = null;
+    this.destroyable = false;
+    this.collisionBody = null;
+    this.collisionFilter = null;
 };
 
 Entity.prototype = {
-	constructor: Entity,
+    constructor: Entity,
 
-	setCollisionRadius: function(radius){
-		this.collisionBody = {
-			getPosition: function(){
-				return this.position
-			}.bind(this),
+    setCollisionRadius: function(radius) {
+        this.collisionBody = {
+            getPosition: function() {
+                return this.position
+            }.bind(this),
 
-			type: 'sphere',
-			radius: radius
-		};
-	},
+            type: 'sphere',
+            radius: radius
+        };
+    },
 
-	addEntity: function(entity){
-		if(entity.parentEntity != null){
-			throw "entity already has a parent entity";
-		}
+    addEntity: function(entity) {
+        if (entity.parent != null) {
+            throw "entity already has a parent entity";
+        }
 
-		entity.parentEntity = this;
-		this.childEntities.push(entity);
-	},
+        entity.parent = this;
+        this.childEntities.push(entity);
+    },
 
-	removeEntity: function(entity){
-		entity.destroy();
-		_.pull(this.childEntities, entity);
-	},
+    removeEntity: function(entity) {
+        entity.destroy();
+        _.pull(this.childEntities, entity);
+    },
 
-	addComponent: function(component){
-		component.entity = this;
-		this.components.push(component);
-	},
+    addComponent: function(component) {
+        component.entity = this;
+        this.components.push(component);
+    },
 
-	removeComponent: function(component){
-		component.destroy();
-		_.pull(this.components, component);
-	},
+    removeComponent: function(component) {
+        component.destroy();
+        _.pull(this.components, component);
+    },
 
-	start: function(){
-		//override to provide behaviour
-	},
+    start: function() {
+        //override to provide behaviour
+    },
 
-	update: function(){
-		//override to provide behaviour
-	},
+    update: function() {
+        //override to provide behaviour
+    },
 
-	destroy: function(){
-		this.components.forEach(function(component){
-			component.destroy();
-		});
+    destroy: function() {
+        this.components.forEach(function(component) {
+            component.destroy();
+        });
 
-		this.childEntities.forEach(function(childEntity){
-			childEntity.destroy();
-		});
-	},
+        this.childEntities.forEach(function(childEntity) {
+            childEntity.destroy();
+        });
+    },
 
-	get position(){
-		return this.transform.position;
-	},
+    get position() {
+        return this.transform.position;
+    },
 
-	set position(value){
-		this.transform.position = value; 
-	},
+    set position(value) {
+        this.transform.position = value;
+    },
 
-	get scale(){
-		return this.transform.scale;
-	},
+    get scale() {
+        return this.transform.scale;
+    },
 
-	set scale(scale){
-		this.transform.scale = scale;
-	},
+    set scale(scale) {
+        this.transform.scale = scale;
+    },
 
-	get rotation(){
-		return this.transform.rotation;
-	},
-	
-	set rotation(rotation){
-		this.transform.rotation = rotation;
-	},
+    get rotation() {
+        return this.transform.rotation;
+    },
 
-	getWorldPosition: function(){
-		var entity = this;
-		var position = new THREE.Vector3(0, 0, 0);
-		
-		do{
-			position.add(entity.position);
-			entity = entity.parentEntity;
-		}while(entity != null);
+    set rotation(rotation) {
+        this.transform.rotation = rotation;
+    },
 
-		return position;
-	}
+    get root() {
+    	if(this.parent == null){
+    		return null;
+    	}
+
+        var entity = this;
+        while (entity.parent != null) {
+            entity = entity.parent;
+        }
+
+        return entity;
+    },
+
+    getWorldPosition: function() {
+        var entity = this;
+        var position = new THREE.Vector3(0, 0, 0);
+
+        do {
+            position.add(entity.position);
+            entity = entity.parent;
+        } while (entity != null);
+
+        return position;
+    }
 }
 
 module.exports = Entity;
@@ -2348,11 +2355,12 @@ var Game = function() {
     this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
+    this.position = new THREE.Vector3(0, 0, 0);
 }
 
 Game._instance = null;
-Game.getInstance = function(){
-    if(Game._instance == null){
+Game.getInstance = function() {
+    if (Game._instance == null) {
         Game._instance = new Game();
     }
     return Game._instance;
@@ -2486,11 +2494,13 @@ Game.prototype = {
             entity.position = position;
         }
 
+        entity.parent = this;
         this.entityRunner.addEntity(entity);
     },
 
     removeEntity: function(entity) {
         entity.destroy();
+        entity.parent = null;
         this.entityRunner.removeEntity(entity);
     },
 

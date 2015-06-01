@@ -3,13 +3,11 @@ var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
 var MathUtils = require("../mathutils");
 var THREE = require("THREE");
-var Game = require("../game");
 
 var SmokeTrail = function() {
 	Entity.call(this);
 	
     this.amount = 0;
-    this.game = Game.getInstance();
 }
 
 SmokeTrail.prototype = Object.create(Entity.prototype);
@@ -28,7 +26,7 @@ SmokeTrail.prototype.createSprite = function(velocity, size, life) {
 };
 
 SmokeTrail.prototype.emit = function(position, speed, size, life) {
-    this.game.addEntity(this.createSprite(speed, size, life), position);
+    this.root.addEntity(this.createSprite(speed, size, life), position);
 };
 
 SmokeTrail.prototype.start = function() {
