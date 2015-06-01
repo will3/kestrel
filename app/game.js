@@ -27,6 +27,7 @@ var Game = function() {
     this.container = null;
     this.world = new CANNON.World();
     this.position = new THREE.Vector3(0, 0, 0);
+    this.rotationMatrix = new THREE.Matrix4();
 }
 
 Game._instance = null;

@@ -1372,9 +1372,10 @@ var ShipController = function() {
     //yaw
     this.yawForce = 0.015;
     this.command = null;
-    this.engineEmission = 0.0;
 
     this.engines = null;
+
+    this.accelerateAmount = 0;
 };
 
 ShipController.prototype = Object.create(Component.prototype);
@@ -1413,8 +1414,7 @@ ShipController.prototype.update = function() {
 };
 
 ShipController.prototype.accelerate = function(amount) {
-    this.engineEmission = amount;
-
+    this.accelerateAmount = amount;
     var rotation = this.transform.rotation;
     var vector = MathUtils.getUnitVector(this.transform.rotation);
     vector.multiplyScalar(amount * this.force);
@@ -2006,9 +2006,9 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    if (this.shipController.engineEmission > 0) {
+    if (this.shipController.accelerateAmount > 0) {
         this.engines.forEach(function(engine) {
-            engine.emission = this.shipController.engineEmission;
+            engine.emission = this.shipController.accelerateAmount;
         }.bind(this));
     }
 };
@@ -2031,8 +2031,8 @@ var MathUtils = require("../mathutils");
 var THREE = require("THREE");
 
 var SmokeTrail = function() {
-	Entity.call(this);
-	
+    Entity.call(this);
+
     this.amount = 0;
 }
 
@@ -2051,12 +2051,12 @@ SmokeTrail.prototype.createSprite = function(velocity, size, life) {
     return pointsprite;
 };
 
-SmokeTrail.prototype.emit = function(position, speed, size, life) {
-    this.root.addEntity(this.createSprite(speed, size, life), position);
+SmokeTrail.prototype.emit = function(position, velocity, size, life) {
+    this.root.addEntity(this.createSprite(velocity, size, life), position);
 };
 
 SmokeTrail.prototype.start = function() {
-    
+
 };
 
 SmokeTrail.prototype.update = function() {
@@ -2064,8 +2064,10 @@ SmokeTrail.prototype.update = function() {
         return;
     }
 
-    //todo
-    // this.emit(this.getWorldPosition(), new THREE.Vector3(0,1,0), 5, 8);
+    var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
+    velocity.setLength(1);
+    
+    this.emit(this.getWorldPosition(), velocity, 5, 20);
 };
 
 module.exports = SmokeTrail;
@@ -2146,6 +2148,7 @@ var Entity = function() {
     this.started = false;
     this.life = null;
     this.destroyable = false;
+
     this.collisionBody = null;
     this.collisionFilter = null;
 };
@@ -2231,9 +2234,9 @@ Entity.prototype = {
     },
 
     get root() {
-    	if(this.parent == null){
-    		return null;
-    	}
+        if (this.parent == null) {
+            return null;
+        }
 
         var entity = this;
         while (entity.parent != null) {
@@ -2255,26 +2258,42 @@ Entity.prototype = {
         return position;
     },
 
-    getTransformMatrix: function(){
-    	var m = new THREE.Matrix4();
-    	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
-    	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
-    	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
+    //   getTransformMatrix: function(){
+    //   	var m = new THREE.Matrix4();
+    //   	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
+    //   	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
+    //   	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
 
-		m.multiply(rotation);
-    	m.multiply(scale);
-    	m.multiply(position);
+    // m.multiply(rotation);
+    //   	m.multiply(scale);
+    //   	m.multiply(position);
+    //   },
+
+    //   getWorldTransformMatrix: function(){
+    //   	var m = this.getTransformMatrix();
+    // var entity = this;
+    //   	while(entity.parent != null){
+    //   		entity = entity.parent;
+    //   		m.multiply(entity.getTransformMatrix());
+    //   	}
+
+    //   	return m;
+    //   }
+
+    get rotationMatrix() {
+        return new THREE.Matrix4().makeRotationFromEuler(this.rotation);
     },
 
-    getWorldTransformMatrix: function(){
-    	var m = this.getTransformMatrix();
-		var entity = this;
-    	while(entity.parent != null){
-    		entity = entity.parent;
-    		m.multiply(entity.getTransformMatrix());
-    	}
+    get worldRotationMatrix() {
+        var m = this.rotationMatrix;
 
-    	return m;
+        var entity = this;
+        while (entity.parent != null) {
+        	entity = entity.parent;
+        	m.multiply(entity.rotationMatrix);
+        }
+
+        return m;
     }
 }
 
@@ -2379,6 +2398,7 @@ var Game = function() {
     this.container = null;
     this.world = new CANNON.World();
     this.position = new THREE.Vector3(0, 0, 0);
+    this.rotationMatrix = new THREE.Matrix4();
 }
 
 Game._instance = null;

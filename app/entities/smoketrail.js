@@ -5,8 +5,8 @@ var MathUtils = require("../mathutils");
 var THREE = require("THREE");
 
 var SmokeTrail = function() {
-	Entity.call(this);
-	
+    Entity.call(this);
+
     this.amount = 0;
 }
 
@@ -25,12 +25,12 @@ SmokeTrail.prototype.createSprite = function(velocity, size, life) {
     return pointsprite;
 };
 
-SmokeTrail.prototype.emit = function(position, speed, size, life) {
-    this.root.addEntity(this.createSprite(speed, size, life), position);
+SmokeTrail.prototype.emit = function(position, velocity, size, life) {
+    this.root.addEntity(this.createSprite(velocity, size, life), position);
 };
 
 SmokeTrail.prototype.start = function() {
-    
+
 };
 
 SmokeTrail.prototype.update = function() {
@@ -38,8 +38,10 @@ SmokeTrail.prototype.update = function() {
         return;
     }
 
-    //todo
-    // this.emit(this.getWorldPosition(), new THREE.Vector3(0,1,0), 5, 8);
+    var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
+    velocity.setLength(1);
+    
+    this.emit(this.getWorldPosition(), velocity, 5, 10);
 };
 
 module.exports = SmokeTrail;

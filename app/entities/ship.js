@@ -64,9 +64,9 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    if (this.shipController.engineEmission > 0) {
+    if (this.shipController.accelerateAmount > 0) {
         this.engines.forEach(function(engine) {
-            engine.emission = this.shipController.engineEmission;
+            engine.emission = this.shipController.accelerateAmount;
         }.bind(this));
     }
 };
