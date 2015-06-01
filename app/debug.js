@@ -2,7 +2,7 @@ var PointSprite = require("./entities/pointsprite");
 var Game = require("./game");
 
 var Debug = function(){
-	var game = Game.instance;
+	var game = Game.getInstance();
 
 	return {
 		addIndicator: function(point, duration){

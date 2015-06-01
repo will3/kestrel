@@ -1,6 +1,9 @@
+var Game = require("./game");
+
 var Command = function() {
     this.actor = null;
     this.params = null;
+    this.game = Game.getInstance();
 }
 
 Command.prototype = {

@@ -1,18 +1,19 @@
-var Mousetrap = require("Mousetrap");
-
-var Console = function() {
-    this.commandMapping = null;
+var Console = function(commandMapping) {
+    this.commandMapping = commandMapping || {};
 
     this.input = null;
     this.displayResult = false;
     this.lastCommand = null;
     this.selectedEntity = null;
+}
 
-    if(Console.instance != null){
-        throw "cannot create two console instances";
+Console._instance = null;
+Console.getInstance = function(){
+    if(Console._instance == null){
+        Console._instance = new Console();
     }
 
-    Console.instance = this;
+    return Console._instance;
 }
 
 Console.prototype = {
@@ -40,10 +41,6 @@ Console.prototype = {
         this.input.keyup(function(e) {
             this.onKeyUp(e);
         }.bind(this));
-
-        Mousetrap.bind('`', function() {
-            this.focus();
-        }.bind(this), 'keyup');
     },
 
     getCommand: function(inputValue) {

@@ -13,14 +13,13 @@ var Console = require("./console");
 
 var container = $('#container');
 var input = $('#console_text');
-var game = new Game();
+var game = Game.getInstance();
+var console = Console.getInstance();
+var Mousetrap = require("Mousetrap");
 
 game.initialize(container);
 
-var console = new Console();
-
-console.hookInput(input);
-console.commandMapping = {
+var commandMapping = {
     add: function() {
         return new AddCommand({
             ship: function() {
@@ -50,6 +49,10 @@ console.commandMapping = {
         return new AlignCommand();
     }
 };
+
+console.commandMapping = commandMapping;
+
+console.hookInput(input);
 
 console.runScenario(
     [
@@ -84,3 +87,7 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 game.stats = stats;
+
+Mousetrap.bind('`', function() {
+    console.focus();
+}.bind(this), 'keyup');

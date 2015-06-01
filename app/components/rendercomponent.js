@@ -9,7 +9,7 @@ var RenderComponent = function() {
     Component.call(this);
     
     this.innerObject = null;
-    this.game = Game.instance;
+    this.game = Game.getInstance();
     this.geometry = null;
     this.material = null;
 };

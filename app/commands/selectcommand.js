@@ -5,8 +5,7 @@ var Game = require("../game");
 var SelectCommand = function() {
     Command.call(this);
 
-    this.game = Game.instance;
-    this.console = Console.instance;
+    this.console = Console.getInstance();
 };
 
 SelectCommand.prototype = Object.create(Command.prototype);

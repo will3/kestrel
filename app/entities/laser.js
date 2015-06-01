@@ -13,7 +13,7 @@ var Laser = function() {
     });
 
     this.velocity = null;
-    this.game = Game.instance;
+    this.game = Game.getInstance();
 }
 
 Laser.prototype = Object.create(Ammo.prototype);

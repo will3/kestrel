@@ -4,7 +4,6 @@ var Game = require("../game");
 
 var DestroyCommand = function() {
 	Command.call(this);
-    this.game = Game.instance;
 }
 
 DestroyCommand.prototype = Object.create(Command.prototype);

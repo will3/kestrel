@@ -6,7 +6,6 @@ var AttackCommand = function() {
 	Command.call(this);
 
     this.target = null;
-    this.game = Game.instance;
 }
 
 AttackCommand.prototype = Object.create(Command.prototype);

@@ -25,12 +25,14 @@ var Game = function() {
     this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
+}
 
-    if(Game.instance != null){
-        throw "cannot create two game instances";
+Game._instance = null;
+Game.getInstance = function(){
+    if(Game._instance == null){
+        Game._instance = new Game();
     }
-
-    Game.instance = this;
+    return Game._instance;
 }
 
 Game.prototype = {

@@ -20,29 +20,6 @@ describe('Entity', function(){
 		})
 	})
 
-	describe('#hasCollision', function(){
-		it('is false when collision radius is not defined', function(){
-			var rigidBody = new RigidBody();
-			entity.getRigidBody = function(){
-				return rigidBody;
-			}
-			rigidBody.collisionRadius = null;
-			expect(entity.hasCollision()).to.equal(false);
-		})
-
-		it('is false when no rigid body', function(){
-			entity.getRigidBody = null;
-			expect(entity.hasCollision()).to.equal(false);
-		})
-
-		it('is true when has collision radius and has rigid body', function(){
-			var rigidBody = new RigidBody();
-			rigidBody.collisionRadius = 10;
-			entity.rigidBody = rigidBody;
-			expect(entity.hasCollision()).to.equal(true);
-		})
-	})
-
 	describe('#addEntity', function(){
 		it('should set parent', function(){
 			entity = new Entity();

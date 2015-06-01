@@ -8,7 +8,6 @@ var assert = require("assert");
 var OrbitCommand = function() {
     Command.call(this);
 
-    this.game = Game.instance;
     this.target = null;
     this.distance = 0;
 }

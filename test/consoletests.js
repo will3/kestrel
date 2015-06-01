@@ -40,18 +40,18 @@ describe('Console', function() {
         mockConsole = sinon.mock(console);
     });
 
-    describe("#onKeyDown", function() {
+    describe("#onKeyUp", function() {
         it("should clear result if displaying results", function() {
             input.value = "result";
             console.displayResult = true;
-            console.onKeyDown();
+            console.onKeyUp();
             expect(console.displayResult).to.be.false;
             expect(input.value).to.equal("");
         });
 
         it("should clear input when pressing enter", function() {
             input.value = "valid_command";
-            console.onKeyDown(enterEvent);
+            console.onKeyUp(enterEvent);
             expect(input.value).to.equal("");
         });
 
@@ -60,14 +60,14 @@ describe('Console', function() {
             var command = {};
             console.getCommand = sinon.stub().returns(command);
             mockConsole.expects("run").withArgs(command);
-            console.onKeyDown(enterEvent);
+            console.onKeyUp(enterEvent);
             mockConsole.verify();
         });
 
         it("shouldn't process command if input is empty", function(){
             input.value = "";
             mockConsole.expects("run").never();
-            console.onKeyDown(enterEvent);
+            console.onKeyUp(enterEvent);
             mockConsole.verify();
         })
     });

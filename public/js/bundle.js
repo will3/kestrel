@@ -807,9 +807,12 @@ Collision.prototype.update = function() {
 
 module.exports = Collision;
 },{"./entity":32,"./game":34,"THREE":41,"lodash":50}],6:[function(require,module,exports){
+var Game = require("./game");
+
 var Command = function() {
     this.actor = null;
     this.params = null;
+    this.game = Game.getInstance();
 }
 
 Command.prototype = {
@@ -825,7 +828,7 @@ Command.prototype = {
 }
 
 module.exports = Command;
-},{}],7:[function(require,module,exports){
+},{"./game":34}],7:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
@@ -835,7 +838,6 @@ var AddCommand = function(objectMapping) {
     Command.call(this);
 
     this.objectMapping = objectMapping;
-    this.game = Game.instance;
 }
 
 AddCommand.prototype = Object.create(Command.prototype);
@@ -904,7 +906,6 @@ var AttackCommand = function() {
 	Command.call(this);
 
     this.target = null;
-    this.game = Game.instance;
 }
 
 AttackCommand.prototype = Object.create(Command.prototype);
@@ -925,7 +926,6 @@ var Game = require("../game");
 
 var DestroyCommand = function() {
 	Command.call(this);
-    this.game = Game.instance;
 }
 
 DestroyCommand.prototype = Object.create(Command.prototype);
@@ -961,16 +961,12 @@ var Game = require("../game");
 
 var ListCommand = function() {
     Command.call(this);
-
-    this.game = Game.instance;
 }
 
 ListCommand.prototype = Object.create(Command.prototype);
 ListCommand.prototype.constructor = ListCommand;
 
 ListCommand.prototype.execute = function() {
-	assert(this.game != null, "game cannot be empty");
-
     var entities = _.filter(this.game.getEntities(), function(entity) {
         return entity.name != null;
     });
@@ -1031,7 +1027,6 @@ var assert = require("assert");
 var OrbitCommand = function() {
     Command.call(this);
 
-    this.game = Game.instance;
     this.target = null;
     this.distance = 0;
 }
@@ -1118,8 +1113,7 @@ var Game = require("../game");
 var SelectCommand = function() {
     Command.call(this);
 
-    this.game = Game.instance;
-    this.console = Console.instance;
+    this.console = Console.getInstance();
 };
 
 SelectCommand.prototype = Object.create(Command.prototype);
@@ -1224,7 +1218,7 @@ var RenderComponent = function() {
     Component.call(this);
     
     this.innerObject = null;
-    this.game = Game.instance;
+    this.game = Game.getInstance();
     this.geometry = null;
     this.material = null;
 };
@@ -1529,21 +1523,22 @@ WeaponController.prototype.update = function() {
 
 module.exports = WeaponController;
 },{"../component":15,"../game":34,"THREE":41}],23:[function(require,module,exports){
-var Mousetrap = require("Mousetrap");
-
-var Console = function() {
-    this.commandMapping = null;
+var Console = function(commandMapping) {
+    this.commandMapping = commandMapping || {};
 
     this.input = null;
     this.displayResult = false;
     this.lastCommand = null;
     this.selectedEntity = null;
+}
 
-    if(Console.instance != null){
-        throw "cannot create two console instances";
+Console._instance = null;
+Console.getInstance = function(){
+    if(Console._instance == null){
+        Console._instance = new Console();
     }
 
-    Console.instance = this;
+    return Console._instance;
 }
 
 Console.prototype = {
@@ -1571,10 +1566,6 @@ Console.prototype = {
         this.input.keyup(function(e) {
             this.onKeyUp(e);
         }.bind(this));
-
-        Mousetrap.bind('`', function() {
-            this.focus();
-        }.bind(this), 'keyup');
     },
 
     getCommand: function(inputValue) {
@@ -1622,7 +1613,7 @@ Console.prototype = {
 };
 
 module.exports = Console;
-},{"Mousetrap":40}],24:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var Control = function() {
     this.mouseX = null;
     this.mouseY = null;
@@ -1669,7 +1660,7 @@ var PointSprite = require("./entities/pointsprite");
 var Game = require("./game");
 
 var Debug = function(){
-	var game = Game.instance;
+	var game = Game.getInstance();
 
 	return {
 		addIndicator: function(point, duration){
@@ -1748,7 +1739,7 @@ var Laser = function() {
     });
 
     this.velocity = null;
-    this.game = Game.instance;
+    this.game = Game.getInstance();
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
@@ -2073,7 +2064,7 @@ var Weapon = function(params) {
     this.ammo = params.ammo;
     this.actor = params.actor;
     this.fireInterval = params.fireInterval || 50;
-    this.game = Game.instance;
+    this.game = Game.getInstance();
 
     this.cooldown = this.fireInterval;
 }
@@ -2327,12 +2318,14 @@ var Game = function() {
     this.collision = new Collision();
     this.container = null;
     this.world = new CANNON.World();
+}
 
-    if(Game.instance != null){
-        throw "cannot create two game instances";
+Game._instance = null;
+Game.getInstance = function(){
+    if(Game._instance == null){
+        Game._instance = new Game();
     }
-
-    Game.instance = this;
+    return Game._instance;
 }
 
 Game.prototype = {
@@ -75308,14 +75301,13 @@ var Console = require("./console");
 
 var container = $('#container');
 var input = $('#console_text');
-var game = new Game();
+var game = Game.getInstance();
+var console = Console.getInstance();
+var Mousetrap = require("Mousetrap");
 
 game.initialize(container);
 
-var console = new Console();
-
-console.hookInput(input);
-console.commandMapping = {
+var commandMapping = {
     add: function() {
         return new AddCommand({
             ship: function() {
@@ -75345,6 +75337,10 @@ console.commandMapping = {
         return new AlignCommand();
     }
 };
+
+console.commandMapping = commandMapping;
+
+console.hookInput(input);
 
 console.runScenario(
     [
@@ -75379,4 +75375,8 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 game.stats = stats;
-},{"./commands/addcommand":7,"./commands/aligncommand":8,"./commands/attackcommand":9,"./commands/destroycommand":10,"./commands/listcommand":11,"./commands/movecommand":12,"./commands/orbitcommand":13,"./commands/selectcommand":14,"./console":23,"./entities/ship":29,"./game":34,"jquery":48}]},{},[51]);
+
+Mousetrap.bind('`', function() {
+    console.focus();
+}.bind(this), 'keyup');
+},{"./commands/addcommand":7,"./commands/aligncommand":8,"./commands/attackcommand":9,"./commands/destroycommand":10,"./commands/listcommand":11,"./commands/movecommand":12,"./commands/orbitcommand":13,"./commands/selectcommand":14,"./console":23,"./entities/ship":29,"./game":34,"Mousetrap":40,"jquery":48}]},{},[51]);

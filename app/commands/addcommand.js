@@ -7,7 +7,6 @@ var AddCommand = function(objectMapping) {
     Command.call(this);
 
     this.objectMapping = objectMapping;
-    this.game = Game.instance;
 }
 
 AddCommand.prototype = Object.create(Command.prototype);
