@@ -2,6 +2,7 @@ var THREE = require("THREE");
 var BlockChunk = require("./blockchunk");
 var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
+var CANNON = require("CANNON");
 
 var BlockModel = function(halfSize) {
     this.chunk = new BlockChunk(new BlockCoord(-halfSize, -halfSize, -halfSize), halfSize * 2);
@@ -31,6 +32,18 @@ BlockModel.prototype = {
         this.chunk.remove(x, y, z);
         this._updateDirty(x, y, z);
     },
+
+    // checkContiguous: function() {
+    //     var count1 = 0;
+    //     this.chunk.visitBlocksContiguous(function(block, x, y, z) {
+    //         count1 ++;
+    //     });
+
+    //     var count2 = 0;
+    //     this.chunk.visitBlocks(function(block, x, y, z){
+    //         count2 ++;
+    //     });
+    // },
 
     update: function() {
         for (var uuid in this.chunkStates) {
@@ -69,7 +82,7 @@ BlockModel.prototype = {
             for (var y = -blockRadius; y <= +blockRadius; y++) {
                 for (var z = -blockRadius; z <= +blockRadius; z++) {
                     var distance = Math.abs(x) + Math.abs(y) + Math.abs(z);
-                    if(distance > blockRadius){
+                    if (distance > blockRadius) {
                         continue;
                     }
 
@@ -194,8 +207,8 @@ BlockModel.prototype = {
                 materials.push(
                     // new THREE.MeshLambertMaterial({
                     new THREE.MeshBasicMaterial({
-                    color: block.color
-                }));
+                        color: block.color
+                    }));
 
                 materialMapping[block.color.getHexString()] = {
                     index: materials.length - 1

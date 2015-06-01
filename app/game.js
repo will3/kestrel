@@ -7,6 +7,7 @@ var _ = require("lodash");
 var Console = require("./console");
 var assert = require("assert");
 var Mousetrap = require("Mousetrap");
+var CANNON = require("CANNON");
 
 var Game = function() {
     this.scene = null;
@@ -27,6 +28,7 @@ var Game = function() {
     this.keyMap = null;
     this.collision = null;
     this.container = null;
+    this.world = new CANNON.World();
 }
 
 Game.getInstance = function() {

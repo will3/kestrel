@@ -95,7 +95,7 @@ ShipController.prototype.update = function() {
 };
 
 ShipController.prototype.accelerate = function(amount) {
-    engineAmount = amount;
+    this.engineAmount = amount;
     var rotation = this.transform.rotation;
     var vector = MathUtils.getUnitVector(rotation.y, rotation.x, rotation.z);
     vector.multiplyScalar(amount * this.force);

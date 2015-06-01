@@ -62,7 +62,7 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    // this.smokeTrail.amount = shipController.engineAmount;
+    this.smokeTrail.amount = this.shipController.engineAmount;
 };
 
 Ship.prototype.onCollision = function(entity, hitTest){

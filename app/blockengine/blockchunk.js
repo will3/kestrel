@@ -27,12 +27,12 @@ var BlockChunk = function(origin, size) {
 BlockChunk.prototype = {
     constructor: BlockChunk,
 
-    merge: function(chunk, xOffset, yOffset, zOffset){
-        if(chunk.type != "BlockChunk"){
+    merge: function(chunk, xOffset, yOffset, zOffset) {
+        if (chunk.type != "BlockChunk") {
             throw "attempt to merge non chunk object";
         }
 
-        chunk.visitBlocks(function(block, x, y, z){
+        chunk.visitBlocks(function(block, x, y, z) {
             this.add(x + xOffset, y + yOffset, z + zOffset, block);
         });
     },
@@ -89,6 +89,31 @@ BlockChunk.prototype = {
             this.children[i].visitBlocks(callback);
         }
     },
+
+    // visitBlocksContiguous: function(x, y, z, callback, visitedBlocks) {
+    //     if (visitedBlocks == null) {
+    //         visitedBlocks = [];
+    //     }
+
+    //     var block = this.get(x, y, z);
+    //     if (block == null) {
+    //         return;
+    //     }
+
+    //     if (visitedBlocks.contains(block.uuid)) {
+    //         return;
+    //     }
+
+    //     callback(block, x, y, z);
+    //     visitedBlocks.push(block.uuid);
+
+    //     this.visitBlocksContiguous(x - 1, y, z, visitedBlocks);
+    //     this.visitBlocksContiguous(x + 1, y, z, visitedBlocks);
+    //     this.visitBlocksContiguous(x, y - 1, z, visitedBlocks);
+    //     this.visitBlocksContiguous(x, y + 1, z, visitedBlocks);
+    //     this.visitBlocksContiguous(x, y, z - 1, visitedBlocks);
+    //     this.visitBlocksContiguous(x, y, z + 1, visitedBlocks);
+    // },
 
     visitChunks: function(callback, minChunkSize) {
         if (this.size == minChunkSize) {
