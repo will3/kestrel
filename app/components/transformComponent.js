@@ -2,7 +2,7 @@ var Component = require("../component");
 var THREE = require("THREE");
 
 var TransformComponent = function() {
-	Component.call(this);
+    Component.call(this);
 
     this.position = new THREE.Vector3();
     this.rotation = new THREE.Euler();
@@ -12,5 +12,11 @@ var TransformComponent = function() {
 
 TransformComponent.prototype = Object.create(Component.prototype);
 TransformComponent.prototype.constructor = TransformComponent;
+
+Object.defineProperty(TransformComponent.prototype, "quaternion", {
+    get: function() {
+        return new THREE.Quaternion().setFromEuler(this.rotation);
+    }
+});
 
 module.exports = TransformComponent;

@@ -24,7 +24,7 @@ RenderComponent.prototype.updateTransform = function() {
         return;
     }
 
-    var position = this.entity.getWorldPosition();
+    var position = this.entity.worldPosition;
     if(!position.equals(this.innerObject.position)){
         this.innerObject.position.set(position.x, position.y, position.z);
     }

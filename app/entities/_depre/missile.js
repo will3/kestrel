@@ -56,8 +56,8 @@ var Missile = function(){
 			var noiseToApply = isLaunching ? launchNoiseAmount : noiseAmount;
 
 			if(!isLaunching){
-				var position = this.getWorldPosition();
-				var targetPosition = this.getTarget().getWorldPosition();
+				var position = this.worldPosition;
+				var targetPosition = this.getTarget().worldPosition;
 				direction = new THREE.Vector3().subVectors(targetPosition, position);
 			}
 

@@ -824,6 +824,10 @@ Command.prototype = {
 
     update: function() {
         throw "must override";
+    },
+
+    destroy: function(){
+        
     }
 }
 
@@ -1233,7 +1237,7 @@ RenderComponent.prototype.updateTransform = function() {
         return;
     }
 
-    var position = this.entity.getWorldPosition();
+    var position = this.entity.worldPosition;
     if(!position.equals(this.innerObject.position)){
         this.innerObject.position.set(position.x, position.y, position.z);
     }
@@ -1387,8 +1391,8 @@ Object.defineProperty(ShipController.prototype, 'rigidBody', {
     }
 });
 
-ShipController.prototype.setCommand = function(command){
-    if(this.command != null){
+ShipController.prototype.setCommand = function(command) {
+    if (this.command != null) {
         this.command.destroy();
         this.command = null;
     }
@@ -1411,6 +1415,8 @@ ShipController.prototype.update = function() {
     if (this.command != null) {
         this.command.update();
     }
+
+    // this.accelerateAmount = 0;
 };
 
 ShipController.prototype.accelerate = function(amount) {
@@ -1476,7 +1482,7 @@ var Component = require("../component");
 var THREE = require("THREE");
 
 var TransformComponent = function() {
-	Component.call(this);
+    Component.call(this);
 
     this.position = new THREE.Vector3();
     this.rotation = new THREE.Euler();
@@ -1487,8 +1493,13 @@ var TransformComponent = function() {
 TransformComponent.prototype = Object.create(Component.prototype);
 TransformComponent.prototype.constructor = TransformComponent;
 
-module.exports = TransformComponent;
+Object.defineProperty(TransformComponent.prototype, "quaternion", {
+    get: function() {
+        return new THREE.Quaternion().setFromEuler(this.rotation);
+    }
+});
 
+module.exports = TransformComponent;
 },{"../component":15,"THREE":42}],22:[function(require,module,exports){
 var Component = require("../component");
 var THREE = require("THREE");
@@ -1684,7 +1695,7 @@ var Debug = function(){
 }();
 
 module.exports = Debug;
-},{"./entities/pointsprite":29,"./game":35}],26:[function(require,module,exports){
+},{"./entities/pointsprite":30,"./game":35}],26:[function(require,module,exports){
 var Entity = require("../entity.js");
 var THREE = require("THREE");
 
@@ -1728,28 +1739,37 @@ Ammo.prototype.createInstance = function() {
 module.exports = Ammo;
 },{"../entity.js":33,"THREE":42}],27:[function(require,module,exports){
 var Entity = require("../entity");
-var SmokeTrail = require("./smoketrail");
+var ParticleSystem = require("./particlesystem");
+var THREE = require("THREE");
 
-var Engine = function(){
-	Entity.call(this);
+var Engine = function(power) {
+    Entity.call(this);
 
-	this.emission = 0;
-	this.smokeTrail = new SmokeTrail();
+    this.emission = 0;
+    this.particleSystem = new ParticleSystem();
+    this.power = power || 5;
 };
 
 Engine.prototype = Object.create(Entity.prototype);
 Engine.prototype.constructor = Engine;
 
-Engine.prototype.start = function(){
-	this.addEntity(this.smokeTrail);
+Engine.prototype.start = function() {
+    this.addEntity(this.particleSystem);
 };
 
-Engine.prototype.update = function(){
-	this.smokeTrail.amount = this.emission;
+Engine.prototype.update = function() {
+    if (this.emission == 0) {
+        return;
+    }
+
+    var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
+    velocity.setLength(1);
+
+    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 10);
 };
 
 module.exports = Engine;
-},{"../entity":33,"./smoketrail":31}],28:[function(require,module,exports){
+},{"../entity":33,"./particlesystem":29,"THREE":42}],28:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
@@ -1775,7 +1795,7 @@ Laser.prototype.createInstance = function() {
 
 Laser.prototype.initVelocity = function() {
     var velocity = new THREE.Vector3();
-    velocity.subVectors(this.target.getWorldPosition(), this.actor.getWorldPosition());
+    velocity.subVectors(this.target.worldPosition, this.actor.worldPosition);
 
     if (velocity.length() == 0) {
         velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
@@ -1857,7 +1877,48 @@ Laser.prototype.onCollision = function(entity) {
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":19,"./ammo":26,"./pointsprite":29,"THREE":42,"assert":43}],29:[function(require,module,exports){
+},{"../components/rigidbody":19,"./ammo":26,"./pointsprite":30,"THREE":42,"assert":43}],29:[function(require,module,exports){
+var Entity = require("../entity");
+var PointSprite = require("./pointsprite");
+var Debug = require("../debug");
+var MathUtils = require("../mathutils");
+var THREE = require("THREE");
+
+var ParticleSystem = function() {
+    Entity.call(this);
+
+    this.amount = 0;
+}
+
+ParticleSystem.prototype = Object.create(Entity.prototype);
+ParticleSystem.prototype.constructor = ParticleSystem;
+
+ParticleSystem.prototype.createSprite = function(velocity, size, life) {
+    var pointsprite = new PointSprite();
+    pointsprite.size = size;
+    pointsprite.life = life;
+    pointsprite.sizeOverTime(function(time) {
+        return size - time * (size / life);
+    });
+    pointsprite.velocity = velocity;
+
+    return pointsprite;
+};
+
+ParticleSystem.prototype.emit = function(position, velocity, size, life) {
+    this.root.addEntity(this.createSprite(velocity, size, life), position);
+};
+
+ParticleSystem.prototype.start = function() {
+
+};
+
+ParticleSystem.prototype.update = function() {
+
+};
+
+module.exports = ParticleSystem;
+},{"../debug":25,"../entity":33,"../mathutils":36,"./pointsprite":30,"THREE":42}],30:[function(require,module,exports){
 var Entity = require("../entity");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
@@ -1939,7 +2000,7 @@ PointSprite.prototype.velocityOverTime = function(velocityOverTimeFunc) {
 }
 
 module.exports = PointSprite;
-},{"../components/pointspriterendercomponent":17,"../components/rigidbody":19,"../entity":33,"assert":43}],30:[function(require,module,exports){
+},{"../components/pointspriterendercomponent":17,"../components/rigidbody":19,"../entity":33,"assert":43}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
@@ -1950,6 +2011,7 @@ var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var RigidBody = require("../components/rigidbody");
 var Engine = require("./engine");
+var THREE = require("THREE");
 
 var Ship = function() {
     Entity.call(this);
@@ -1966,8 +2028,15 @@ var Ship = function() {
         fireInterval: 50
     })];
 
+    var sideEngine1 = new Engine(3);
+    sideEngine1.position = new THREE.Vector3(10, 0, -9);
+    var sideEngine2 = new Engine(3);
+    sideEngine2.position = new THREE.Vector3(-10, 0, -9);
+
     this.engines = [
-        new Engine()
+        // mainEngine,
+        sideEngine1,
+        sideEngine2
     ];
 
     this.model = new ShipModel();
@@ -2006,11 +2075,9 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    if (this.shipController.accelerateAmount > 0) {
-        this.engines.forEach(function(engine) {
-            engine.emission = this.shipController.accelerateAmount;
-        }.bind(this));
-    }
+    this.engines.forEach(function(engine) {
+        engine.emission = this.shipController.accelerateAmount;
+    }.bind(this));
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
@@ -2023,55 +2090,7 @@ Ship.prototype.onCollision = function(entity, hitTest) {
 }
 
 module.exports = Ship;
-},{"../components/modelrendercomponent":16,"../components/rigidbody":19,"../components/shipcontroller":20,"../components/weaponcontroller":22,"../entity":33,"../models/shipmodel":37,"./ammo":26,"./engine":27,"./laser":28,"./weapon":32}],31:[function(require,module,exports){
-var Entity = require("../entity");
-var PointSprite = require("./pointsprite");
-var Debug = require("../debug");
-var MathUtils = require("../mathutils");
-var THREE = require("THREE");
-
-var SmokeTrail = function() {
-    Entity.call(this);
-
-    this.amount = 0;
-}
-
-SmokeTrail.prototype = Object.create(Entity.prototype);
-SmokeTrail.prototype.constructor = SmokeTrail;
-
-SmokeTrail.prototype.createSprite = function(velocity, size, life) {
-    var pointsprite = new PointSprite();
-    pointsprite.size = size;
-    pointsprite.life = life;
-    pointsprite.sizeOverTime(function(time) {
-        return size - time * (size / life);
-    });
-    pointsprite.velocity = velocity;
-
-    return pointsprite;
-};
-
-SmokeTrail.prototype.emit = function(position, velocity, size, life) {
-    this.root.addEntity(this.createSprite(velocity, size, life), position);
-};
-
-SmokeTrail.prototype.start = function() {
-
-};
-
-SmokeTrail.prototype.update = function() {
-    if (this.amount == 0) {
-        return;
-    }
-
-    var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
-    velocity.setLength(1);
-    
-    this.emit(this.getWorldPosition(), velocity, 5, 20);
-};
-
-module.exports = SmokeTrail;
-},{"../debug":25,"../entity":33,"../mathutils":36,"./pointsprite":29,"THREE":42}],32:[function(require,module,exports){
+},{"../components/modelrendercomponent":16,"../components/rigidbody":19,"../components/shipcontroller":20,"../components/weaponcontroller":22,"../entity":33,"../models/shipmodel":37,"./ammo":26,"./engine":27,"./laser":28,"./weapon":32,"THREE":42}],32:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -2109,7 +2128,7 @@ Weapon.prototype.shoot = function(target) {
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
     ammoInstance.target = target;
-    ammoInstance.position = this.actor.getWorldPosition();
+    ammoInstance.position = this.actor.worldPosition;
 
     this.root.addEntity(ammoInstance);
 };
@@ -2233,6 +2252,10 @@ Entity.prototype = {
         this.transform.rotation = rotation;
     },
 
+    get quaternion(){
+        return this.transform.quaternion;
+    },
+
     get root() {
         if (this.parent == null) {
             return null;
@@ -2246,39 +2269,17 @@ Entity.prototype = {
         return entity;
     },
 
-    getWorldPosition: function() {
-        var entity = this;
-        var position = new THREE.Vector3(0, 0, 0);
-
-        do {
-            position.add(entity.position);
-            entity = entity.parent;
-        } while (entity != null);
-
-        return position;
+    get worldPosition() {
+        return new THREE.Vector3(0, 0, 0).applyMatrix4(this.worldTransformMatrix);
     },
 
-    //   getTransformMatrix: function(){
-    //   	var m = new THREE.Matrix4();
-    //   	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
-    //   	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
-    //   	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
+    get transformMatrix() {
+        return new THREE.Matrix4().compose(this.position, this.quaternion, this.scale);
+    },
 
-    // m.multiply(rotation);
-    //   	m.multiply(scale);
-    //   	m.multiply(position);
-    //   },
-
-    //   getWorldTransformMatrix: function(){
-    //   	var m = this.getTransformMatrix();
-    // var entity = this;
-    //   	while(entity.parent != null){
-    //   		entity = entity.parent;
-    //   		m.multiply(entity.getTransformMatrix());
-    //   	}
-
-    //   	return m;
-    //   }
+    get worldTransformMatrix() {
+        return new THREE.Matrix4().multiplyMatrices(this.parent.worldTransformMatrix, this.transformMatrix);
+    },
 
     get rotationMatrix() {
         return new THREE.Matrix4().makeRotationFromEuler(this.rotation);
@@ -2289,8 +2290,8 @@ Entity.prototype = {
 
         var entity = this;
         while (entity.parent != null) {
-        	entity = entity.parent;
-        	m.multiply(entity.rotationMatrix);
+            entity = entity.parent;
+            m.multiply(entity.rotationMatrix);
         }
 
         return m;
@@ -2399,6 +2400,8 @@ var Game = function() {
     this.world = new CANNON.World();
     this.position = new THREE.Vector3(0, 0, 0);
     this.rotationMatrix = new THREE.Matrix4();
+    this.transformMatrix = new THREE.Matrix4();
+    this.worldTransformMatrix = new THREE.Matrix4();
 }
 
 Game._instance = null;
@@ -75454,4 +75457,4 @@ game.stats = stats;
 Mousetrap.bind('`', function() {
     console.focus();
 }.bind(this), 'keyup');
-},{"./commands/addcommand":7,"./commands/aligncommand":8,"./commands/attackcommand":9,"./commands/destroycommand":10,"./commands/listcommand":11,"./commands/movecommand":12,"./commands/orbitcommand":13,"./commands/selectcommand":14,"./console":23,"./entities/ship":30,"./game":35,"Mousetrap":41,"jquery":49}]},{},[52]);
+},{"./commands/addcommand":7,"./commands/aligncommand":8,"./commands/attackcommand":9,"./commands/destroycommand":10,"./commands/listcommand":11,"./commands/movecommand":12,"./commands/orbitcommand":13,"./commands/selectcommand":14,"./console":23,"./entities/ship":31,"./game":35,"Mousetrap":41,"jquery":49}]},{},[52]);

@@ -8,6 +8,7 @@ var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
 var RigidBody = require("../components/rigidbody");
 var Engine = require("./engine");
+var THREE = require("THREE");
 
 var Ship = function() {
     Entity.call(this);
@@ -24,8 +25,15 @@ var Ship = function() {
         fireInterval: 50
     })];
 
+    var sideEngine1 = new Engine(3);
+    sideEngine1.position = new THREE.Vector3(10, 0, -9);
+    var sideEngine2 = new Engine(3);
+    sideEngine2.position = new THREE.Vector3(-10, 0, -9);
+
     this.engines = [
-        new Engine()
+        // mainEngine,
+        sideEngine1,
+        sideEngine2
     ];
 
     this.model = new ShipModel();
@@ -64,11 +72,9 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    if (this.shipController.accelerateAmount > 0) {
-        this.engines.forEach(function(engine) {
-            engine.emission = this.shipController.accelerateAmount;
-        }.bind(this));
-    }
+    this.engines.forEach(function(engine) {
+        engine.emission = this.shipController.accelerateAmount;
+    }.bind(this));
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {

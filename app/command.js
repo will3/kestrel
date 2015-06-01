@@ -15,6 +15,10 @@ Command.prototype = {
 
     update: function() {
         throw "must override";
+    },
+
+    destroy: function(){
+        
     }
 }
 

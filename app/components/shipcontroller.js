@@ -71,8 +71,8 @@ Object.defineProperty(ShipController.prototype, 'rigidBody', {
     }
 });
 
-ShipController.prototype.setCommand = function(command){
-    if(this.command != null){
+ShipController.prototype.setCommand = function(command) {
+    if (this.command != null) {
         this.command.destroy();
         this.command = null;
     }

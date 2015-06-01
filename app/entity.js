@@ -98,6 +98,10 @@ Entity.prototype = {
         this.transform.rotation = rotation;
     },
 
+    get quaternion(){
+        return this.transform.quaternion;
+    },
+
     get root() {
         if (this.parent == null) {
             return null;
@@ -111,39 +115,17 @@ Entity.prototype = {
         return entity;
     },
 
-    getWorldPosition: function() {
-        var entity = this;
-        var position = new THREE.Vector3(0, 0, 0);
-
-        do {
-            position.add(entity.position);
-            entity = entity.parent;
-        } while (entity != null);
-
-        return position;
+    get worldPosition() {
+        return new THREE.Vector3(0, 0, 0).applyMatrix4(this.worldTransformMatrix);
     },
 
-    //   getTransformMatrix: function(){
-    //   	var m = new THREE.Matrix4();
-    //   	var position = new THREE.Matrix4().makeTranslation(this.position.x, this.position.y, this.position.z);
-    //   	var scale = new THREE.Matrix4().makeScale(this.scale.x, this.scale.y, this.scale.z);
-    //   	var rotation = new THREE.Matrix4().makeRotationFromEuler(this.rotation);
+    get transformMatrix() {
+        return new THREE.Matrix4().compose(this.position, this.quaternion, this.scale);
+    },
 
-    // m.multiply(rotation);
-    //   	m.multiply(scale);
-    //   	m.multiply(position);
-    //   },
-
-    //   getWorldTransformMatrix: function(){
-    //   	var m = this.getTransformMatrix();
-    // var entity = this;
-    //   	while(entity.parent != null){
-    //   		entity = entity.parent;
-    //   		m.multiply(entity.getTransformMatrix());
-    //   	}
-
-    //   	return m;
-    //   }
+    get worldTransformMatrix() {
+        return new THREE.Matrix4().multiplyMatrices(this.parent.worldTransformMatrix, this.transformMatrix);
+    },
 
     get rotationMatrix() {
         return new THREE.Matrix4().makeRotationFromEuler(this.rotation);
@@ -154,8 +136,8 @@ Entity.prototype = {
 
         var entity = this;
         while (entity.parent != null) {
-        	entity = entity.parent;
-        	m.multiply(entity.rotationMatrix);
+            entity = entity.parent;
+            m.multiply(entity.rotationMatrix);
         }
 
         return m;

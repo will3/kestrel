@@ -23,7 +23,7 @@ Laser.prototype.createInstance = function() {
 
 Laser.prototype.initVelocity = function() {
     var velocity = new THREE.Vector3();
-    velocity.subVectors(this.target.getWorldPosition(), this.actor.getWorldPosition());
+    velocity.subVectors(this.target.worldPosition, this.actor.worldPosition);
 
     if (velocity.length() == 0) {
         velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);

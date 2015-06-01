@@ -35,7 +35,7 @@ Weapon.prototype.shoot = function(target) {
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
     ammoInstance.target = target;
-    ammoInstance.position = this.actor.getWorldPosition();
+    ammoInstance.position = this.actor.worldPosition;
 
     this.root.addEntity(ammoInstance);
 };
