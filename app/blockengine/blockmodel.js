@@ -3,6 +3,7 @@ var BlockChunk = require("./blockchunk");
 var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
 var CANNON = require("CANNON");
+var BlockUtils = require("./blockutils");
 
 var BlockModel = function(halfSize) {
     this.chunk = new BlockChunk(new BlockCoord(-halfSize, -halfSize, -halfSize), halfSize * 2);
@@ -13,15 +14,11 @@ var BlockModel = function(halfSize) {
 
     this.chunkStates = {};
     this._centerOffset = null;
-    this.radius = null;
+    this.blockRadius = null;
 };
 
 BlockModel.prototype = {
     constructor: BlockModel,
-
-    get chunkRadius() {
-        return this.chunk.radius;
-    },
 
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
@@ -78,19 +75,10 @@ BlockModel.prototype = {
     },
 
     damageArea: function(centerX, centerY, centerZ, amount, blockRadius) {
-        for (var x = -blockRadius; x <= +blockRadius; x++) {
-            for (var y = -blockRadius; y <= +blockRadius; y++) {
-                for (var z = -blockRadius; z <= +blockRadius; z++) {
-                    var distance = Math.abs(x) + Math.abs(y) + Math.abs(z);
-                    if (distance > blockRadius) {
-                        continue;
-                    }
-
-                    var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
-                    this.damage(centerX + x, centerY + y, centerZ + z, amount * ratio);
-                }
-            }
-        }
+        BlockUtils.visitRange(centerX, centerY, centerZ, blockRadius, function(x, y, z, distance) {
+            var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
+            this.damage(x, y, z, amount * ratio);
+        }.bind(this));
     },
 
     //centers model
@@ -111,7 +99,7 @@ BlockModel.prototype = {
 
         this._centerOffset = center.multiplyScalar(-1);
 
-        this.radius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
+        this.blockRadius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
 
         for (var uuid in this.chunkStates) {
             this._updateChunkPosition(uuid);
@@ -120,7 +108,7 @@ BlockModel.prototype = {
 
     hitTest: function(position, radius) {
         var distance = position.distanceTo(this.object.position);
-        if (distance > (radius + this.radius)) {
+        if (distance > (radius + this.blockRadius * this.gridSize)) {
             return false;
         }
 
@@ -131,14 +119,23 @@ BlockModel.prototype = {
         var blockCoord = new BlockCoord(Math.round(coords.x), Math.round(coords.y), Math.round(coords.z));
         var blockRadius = Math.ceil(radius * 2);
 
-        var block = this.chunk.get(blockCoord.x, blockCoord.y, blockCoord.z);
-
-        if (block != null) {
-            return {
-                result: true,
-                block: block,
-                coords: blockCoord
+        var result = null;
+        BlockUtils.visitRange(blockCoord.x, blockCoord.y, blockCoord.z, blockRadius, function(x, y, z, distance) {
+            if (result != null) {
+                return;
             }
+            var block = this.chunk.get(x, y, z);
+            if (block != null) {
+                result = {
+                    result: true,
+                    block: block,
+                    coord: new BlockCoord(x, y, z)
+                }
+            }
+        }.bind(this));
+
+        if (result != null) {
+            return result;
         }
 
         return false;

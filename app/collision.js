@@ -73,7 +73,7 @@ Collision.prototype.hitTestSphereAndSphere = function(sphere1, sphere2) {
 Collision.prototype.hitTestSphereAndBlock = function(sphere, block) {
     var velocity = sphere.getVelocity();
 
-    var testInterval = Math.ceil(velocity.length() * 0.5);
+    var testInterval = Math.ceil(velocity.length() * 0.25);
     var interval = new THREE.Vector3().copy(velocity).multiplyScalar(1 / testInterval);
 
     var position = new THREE.Vector3().copy(sphere.getPosition());

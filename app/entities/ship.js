@@ -80,7 +80,7 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Ammo) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coords.x, hitTest.coords.y, hitTest.coords.z, 0.4, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.4, 2);
             this.model.update();
         }
     }
