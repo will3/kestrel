@@ -9,6 +9,7 @@ var WeaponController = require("../components/weaponcontroller");
 var RigidBody = require("../components/rigidbody");
 var Engine = require("./engine");
 var THREE = require("THREE");
+var PlayerControl = require("../components/playercontrol");
 
 var Ship = function() {
     Entity.call(this);
@@ -16,6 +17,7 @@ var Ship = function() {
     this.shipController = new ShipController();
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
+    this.playerControl = null;
 
     //weapons
     var laser = new Laser();
@@ -84,6 +86,11 @@ Ship.prototype.onCollision = function(entity, hitTest) {
             this.model.update();
         }
     }
+}
+
+Ship.prototype.addPlayerControl = function(){
+    this.playerControl = new PlayerControl();
+    this.addComponent(this.playerControl);
 }
 
 module.exports = Ship;

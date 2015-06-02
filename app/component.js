@@ -26,6 +26,10 @@ Component.prototype = {
 
 	get transform(){
 		return this.entity.transform;
+	},
+
+	get root(){
+		return this.entity.root;
 	}
 }
 

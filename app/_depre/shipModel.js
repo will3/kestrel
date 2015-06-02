@@ -51,11 +51,6 @@ var ShipModel = function(){
 	var shipModel = {
 		getChunk: function(){
 			var hull = getHull();
-			var cargo1 = getCargo();
-			var cargo2 = getCargo();
-			var cargo3 = getCargo();
-			var weapon1 = getWeapon();
-			var weapon2 = getWeapon();
 			
 			return hull;
 		}

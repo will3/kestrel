@@ -22,8 +22,13 @@ game.initialize(container);
 var commandMapping = {
     add: function() {
         return new AddCommand({
-            ship: function() {
+            "ship": function() {
                 return new Ship();
+            },
+            "playership": function(){
+                var ship = new Ship();
+                ship.addPlayerControl();
+                return ship;
             }
         });
     },
@@ -56,11 +61,11 @@ console.hookInput(input);
 
 console.runScenario(
     [
-        "add ship",
+        "add playership",
         "add ship 150 0 150",
-        "select ship1",
-        "orbit ship0 200",
-        "attack ship0",
+        "select ship0",
+        "orbit playership0 200",
+        // "attack ship0",
 
         // "add ship -150 0 150",
         // "select ship2",

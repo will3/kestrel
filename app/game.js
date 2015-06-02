@@ -158,6 +158,7 @@ Game.prototype = {
         this.initControl();
         this.collision.game = this;
         this.addEntity(this.collision);
+        this.addEntity(this.control);
         setInterval(this.onEnterFrame.bind(this), 1000 / this.frameRate);
     },
 
