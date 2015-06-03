@@ -12,7 +12,7 @@ var OrbitCommand = function() {
     this.distance = 0;
 }
 
-OrbitCommand.prototype = Object.create(Command);
+OrbitCommand.prototype = Object.create(Command.prototype);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
 OrbitCommand.prototype.execute = function() {
@@ -46,13 +46,13 @@ OrbitCommand.prototype.execute = function() {
 
     position = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.setCommand(this);
 };
 
 OrbitCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
+    var shipController = this.entity.shipController;
 
-    var position = this.actor.position;
+    var position = this.entity.position;
     //a being vector from position to target
     var a = new THREE.Vector3();
     a.subVectors(this.target.position, position);

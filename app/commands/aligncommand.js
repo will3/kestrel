@@ -17,11 +17,11 @@ AlignCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.setCommand(this);
 };
 
 AlignCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
+    var shipController = this.entity.shipController;
     shipController.align(this.target);
 };
 

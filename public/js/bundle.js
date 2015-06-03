@@ -980,31 +980,25 @@ Collision.prototype.update = function() {
 module.exports = Collision;
 },{"./entity":35,"THREE":45,"lodash":54}],7:[function(require,module,exports){
 var Game = require("./game");
+var Component = require("./component");
 
 var Command = function() {
+    Component.call(this);
+
     this.actor = null;
     this.params = null;
     this.game = Game.getInstance();
 }
 
-Command.prototype = {
-    constructor: Command,
+Command.prototype = Object.create(Component.prototype);
+Command.prototype.constructor = Command;
 
-    execute: function() {
-        throw "must override";
-    },
-
-    update: function() {
-        throw "must override";
-    },
-
-    destroy: function(){
-        
-    }
-}
+Command.execute = function() {
+    throw "must override";
+};
 
 module.exports = Command;
-},{"./game":37}],8:[function(require,module,exports){
+},{"./component":16,"./game":37}],8:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
@@ -1064,11 +1058,11 @@ AlignCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.setCommand(this);
 };
 
 AlignCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
+    var shipController = this.entity.shipController;
     shipController.align(this.target);
 };
 
@@ -1183,11 +1177,11 @@ MoveCommand.prototype.execute = function() {
 
     this.target = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.setCommand(this);
 };
 
 MoveCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
+    var shipController = this.entity.shipController;
     shipController.move(this.target);
 };
 
@@ -1207,7 +1201,7 @@ var OrbitCommand = function() {
     this.distance = 0;
 }
 
-OrbitCommand.prototype = Object.create(Command);
+OrbitCommand.prototype = Object.create(Command.prototype);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
 OrbitCommand.prototype.execute = function() {
@@ -1241,13 +1235,13 @@ OrbitCommand.prototype.execute = function() {
 
     position = new THREE.Vector3(x, y, z);
 
-    this.actor.shipController.setCommand(this);
+    this.actor.setCommand(this);
 };
 
 OrbitCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
+    var shipController = this.entity.shipController;
 
-    var position = this.actor.position;
+    var position = this.entity.position;
     //a being vector from position to target
     var a = new THREE.Vector3();
     a.subVectors(this.target.position, position);
@@ -1366,36 +1360,41 @@ var MathUtils = require("../mathutils");
 
 var PlayerControl = function() {
     Component.call(this);
+
+    this.control = null;
+    this.camera = null;
 };
 
 PlayerControl.prototype = Object.create(Component.prototype);
 PlayerControl.prototype.constructor = Component;
 
 PlayerControl.prototype.start = function() {
-    var control = this.root.control;
-    control.registerKeys(["up", "down", "left", "right"]);
+    this.control = this.root.control;
+    this.camera = this.root.camera;
+
+    this.control.registerKeys(["up", "down", "left", "right"]);
 };
 
 PlayerControl.prototype.update = function() {
-    var control = this.root.control;
     var ship = this.entity;
-    var camera = this.root.camera;
-    var rotation = camera.rotation;
+    var rotation = this.camera.rotation;
     var vector = MathUtils.getUnitVector(rotation);
+    vector.setY(0);
+    vector.setLength(100);
 
-    if (control.isKeyHold("up")) {
-    	
+    if (this.control.isKeyHold("up")) {
+            	
     }
 
-    if (control.isKeyHold("down")) {
+    if (this.control.isKeyHold("down")) {
 
     }
 
-    if (control.isKeyHold("left")) {
+    if (this.control.isKeyHold("left")) {
 
     }
 
-    if (control.isKeyHold("right")) {
+    if (this.control.isKeyHold("right")) {
 
     }
 };
@@ -1594,7 +1593,6 @@ var ShipController = function() {
 
     //yaw
     this.yawForce = 0.015;
-    this.command = null;
 
     this.engines = null;
 
@@ -1610,15 +1608,6 @@ Object.defineProperty(ShipController.prototype, 'rigidBody', {
     }
 });
 
-ShipController.prototype.setCommand = function(command) {
-    if (this.command != null) {
-        this.command.destroy();
-        this.command = null;
-    }
-
-    this.command = command;
-};
-
 //amount 0 - 1
 ShipController.prototype.bank = function(amount) {
     this.roll.setAmount(amount);
@@ -1630,10 +1619,6 @@ ShipController.prototype.update = function() {
     this.pitch.update();
     this.yaw.update(this.roll);
     entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
-
-    if (this.command != null) {
-        this.command.update();
-    }
 };
 
 ShipController.prototype.accelerate = function(amount) {
@@ -2324,10 +2309,21 @@ var Ship = function() {
             return this.model.hitTest(position, radius);
         }.bind(this)
     }
+
+    this.command = null;
 }
 
 Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
+
+Ship.prototype.setCommand = function(command) {
+    if (this.command != null) {
+        this.removeComponent(command);
+        this.command = null;
+    }
+
+    this.addComponent(command);
+};
 
 Ship.prototype.start = function() {
     Ship.id++;

@@ -49,10 +49,21 @@ var Ship = function() {
             return this.model.hitTest(position, radius);
         }.bind(this)
     }
+
+    this.command = null;
 }
 
 Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
+
+Ship.prototype.setCommand = function(command) {
+    if (this.command != null) {
+        this.removeComponent(command);
+        this.command = null;
+    }
+
+    this.addComponent(command);
+};
 
 Ship.prototype.start = function() {
     Ship.id++;

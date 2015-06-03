@@ -55,7 +55,6 @@ var ShipController = function() {
 
     //yaw
     this.yawForce = 0.015;
-    this.command = null;
 
     this.engines = null;
 
@@ -71,15 +70,6 @@ Object.defineProperty(ShipController.prototype, 'rigidBody', {
     }
 });
 
-ShipController.prototype.setCommand = function(command) {
-    if (this.command != null) {
-        this.command.destroy();
-        this.command = null;
-    }
-
-    this.command = command;
-};
-
 //amount 0 - 1
 ShipController.prototype.bank = function(amount) {
     this.roll.setAmount(amount);
@@ -91,10 +81,6 @@ ShipController.prototype.update = function() {
     this.pitch.update();
     this.yaw.update(this.roll);
     entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
-
-    if (this.command != null) {
-        this.command.update();
-    }
 };
 
 ShipController.prototype.accelerate = function(amount) {

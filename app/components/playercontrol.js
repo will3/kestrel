@@ -5,36 +5,41 @@ var MathUtils = require("../mathutils");
 
 var PlayerControl = function() {
     Component.call(this);
+
+    this.control = null;
+    this.camera = null;
 };
 
 PlayerControl.prototype = Object.create(Component.prototype);
 PlayerControl.prototype.constructor = Component;
 
 PlayerControl.prototype.start = function() {
-    var control = this.root.control;
-    control.registerKeys(["up", "down", "left", "right"]);
+    this.control = this.root.control;
+    this.camera = this.root.camera;
+
+    this.control.registerKeys(["up", "down", "left", "right"]);
 };
 
 PlayerControl.prototype.update = function() {
-    var control = this.root.control;
     var ship = this.entity;
-    var camera = this.root.camera;
-    var rotation = camera.rotation;
+    var rotation = this.camera.rotation;
     var vector = MathUtils.getUnitVector(rotation);
+    vector.setY(0);
+    vector.setLength(100);
 
-    if (control.isKeyHold("up")) {
-    	
+    if (this.control.isKeyHold("up")) {
+            	
     }
 
-    if (control.isKeyHold("down")) {
+    if (this.control.isKeyHold("down")) {
 
     }
 
-    if (control.isKeyHold("left")) {
+    if (this.control.isKeyHold("left")) {
 
     }
 
-    if (control.isKeyHold("right")) {
+    if (this.control.isKeyHold("right")) {
 
     }
 };
