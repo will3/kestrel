@@ -149,9 +149,16 @@ var BlockChunk = function(origin, size) {
     this.origin = origin;
     this.size = size;
     this.radius = Math.sqrt(size * size * 3);
+    this.minChunkSize = 4;
 
+    //  7   6  
+    //4   5
+    //  3   2  
+    //0   1
     this.children = [];
-    this.block = null;
+    this.childrenMap = [];
+
+    this.object = null;
 
     //mesh for chunk
     this.mesh = null;
@@ -175,80 +182,194 @@ BlockChunk.prototype = {
         if (chunk == null) {
             return null;
         }
-        if (chunk.size != 1) {
+        if (chunk.size != this.minChunkSize) {
             return null;
         }
 
-        return chunk.block;
+        if (chunk.object == null) {
+            return null;
+        }
+
+        return chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z];
     },
 
     add: function(x, y, z, block) {
         if (!this.inBound(x, y, z)) {
-            throw "out of bounds";
+            throw "out of bounds for " + x + " " + y + " " + z;
         }
 
-        chunk = this.getChunk(x, y, z);
+        var chunk = this.getChunk(x, y, z);
 
-        while (chunk.size != 1) {
+        while (chunk.size != this.minChunkSize) {
             chunk.subdivide();
             chunk = chunk.getChunk(x, y, z);
         }
 
-        if (!block instanceof Block) {
-            throw "attempt to add non block object";
+        if (chunk.object == null) {
+            var blockMap = [];
+            for (var block_x = 0; block_x < this.minChunkSize; block_x++) {
+                blockMap[block_x] = [];
+                for (var block_y = 0; block_y < this.minChunkSize; block_y++) {
+                    blockMap[block_x][block_y] = [];
+                }
+            }
+            chunk.object = blockMap;
         }
 
-        chunk.block = block;
+        chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = block;
     },
 
     remove: function(x, y, z) {
         var chunk = this.getChunk(x, y, z);
 
-        if (chunk.size != 1 || chunk.block == null) {
+        if (chunk.size != this.minChunkSize || chunk.object == null) {
             throw "block doesn't exisit";
         }
 
-        chunk.block = null;
+        var block = chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z];
+        if (block == null) {
+            throw "nothing to remove at " + x + " " + y + " " + z;
+        }
+
+        chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = null;
     },
 
-    visitBlocks: function(callback) {
-        if (this.children.length == 0) {
-            if (this.block != null) {
-                callback(this.block, this.origin.x, this.origin.y, this.origin.z);
+    //return true in callback to stop loop
+    visitBlocks: function(callback, firstOnly) {
+        if (this.children.length != 0) {
+            for (var i in this.children) {
+                this.children[i].visitBlocks(callback);
             }
         }
 
-        for (var i in this.children) {
-            this.children[i].visitBlocks(callback);
+        if (this.object == null) {
+            return null;
+        }
+
+        for (var x = 0; x < this.object.length; x++) {
+            for (y = 0; y < this.object[x].length; y++) {
+                for (z = 0; z < this.object[x][y].length; z++) {
+                    var block = this.object[x][y][z];
+                    if (block != null) {
+                        callback(block, x + this.origin.x, y + this.origin.y, z + this.origin.z);
+                        if (firstOnly) {
+                            return;
+                        }
+                    }
+                }
+            }
         }
     },
 
-    // visitBlocksContiguous: function(x, y, z, callback, visitedBlocks) {
-    //     if (visitedBlocks == null) {
-    //         visitedBlocks = [];
-    //     }
+    visitBlocksContiguous: function(x, y, z, callback) {
+        var detail = this._getDetail(x, y, z);
+        if (detail == null) {
+            throw "cannot found block at " + x + " " + y + " " + z;
+        }
 
-    //     var block = this.get(x, y, z);
-    //     if (block == null) {
-    //         return;
-    //     }
+        var visited = new BlockChunk(this.origin, this.size);
+        visited.add(x, y, z, true);
 
-    //     if (visitedBlocks.contains(block.uuid)) {
-    //         return;
-    //     }
+        var opened = [detail];
 
-    //     callback(block, x, y, z);
-    //     visitedBlocks.push(block.uuid);
+        var index = 0;
+        while (index < opened.length) {
+            var next = opened[index];
 
-    //     this.visitBlocksContiguous(x - 1, y, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x + 1, y, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y - 1, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y + 1, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y, z - 1, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y, z + 1, visitedBlocks);
-    // },
+            var details = [
+                this._getDetail(next.x - 1, next.y, next.z, visited),
+                this._getDetail(next.x + 1, next.y, next.z, visited),
+                this._getDetail(next.x, next.y - 1, next.z, visited),
+                this._getDetail(next.x, next.y + 1, next.z, visited),
+                this._getDetail(next.x, next.y, next.z - 1, visited),
+                this._getDetail(next.x, next.y, next.z + 1, visited)
+            ];
+
+            details.forEach(function(detail) {
+                if (detail != null) {
+                    visited.add(detail.x, detail.y, detail.z, true);
+                    opened.push(detail);
+                }
+            })
+
+            callback(next.block, next.x, next.y, next.z);
+            index++;
+        }
+    },
+
+    _getDetail: function(x, y, z, visited) {
+        if (visited != null) {
+            if (visited.get(x, y, z)) {
+                return null;
+            }
+        }
+        var block = this.get(x, y, z);
+        if (block == null) {
+            return null;
+        }
+        return {
+            block: block,
+            uuid: block.uuid,
+            x: x,
+            y: y,
+            z: z,
+        }
+    },
+
+    getContiguousGroups: function() {
+        //construct block mapping
+        var total = 0;
+        var tempChunk = new BlockChunk(this.origin, this.size);
+
+        this.visitBlocks(function(block, x, y, z) {
+            tempChunk.add(x, y, z, block);
+            total++;
+        });
+
+        var groups = [];
+        var count = 0;
+        while (count < total) {
+            var firstResult = null;
+
+            tempChunk.visitBlocks(function(block, x, y, z) {
+                firstResult = {
+                    block: block,
+                    x: x,
+                    y: y,
+                    z: z
+                }
+            }, true);
+
+            var group = [];
+
+            this.visitBlocksContiguous(firstResult.x, firstResult.y, firstResult.z, function(block, x, y, z) {
+                group.push({
+                    block: block,
+                    x: x,
+                    y: y,
+                    z: z
+                });
+
+                tempChunk.remove(x, y, z);
+
+                count++;
+            });
+
+            if (group.length == 0) {
+                throw "failed to allocate contiguous group";
+            }
+
+            groups.push(group);
+        }
+
+        return groups;
+    },
 
     visitChunks: function(callback, minChunkSize) {
+        if (minChunkSize < this.minChunkSize) {
+            throw "minChunkSize is too low";
+        }
+
         if (this.size == minChunkSize) {
             callback(this);
         }
@@ -296,18 +417,18 @@ BlockChunk.prototype = {
             }
         }
 
-        for (var i in this.children) {
-            var chunk = this.children[i].getChunk(x, y, z, minChunkSize);
-            if (chunk != null) {
-                return chunk;
-            }
-        }
+        var size_half = this.size / 2.0;
+        var xIndex = (x < (this.origin.x + size_half)) ? 0 : 1;
+        var yIndex = (y < (this.origin.y + size_half)) ? 0 : 1;
+        var zIndex = (z < (this.origin.z + size_half)) ? 0 : 1;
 
-        return null;
+        var child = this.childrenMap[xIndex][yIndex][zIndex];
+
+        return child.getChunk(x, y, z, minChunkSize);
     },
 
     subdivide: function() {
-        if (this.size == 1) {
+        if (this.size == this.minChunkSize) {
             return;
         }
 
@@ -328,9 +449,31 @@ BlockChunk.prototype = {
             new BlockCoord(x, y + size_half, z + size_half)
         ];
 
+        this.children = [];
         for (var i in coords) {
             this.children.push(new BlockChunk(coords[i], size_half));
         }
+
+        this.childrenMap = [
+            [
+                [],
+                []
+            ],
+            [
+                [],
+                []
+            ]
+        ];
+
+        this.childrenMap[0][0][0] = this.children[0];
+        this.childrenMap[1][0][0] = this.children[1];
+        this.childrenMap[1][0][1] = this.children[2];
+        this.childrenMap[0][0][1] = this.children[3];
+
+        this.childrenMap[0][1][0] = this.children[4];
+        this.childrenMap[1][1][0] = this.children[5];
+        this.childrenMap[1][1][1] = this.children[6];
+        this.childrenMap[0][1][1] = this.children[7];
     }
 };
 
@@ -352,6 +495,12 @@ BlockCoord.prototype = {
         }
 
         return this.x == coord.x && this.y == coord.y && this.z == coord.z;
+    },
+
+    add: function(x, y, z){
+        this.x += x || 0;
+        this.y += y || 0;
+        this.z += z || 0;
     },
 
     copy: function() {
@@ -711,7 +860,6 @@ module.exports = BlockUtils;
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
-var Game = require("./game");
 
 var Collision = function() {
     Entity.call(this);
@@ -830,7 +978,7 @@ Collision.prototype.update = function() {
 };
 
 module.exports = Collision;
-},{"./entity":35,"./game":37,"THREE":45,"lodash":54}],7:[function(require,module,exports){
+},{"./entity":35,"THREE":45,"lodash":54}],7:[function(require,module,exports){
 var Game = require("./game");
 
 var Command = function() {
@@ -1211,7 +1359,6 @@ ModelRenderComponent.prototype.initObject = function(){
 
 module.exports = ModelRenderComponent;
 },{"./rendercomponent":20,"assert":46}],18:[function(require,module,exports){
-var Mousetrap = require("Mousetrap");
 var Component = require("../component");
 var Control = require("../control");
 var KeyMap = require("../keymap");
@@ -1237,7 +1384,7 @@ PlayerControl.prototype.update = function() {
     var vector = MathUtils.getUnitVector(rotation);
 
     if (control.isKeyHold("up")) {
-    	alert("up");
+    	
     }
 
     if (control.isKeyHold("down")) {
@@ -1254,7 +1401,7 @@ PlayerControl.prototype.update = function() {
 };
 
 module.exports = PlayerControl;
-},{"../component":16,"../control":26,"../keymap":38,"../mathutils":39,"Mousetrap":44}],19:[function(require,module,exports){
+},{"../component":16,"../control":26,"../keymap":38,"../mathutils":39}],19:[function(require,module,exports){
 var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
@@ -1701,8 +1848,9 @@ module.exports = Console;
 var Entity = require("./entity");
 var KeyMap = require("./keymap");
 var _ = require("lodash");
-var MouseTrap = require("mousetrap");
+var assert = require("assert");
 
+//inject Control.registerKey as MouseTrap doesn't play well with mocha tests
 var Control = function() {
     Entity.call(this);
 
@@ -1715,6 +1863,8 @@ var Control = function() {
     this.keydowns = [];
     this.keyups = [];
     this.keyholds = [];
+
+    this.registerKeyFunc = null;
 }
 
 Control.prototype = Object.create(Entity.prototype);
@@ -1778,25 +1928,19 @@ Control.prototype.registerKeys = function(keys) {
 };
 
 Control.prototype.registerKey = function(key) {
+    assert(this.registerKeyFunc != null, "registerKeyFunc cannot be empty");
+    
     if (_.includes(this.registeredKeys, key)) {
         return;
     }
 
     this.registeredKeys.push(key);
 
-    MouseTrap.bind(KeyMap[key], function() {
-        this.keydowns.push(key);
-        this.keyholds.push(key);
-    }.bind(this));
-
-    MouseTrap.bind(KeyMap[key], function() {
-        _.pull(this.keyholds, key);
-        this.keyups.push(key);
-    }.bind(this), 'keyup');
+    this.registerKeyFunc(key);
 };
 
 module.exports = Control;
-},{"./entity":35,"./keymap":38,"lodash":54,"mousetrap":55}],27:[function(require,module,exports){
+},{"./entity":35,"./keymap":38,"assert":46,"lodash":54}],27:[function(require,module,exports){
 var PointSprite = require("./entities/pointsprite");
 var Game = require("./game");
 
@@ -2001,7 +2145,7 @@ Laser.prototype.onCollision = function(entity) {
         return;
     }
 
-    this.parent.removeEntity(this);
+    this.removeFromParent();
 };
 
 module.exports = Laser;
@@ -2345,6 +2489,14 @@ Entity.prototype = {
         _.pull(this.components, component);
     },
 
+    removeFromParent: function(){
+        if(this.parent == null){
+            this.destroy();
+        }else{
+            this.parent.removeEntity(this);
+        }
+    },
+
     start: function() {
         //override to provide behaviour
     },
@@ -2413,6 +2565,10 @@ Entity.prototype = {
     },
 
     get worldTransformMatrix() {
+        if(this.parent == null){
+            return this.transformMatrix;
+        }
+
         return new THREE.Matrix4().multiplyMatrices(this.parent.worldTransformMatrix, this.transformMatrix);
     },
 
@@ -2518,7 +2674,6 @@ var Game = function() {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.control = new Control();
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
@@ -2537,6 +2692,7 @@ var Game = function() {
     this.rotationMatrix = new THREE.Matrix4();
     this.transformMatrix = new THREE.Matrix4();
     this.worldTransformMatrix = new THREE.Matrix4();
+    this.control = new Control();
 }
 
 Game._instance = null;
@@ -63276,7 +63432,7 @@ return jQuery;
 (function (global){
 /**
  * @license
- * lodash 3.9.2 (Custom Build) <https://lodash.com/>
+ * lodash 3.9.1 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern -d -o ./index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
@@ -63289,7 +63445,7 @@ return jQuery;
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '3.9.2';
+  var VERSION = '3.9.1';
 
   /** Used to compose bitmasks for wrapper metadata. */
   var BIND_FLAG = 1,
@@ -63555,8 +63711,6 @@ return jQuery;
    * restricted `window` object, otherwise the `window` object is used.
    */
   var root = freeGlobal || ((freeWindow !== (this && this.window)) && freeWindow) || freeSelf || this;
-
-  /*--------------------------------------------------------------------------*/
 
   /**
    * The base implementation of `compareAscending` which compares values and
@@ -63926,8 +64080,6 @@ return jQuery;
     return htmlUnescapes[chr];
   }
 
-  /*--------------------------------------------------------------------------*/
-
   /**
    * Create a new pristine `lodash` function using the given `context` object.
    *
@@ -64053,8 +64205,7 @@ return jQuery;
         nativeRandom = Math.random;
 
     /** Used as references for `-Infinity` and `Infinity`. */
-    var NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY,
-        POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
+    var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
 
     /** Used as references for the maximum length and index of an array. */
     var MAX_ARRAY_LENGTH = 4294967295,
@@ -64075,8 +64226,6 @@ return jQuery;
 
     /** Used to lookup unminified function names. */
     var realNames = {};
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates a `lodash` object which wraps `value` to enable implicit chaining.
@@ -64298,8 +64447,6 @@ return jQuery;
       }
     };
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
      *
@@ -64428,8 +64575,6 @@ return jQuery;
       return result;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates a cache object to store key/value pairs.
      *
@@ -64498,8 +64643,6 @@ return jQuery;
       return this;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      *
      * Creates a cache object to store unique values.
@@ -64548,8 +64691,6 @@ return jQuery;
         data.hash[value] = true;
       }
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Copies the values of `source` to `array`.
@@ -64634,7 +64775,7 @@ return jQuery;
     }
 
     /**
-     * A specialized version of `baseExtremum` for arrays which invokes `iteratee`
+     * A specialized version of `baseExtremum` for arrays whichs invokes `iteratee`
      * with one argument: (value).
      *
      * @private
@@ -65406,7 +65547,7 @@ return jQuery;
       if (value === other) {
         return true;
       }
-      if (value == null || other == null || (!isObject(value) && !isObjectLike(other))) {
+      if (value == null || other == null || (!isObject(value) && !isObject(other))) {
         return value !== value && other !== other;
       }
       return baseIsEqualDeep(value, other, baseIsEqual, customizer, isLoose, stackA, stackB);
@@ -65583,7 +65724,8 @@ return jQuery;
     }
 
     /**
-     * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
+     * The base implementation of `_.matchesProperty` which does not which does
+     * not clone `value`.
      *
      * @private
      * @param {string} path The path of the property to get.
@@ -67405,15 +67547,7 @@ return jQuery;
      */
     function isLaziable(func) {
       var funcName = getFuncName(func);
-      if (!(funcName in LazyWrapper.prototype)) {
-        return false;
-      }
-      var other = lodash[funcName];
-      if (func === other) {
-        return true;
-      }
-      var data = getData(other);
-      return !!data && func === data[0];
+      return !!funcName && func === lodash[funcName] && funcName in LazyWrapper.prototype;
     }
 
     /**
@@ -67729,8 +67863,6 @@ return jQuery;
         : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates an array of elements split into groups the length of `size`.
      * If `collection` can't be split evenly, the final chunk will be the remaining
@@ -67798,8 +67930,8 @@ return jQuery;
     }
 
     /**
-     * Creates an array of unique `array` values not included in the other
-     * provided arrays using [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * Creates an array excluding all values of the provided arrays using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
      * for equality comparisons.
      *
      * @static
@@ -68272,8 +68404,8 @@ return jQuery;
     }
 
     /**
-     * Creates an array of unique values that are included in all of the provided
-     * arrays using [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * Creates an array of unique values in all provided arrays using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
      * for equality comparisons.
      *
      * @static
@@ -68826,8 +68958,8 @@ return jQuery;
     }
 
     /**
-     * Creates an array of unique values, in order, from all of the provided arrays
-     * using [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * Creates an array of unique values, in order, of the provided arrays using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
      * for equality comparisons.
      *
      * @static
@@ -69008,7 +69140,7 @@ return jQuery;
     });
 
     /**
-     * Creates an array of unique values that is the [symmetric difference](https://en.wikipedia.org/wiki/Symmetric_difference)
+     * Creates an array that is the [symmetric difference](https://en.wikipedia.org/wiki/Symmetric_difference)
      * of the provided arrays.
      *
      * @static
@@ -69124,8 +69256,6 @@ return jQuery;
       arrays.length = length;
       return unzipWith(arrays, iteratee, thisArg);
     });
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates a `lodash` object that wraps `value` with explicit method
@@ -69376,8 +69506,6 @@ return jQuery;
     function wrapperValue() {
       return baseWrapperValue(this.__wrapped__, this.__actions__);
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates an array of elements corresponding to the given keys, or indexes,
@@ -70186,20 +70314,8 @@ return jQuery;
         var length = collection.length;
         return length > 0 ? collection[baseRandom(0, length - 1)] : undefined;
       }
-      var index = -1,
-          result = toArray(collection),
-          length = result.length,
-          lastIndex = length - 1;
-
-      n = nativeMin(n < 0 ? 0 : (+n || 0), length);
-      while (++index < n) {
-        var rand = baseRandom(index, lastIndex),
-            value = result[rand];
-
-        result[rand] = result[index];
-        result[index] = value;
-      }
-      result.length = n;
+      var result = shuffle(collection);
+      result.length = nativeMin(n < 0 ? 0 : (+n || 0), result.length);
       return result;
     }
 
@@ -70218,7 +70334,20 @@ return jQuery;
      * // => [4, 1, 3, 2]
      */
     function shuffle(collection) {
-      return sample(collection, POSITIVE_INFINITY);
+      collection = toIterable(collection);
+
+      var index = -1,
+          length = collection.length,
+          result = Array(length);
+
+      while (++index < length) {
+        var rand = baseRandom(0, index);
+        if (index != rand) {
+          result[index] = result[rand];
+        }
+        result[rand] = collection[index];
+      }
+      return result;
     }
 
     /**
@@ -70499,8 +70628,6 @@ return jQuery;
       return filter(collection, baseMatches(source));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Gets the number of milliseconds that have elapsed since the Unix epoch
      * (1 January 1970 00:00:00 UTC).
@@ -70518,8 +70645,6 @@ return jQuery;
     var now = nativeNow || function() {
       return new Date().getTime();
     };
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * The opposite of `_.before`; this method creates a function that invokes
@@ -71501,8 +71626,6 @@ return jQuery;
       return createWrapper(wrapper, PARTIAL_FLAG, null, [value], []);
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates a clone of `value`. If `isDeep` is `true` nested objects are cloned,
      * otherwise they are assigned by reference. If `customizer` is provided it is
@@ -72333,8 +72456,6 @@ return jQuery;
     function toPlainObject(value) {
       return baseCopy(value, keysIn(value));
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Assigns own enumerable properties of source object(s) to the destination
@@ -73169,13 +73290,13 @@ return jQuery;
 
       var index = -1,
           length = path.length,
-          lastIndex = length - 1,
+          endIndex = length - 1,
           nested = object;
 
       while (nested != null && ++index < length) {
         var key = path[index];
         if (isObject(nested)) {
-          if (index == lastIndex) {
+          if (index == endIndex) {
             nested[key] = value;
           } else if (nested[key] == null) {
             nested[key] = isIndex(path[index + 1]) ? [] : {};
@@ -73293,8 +73414,6 @@ return jQuery;
       return baseValues(object, keysIn(object));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Checks if `n` is between `start` and up to but not including, `end`. If
      * `end` is not specified it is set to `start` with `start` then set to `0`.
@@ -73398,8 +73517,6 @@ return jQuery;
       }
       return baseRandom(min, max);
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Converts `string` to [camel case](https://en.wikipedia.org/wiki/CamelCase).
@@ -74266,8 +74383,6 @@ return jQuery;
       return string.match(pattern || reWords) || [];
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Attempts to invoke `func`, returning either the result or the caught error
      * object. Any additional arguments are provided to `func` when it is invoked.
@@ -74385,7 +74500,7 @@ return jQuery;
     }
 
     /**
-     * Creates a function that performs a deep comparison between a given object
+     * Creates a function which performs a deep comparison between a given object
      * and `source`, returning `true` if the given object has equivalent property
      * values, else `false`.
      *
@@ -74414,7 +74529,7 @@ return jQuery;
     }
 
     /**
-     * Creates a function that compares the property value of `path` on a given
+     * Creates a function which compares the property value of `path` on a given
      * object to `value`.
      *
      * **Note:** This method supports comparing arrays, booleans, `Date` objects,
@@ -74442,14 +74557,12 @@ return jQuery;
     }
 
     /**
-     * Creates a function that invokes the method at `path` on a given object.
-     * Any additional arguments are provided to the invoked method.
+     * Creates a function which invokes the method at `path` on a given object.
      *
      * @static
      * @memberOf _
      * @category Utility
      * @param {Array|string} path The path of the method to invoke.
-     * @param {...*} [args] The arguments to invoke the method with.
      * @returns {Function} Returns the new function.
      * @example
      *
@@ -74471,15 +74584,13 @@ return jQuery;
     });
 
     /**
-     * The opposite of `_.method`; this method creates a function that invokes
-     * the method at a given path on `object`. Any additional arguments are
-     * provided to the invoked method.
+     * The opposite of `_.method`; this method creates a function which invokes
+     * the method at a given path on `object`.
      *
      * @static
      * @memberOf _
      * @category Utility
      * @param {Object} object The object to query.
-     * @param {...*} [args] The arguments to invoke the method with.
      * @returns {Function} Returns the new function.
      * @example
      *
@@ -74605,7 +74716,7 @@ return jQuery;
     }
 
     /**
-     * A no-operation function that returns `undefined` regardless of the
+     * A no-operation function which returns `undefined` regardless of the
      * arguments it receives.
      *
      * @static
@@ -74623,7 +74734,7 @@ return jQuery;
     }
 
     /**
-     * Creates a function that returns the property value at `path` on a
+     * Creates a function which returns the property value at `path` on a
      * given object.
      *
      * @static
@@ -74649,7 +74760,7 @@ return jQuery;
     }
 
     /**
-     * The opposite of `_.property`; this method creates a function that returns
+     * The opposite of `_.property`; this method creates a function which returns
      * the property value at a given path on `object`.
      *
      * @static
@@ -74803,8 +74914,6 @@ return jQuery;
       return baseToString(prefix) + id;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Adds two numbers.
      *
@@ -74870,7 +74979,7 @@ return jQuery;
      * _.max(users, 'age');
      * // => { 'user': 'fred', 'age': 40 }
      */
-    var max = createExtremum(gt, NEGATIVE_INFINITY);
+    var max = createExtremum(gt, -Infinity);
 
     /**
      * Gets the minimum value of `collection`. If `collection` is empty or falsey
@@ -74919,7 +75028,7 @@ return jQuery;
      * _.min(users, 'age');
      * // => { 'user': 'barney', 'age': 36 }
      */
-    var min = createExtremum(lt, POSITIVE_INFINITY);
+    var min = createExtremum(lt, Infinity);
 
     /**
      * Gets the sum of the values in `collection`.
@@ -74968,8 +75077,6 @@ return jQuery;
         ? arraySum(isArray(collection) ? collection : toIterable(collection))
         : baseSum(collection, iteratee);
     }
-
-    /*------------------------------------------------------------------------*/
 
     // Ensure wrappers are instances of `baseLodash`.
     lodash.prototype = baseLodash.prototype;
@@ -75118,8 +75225,6 @@ return jQuery;
     // Add functions to `lodash.prototype`.
     mixin(lodash, lodash);
 
-    /*------------------------------------------------------------------------*/
-
     // Add functions that return unwrapped values when chaining.
     lodash.add = add;
     lodash.attempt = attempt;
@@ -75228,8 +75333,6 @@ return jQuery;
       return source;
     }()), false);
 
-    /*------------------------------------------------------------------------*/
-
     // Add functions capable of returning wrapped and unwrapped values when chaining.
     lodash.sample = sample;
 
@@ -75241,8 +75344,6 @@ return jQuery;
         return sample(value, n);
       });
     };
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * The semantic version number.
@@ -75471,8 +75572,6 @@ return jQuery;
     return lodash;
   }
 
-  /*--------------------------------------------------------------------------*/
-
   // Export lodash.
   var _ = runInContext();
 
@@ -75509,8 +75608,6 @@ return jQuery;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],55:[function(require,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],56:[function(require,module,exports){
 var $ = require('jquery');
 var AddCommand = require("./commands/addcommand");
 var AttackCommand = require("./commands/attackcommand");
@@ -75523,12 +75620,25 @@ var AlignCommand = require("./commands/aligncommand");
 var Game = require("./game");
 var Ship = require("./entities/ship");
 var Console = require("./console");
+var KeyMap = require("./keymap");
 
 var container = $('#container');
 var input = $('#console_text');
 var game = Game.getInstance();
 var console = Console.getInstance();
-var Mousetrap = require("Mousetrap");
+var MouseTrap = require("Mousetrap");
+
+game.control.registerKeyFunc = function(key) {
+    MouseTrap.bind(KeyMap[key], function() {
+        this.keydowns.push(key);
+        this.keyholds.push(key);
+    }.bind(this));
+
+    MouseTrap.bind(KeyMap[key], function() {
+        _.pull(this.keyholds, key);
+        this.keyups.push(key);
+    }.bind(this), 'keyup');
+}
 
 game.initialize(container);
 
@@ -75538,7 +75648,7 @@ var commandMapping = {
             "ship": function() {
                 return new Ship();
             },
-            "playership": function(){
+            "playership": function() {
                 var ship = new Ship();
                 ship.addPlayerControl();
                 return ship;
@@ -75609,5 +75719,4 @@ game.stats = stats;
 Mousetrap.bind('`', function() {
     console.focus();
 }.bind(this), 'keyup');
-
-},{"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./console":25,"./entities/ship":33,"./game":37,"Mousetrap":44,"jquery":52}]},{},[56]);
+},{"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./console":25,"./entities/ship":33,"./game":37,"./keymap":38,"Mousetrap":44,"jquery":52}]},{},[55]);

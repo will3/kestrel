@@ -16,6 +16,7 @@ var BlockChunk = function(origin, size) {
     this.origin = origin;
     this.size = size;
     this.radius = Math.sqrt(size * size * 3);
+    this.minChunkSize = 4;
 
     //  7   6  
     //4   5
@@ -24,7 +25,7 @@ var BlockChunk = function(origin, size) {
     this.children = [];
     this.childrenMap = [];
 
-    this.block = null;
+    this.object = null;
 
     //mesh for chunk
     this.mesh = null;
@@ -48,94 +49,147 @@ BlockChunk.prototype = {
         if (chunk == null) {
             return null;
         }
-        if (chunk.size != 1) {
+        if (chunk.size != this.minChunkSize) {
             return null;
         }
 
-        return chunk.block;
+        if (chunk.object == null) {
+            return null;
+        }
+
+        return chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z];
     },
 
     add: function(x, y, z, block) {
         if (!this.inBound(x, y, z)) {
-            throw "out of bounds";
+            throw "out of bounds for " + x + " " + y + " " + z;
         }
 
-        chunk = this.getChunk(x, y, z);
+        var chunk = this.getChunk(x, y, z);
 
-        while (chunk.size != 1) {
+        while (chunk.size != this.minChunkSize) {
             chunk.subdivide();
             chunk = chunk.getChunk(x, y, z);
         }
 
-        chunk.block = block;
+        if (chunk.object == null) {
+            var blockMap = [];
+            for (var block_x = 0; block_x < this.minChunkSize; block_x++) {
+                blockMap[block_x] = [];
+                for (var block_y = 0; block_y < this.minChunkSize; block_y++) {
+                    blockMap[block_x][block_y] = [];
+                }
+            }
+            chunk.object = blockMap;
+        }
+
+        chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = block;
     },
 
     remove: function(x, y, z) {
         var chunk = this.getChunk(x, y, z);
 
-        if (chunk.size != 1 || chunk.block == null) {
+        if (chunk.size != this.minChunkSize || chunk.object == null) {
             throw "block doesn't exisit";
         }
 
-        chunk.block = null;
+        var block = chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z];
+        if (block == null) {
+            throw "nothing to remove at " + x + " " + y + " " + z;
+        }
+
+        chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = null;
     },
 
-    visitBlocks: function(callback, stopFunc) {
-        if (this.children.length == 0) {
-            if (this.block != null) {
-                callback(this.block, this.origin.x, this.origin.y, this.origin.z);
-                if (stopFunc != null) {
-                    var stop = stopFunc();
-                    if (stop) {
-                        return;
+    //return true in callback to stop loop
+    visitBlocks: function(callback, firstOnly) {
+        if (this.children.length != 0) {
+            for (var i in this.children) {
+                this.children[i].visitBlocks(callback);
+            }
+        }
+
+        if (this.object == null) {
+            return null;
+        }
+
+        for (var x = 0; x < this.object.length; x++) {
+            for (y = 0; y < this.object[x].length; y++) {
+                for (z = 0; z < this.object[x][y].length; z++) {
+                    var block = this.object[x][y][z];
+                    if (block != null) {
+                        callback(block, x + this.origin.x, y + this.origin.y, z + this.origin.z);
+                        if (firstOnly) {
+                            return;
+                        }
                     }
                 }
             }
         }
+    },
 
-        for (var i in this.children) {
-            this.children[i].visitBlocks(callback);
+    visitBlocksContiguous: function(x, y, z, callback) {
+        var detail = this._getDetail(x, y, z);
+        if (detail == null) {
+            throw "cannot found block at " + x + " " + y + " " + z;
+        }
+
+        var visited = new BlockChunk(this.origin, this.size);
+        visited.add(x, y, z, true);
+
+        var opened = [detail];
+
+        var index = 0;
+        while (index < opened.length) {
+            var next = opened[index];
+
+            var details = [
+                this._getDetail(next.x - 1, next.y, next.z, visited),
+                this._getDetail(next.x + 1, next.y, next.z, visited),
+                this._getDetail(next.x, next.y - 1, next.z, visited),
+                this._getDetail(next.x, next.y + 1, next.z, visited),
+                this._getDetail(next.x, next.y, next.z - 1, visited),
+                this._getDetail(next.x, next.y, next.z + 1, visited)
+            ];
+
+            details.forEach(function(detail) {
+                if (detail != null) {
+                    visited.add(detail.x, detail.y, detail.z, true);
+                    opened.push(detail);
+                }
+            })
+
+            callback(next.block, next.x, next.y, next.z);
+            index++;
         }
     },
 
-    visitBlocksContiguous: function(x, y, z, callback, visitedBlocks) {
-        if (visitedBlocks == null) {
-            visitedBlocks = [];
+    _getDetail: function(x, y, z, visited) {
+        if (visited != null) {
+            if (visited.get(x, y, z)) {
+                return null;
+            }
         }
-
         var block = this.get(x, y, z);
         if (block == null) {
-            return;
+            return null;
         }
-
-        if (_.contains(visitedBlocks, block.uuid)) {
-            return;
+        return {
+            block: block,
+            uuid: block.uuid,
+            x: x,
+            y: y,
+            z: z,
         }
-
-        callback(block, x, y, z);
-        visitedBlocks.push(block.uuid);
-
-        this.visitBlocksContiguous(x - 1, y, z, callback, visitedBlocks);
-        this.visitBlocksContiguous(x + 1, y, z, callback, visitedBlocks);
-        this.visitBlocksContiguous(x, y - 1, z, callback, visitedBlocks);
-        this.visitBlocksContiguous(x, y + 1, z, callback, visitedBlocks);
-        this.visitBlocksContiguous(x, y, z - 1, callback, visitedBlocks);
-        this.visitBlocksContiguous(x, y, z + 1, callback, visitedBlocks);
     },
 
     getContiguousGroups: function() {
         //construct block mapping
         var total = 0;
-        var testChunk = new BlockChunk(this.origin, this.size);
+        var tempChunk = new BlockChunk(this.origin, this.size);
 
         this.visitBlocks(function(block, x, y, z) {
-            testChunk.add(x, y, z, {
-                block: block,
-                x: x,
-                y: y,
-                z: z
-            });
-
+            tempChunk.add(x, y, z, block);
             total++;
         });
 
@@ -143,16 +197,18 @@ BlockChunk.prototype = {
         var count = 0;
         while (count < total) {
             var firstResult = null;
-            var stop = false;
 
-            testChunk.visitBlocks(function(block, x, y, z) {
-                firstResult = block;
-                stop = true;
-            }, function() {
-                return stop;
-            })
+            tempChunk.visitBlocks(function(block, x, y, z) {
+                firstResult = {
+                    block: block,
+                    x: x,
+                    y: y,
+                    z: z
+                }
+            }, true);
 
             var group = [];
+
             this.visitBlocksContiguous(firstResult.x, firstResult.y, firstResult.z, function(block, x, y, z) {
                 group.push({
                     block: block,
@@ -161,10 +217,14 @@ BlockChunk.prototype = {
                     z: z
                 });
 
-                testChunk.remove(x, y, z);
+                tempChunk.remove(x, y, z);
 
                 count++;
             });
+
+            if (group.length == 0) {
+                throw "failed to allocate contiguous group";
+            }
 
             groups.push(group);
         }
@@ -173,6 +233,10 @@ BlockChunk.prototype = {
     },
 
     visitChunks: function(callback, minChunkSize) {
+        if (minChunkSize < this.minChunkSize) {
+            throw "minChunkSize is too low";
+        }
+
         if (this.size == minChunkSize) {
             callback(this);
         }
@@ -231,7 +295,7 @@ BlockChunk.prototype = {
     },
 
     subdivide: function() {
-        if (this.size == 1) {
+        if (this.size == this.minChunkSize) {
             return;
         }
 

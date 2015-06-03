@@ -16,10 +16,9 @@ var container = $('#container');
 var input = $('#console_text');
 var game = Game.getInstance();
 var console = Console.getInstance();
-var Mousetrap = require("Mousetrap");
+var MouseTrap = require("Mousetrap");
 
-game.initialize(container);
-game.registerKeyFunc = function(key) {
+game.control.registerKeyFunc = function(key) {
     MouseTrap.bind(KeyMap[key], function() {
         this.keydowns.push(key);
         this.keyholds.push(key);
@@ -30,6 +29,8 @@ game.registerKeyFunc = function(key) {
         this.keyups.push(key);
     }.bind(this), 'keyup');
 }
+
+game.initialize(container);
 
 var commandMapping = {
     add: function() {
