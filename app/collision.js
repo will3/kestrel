@@ -1,7 +1,6 @@
 var Entity = require("./entity");
 var _ = require("lodash");
 var THREE = require("THREE");
-var Game = require("./game");
 
 var Collision = function() {
     Entity.call(this);

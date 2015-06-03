@@ -11,7 +11,6 @@ var Game = function() {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.control = new Control();
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
@@ -30,6 +29,7 @@ var Game = function() {
     this.rotationMatrix = new THREE.Matrix4();
     this.transformMatrix = new THREE.Matrix4();
     this.worldTransformMatrix = new THREE.Matrix4();
+    this.control = new Control();
 }
 
 Game._instance = null;

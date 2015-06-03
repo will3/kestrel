@@ -10,14 +10,10 @@ describe("Laser", function() {
     beforeEach(function() {
         laser = new Laser();
         actor = {
-        	getWorldPosition: function(){
-        		return new THREE.Vector3(0, 0, 0);
-        	}
+        	worldPosition: new THREE.Vector3(0, 0, 0)
         };
         target = {
-        	getWorldPosition: function(){
-        		return new THREE.Vector3(0, 0, 0);
-        	}
+            worldPosition: new THREE.Vector3(0, 0, 0)
         };
         target.position = new THREE.Vector3(100, 100, 100);
         rigidBody = {};
@@ -45,15 +41,15 @@ describe("Laser", function() {
         });
 
         it("should initialize velocity when distance is zero", function() {
-        	actor.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
-        	target.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
+        	actor.worldPosition = new THREE.Vector3(100, 100, 100);
+        	target.worldPosition = new THREE.Vector3(100, 100, 100);
             laser.start();
             expect(laser.rigidBody.velocity.length()).to.be.gt(0);
         });
 
         it("should initialize velocity when distance is greater than zero", function(){
-        	actor.getWorldPosition = sinon.stub().returns(new THREE.Vector3(100, 100, 100));
-        	target.getWorldPosition = sinon.stub().returns(new THREE.Vector3(200, 200, 200));
+        	actor.worldPosition = new THREE.Vector3(100, 100, 100);
+        	target.worldPosition = new THREE.Vector3(200, 200, 200);
         	laser.start();
         	expect(laser.rigidBody.velocity.length()).to.be.gt(0);
         })

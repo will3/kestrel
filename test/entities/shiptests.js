@@ -15,7 +15,7 @@ describe("Ship", function(){
 		ship.weaponController = {};
 		ship.weapons = [];
 		ship.smokeTrail = {};
-	})
+	});
 
 	describe("start", function(){
 		it("should add components", function(){
@@ -25,7 +25,7 @@ describe("Ship", function(){
 			expect(_.includes(ship.components, ship.rigidBody)).to.equal(true);
 			expect(_.includes(ship.components, ship.renderComponent)).to.equal(true);
 			expect(_.includes(ship.components, ship.weaponController)).to.equal(true);
-		})
+		});
 
 		it("should add weapons", function(){
 			var weapon1 = {};
@@ -36,15 +36,6 @@ describe("Ship", function(){
 
 			expect(ship.childEntities).to.contain(weapon1);
 			expect(ship.childEntities).to.contain(weapon2);
-		})
-
-		it("should add smokeTrail", function(){
-			var smokeTrail = {};
-			ship.smokeTrail = smokeTrail;
-
-			ship.start();
-
-			expect(ship.childEntities).to.contain(smokeTrail);
-		})
-	})
-})
+		});
+	});
+});

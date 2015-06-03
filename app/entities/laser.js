@@ -101,7 +101,7 @@ Laser.prototype.onCollision = function(entity) {
         return;
     }
 
-    this.parent.removeEntity(this);
+    this.removeFromParent();
 };
 
 module.exports = Laser;

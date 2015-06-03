@@ -27,7 +27,7 @@ describe('Entity', function(){
 
 			entity.addEntity(child);
 
-			expect(child.parentEntity).to.equal(entity);
+			expect(child.parent).to.equal(entity);
 		})
 
 		it('should push child entity', function(){
@@ -152,7 +152,7 @@ describe('Entity', function(){
 			parent.position = new THREE.Vector3(20, 20, 20);
 			entity.position = new THREE.Vector3(1, 1, 1);
 
-			var worldPosition = entity.getWorldPosition();
+			var worldPosition = entity.worldPosition;
 
 			expect(worldPosition.equals(new THREE.Vector3(321, 321, 321))).to.be.true;
 		})

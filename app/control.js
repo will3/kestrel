@@ -1,8 +1,9 @@
 var Entity = require("./entity");
 var KeyMap = require("./keymap");
 var _ = require("lodash");
-var MouseTrap = require("mousetrap");
+var assert = require("assert");
 
+//inject Control.registerKey as MouseTrap doesn't play well with mocha tests
 var Control = function() {
     Entity.call(this);
 
@@ -15,6 +16,8 @@ var Control = function() {
     this.keydowns = [];
     this.keyups = [];
     this.keyholds = [];
+
+    this.registerKeyFunc = null;
 }
 
 Control.prototype = Object.create(Entity.prototype);
@@ -78,21 +81,15 @@ Control.prototype.registerKeys = function(keys) {
 };
 
 Control.prototype.registerKey = function(key) {
+    assert(this.registerKeyFunc != null, "registerKeyFunc cannot be empty");
+    
     if (_.includes(this.registeredKeys, key)) {
         return;
     }
 
     this.registeredKeys.push(key);
 
-    MouseTrap.bind(KeyMap[key], function() {
-        this.keydowns.push(key);
-        this.keyholds.push(key);
-    }.bind(this));
-
-    MouseTrap.bind(KeyMap[key], function() {
-        _.pull(this.keyholds, key);
-        this.keyups.push(key);
-    }.bind(this), 'keyup');
+    this.registerKeyFunc(key);
 };
 
 module.exports = Control;

@@ -16,6 +16,12 @@ BlockCoord.prototype = {
         return this.x == coord.x && this.y == coord.y && this.z == coord.z;
     },
 
+    add: function(x, y, z){
+        this.x += x || 0;
+        this.y += y || 0;
+        this.z += z || 0;
+    },
+
     copy: function() {
         return new BlockCoord(this.x, this.y, this.z);
     }

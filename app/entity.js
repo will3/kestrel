@@ -56,6 +56,14 @@ Entity.prototype = {
         _.pull(this.components, component);
     },
 
+    removeFromParent: function(){
+        if(this.parent == null){
+            this.destroy();
+        }else{
+            this.parent.removeEntity(this);
+        }
+    },
+
     start: function() {
         //override to provide behaviour
     },
@@ -124,6 +132,10 @@ Entity.prototype = {
     },
 
     get worldTransformMatrix() {
+        if(this.parent == null){
+            return this.transformMatrix;
+        }
+
         return new THREE.Matrix4().multiplyMatrices(this.parent.worldTransformMatrix, this.transformMatrix);
     },
 

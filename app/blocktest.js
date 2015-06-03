@@ -5,7 +5,6 @@ var BlockModel = require("./blockengine/blockmodel");
 var Block = require("./blockengine/block");
 var Control = require('./control');
 var TestBlock = require("./testblock");
-var Mousetrap = require("mousetrap");
 
 var stats = new Stats();
 stats.setMode(0);

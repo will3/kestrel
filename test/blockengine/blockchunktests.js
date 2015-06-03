@@ -33,4 +33,126 @@ describe("BlockChunk", function() {
             expect(result).to.equal(block);
         });
     })
-})
+
+    describe("#visitBlocksContiguous", function() {
+        it("should visit all contiguous blocks", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 8);
+
+            for (var x = 2; x < 5; x++) {
+                for (var y = 2; y < 5; y++) {
+                    for (var z = 2; z < 5; z++) {
+                        chunk.add(x, y, z, new Block());
+                    }
+                }
+            }
+
+            //contiguous
+            chunk.add(4, 5, 4, new Block());
+            //not contiguous
+            chunk.add(7, 7, 7, new Block());
+
+            var count = 0;
+            chunk.visitBlocksContiguous(3, 3, 3, function() {
+                count++;
+            });
+
+            expect(count).to.equal(3 * 3 * 3 + 1);
+        });
+    });
+
+    describe("#getContiguousGroups", function() {
+        it("should return contiguous groups", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+
+            //5 * 5 * 5
+            for (var x = 0; x < 5; x++) {
+                for (var y = 0; y < 5; y++) {
+                    for (var z = 0; z < 5; z++) {
+                        chunk.add(x, y, z, new Block());
+                    }
+                }
+            }
+
+            //10 * 10 * 10
+            for (var x = 100; x < 110; x++) {
+                for (var y = 100; y < 110; y++) {
+                    for (var z = 100; z < 110; z++) {
+                        chunk.add(x, y, z, new Block());
+                    }
+                }
+            }
+
+            //1
+            chunk.add(500, 500, 500, new Block());
+
+            var groups = chunk.getContiguousGroups();
+
+            expect(groups.count == 3);
+
+            var group1 = _.filter(groups, function(group) {
+                return group.length == 5 * 5 * 5;
+            })
+
+            var group2 = _.filter(groups, function(group) {
+                return group.length == 10 * 10 * 10;
+            })
+
+            var group3 = _.filter(groups, function(group) {
+                return group.length == 1;
+            })
+
+            expect(group1).to.exist;
+            expect(group2).to.exist;
+            expect(group3).to.exist;
+        })
+    });
+
+    context("Performance", function() {
+        it("should get blocks timely", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+            chunk.add(123, 234, 345, new Block());
+
+            var iterations = 1000000;
+
+            for (var i = 0; i < iterations; i++) {
+                var block = chunk.get(123, 234, 345);
+            }
+        });
+
+        it("should get in bound timely", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+            var iterations = 10000000;
+
+            for (var i = 0; i < iterations; i++) {
+                var result = chunk.inBound(256, 256, 256);
+            }
+        });
+
+        it("should subdivide timely", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+            var iterations = 1000000;
+            
+            for (var i = 0; i < iterations; i++) {
+                chunk.subdivide();
+            }
+        });
+
+        // it("should add blocks timely", function() {
+        //     var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+        //     //add one million blocks
+
+        //     for (var x = 0; x < 100; x++) {
+        //         for (var y = 0; y < 100; y++) {
+        //             for (var z = 0; z < 100; z++) {
+        //                 var block = new Block();
+        //                 chunk.add(x, y, z, new Block());
+        //             }
+        //         }
+        //     }
+        // });
+
+        it("should visitBlocksContiguous timely", function() {
+
+        });
+    });
+});

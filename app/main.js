@@ -10,6 +10,7 @@ var AlignCommand = require("./commands/aligncommand");
 var Game = require("./game");
 var Ship = require("./entities/ship");
 var Console = require("./console");
+var KeyMap = require("./keymap");
 
 var container = $('#container');
 var input = $('#console_text');
@@ -18,6 +19,17 @@ var console = Console.getInstance();
 var Mousetrap = require("Mousetrap");
 
 game.initialize(container);
+game.registerKeyFunc = function(key) {
+    MouseTrap.bind(KeyMap[key], function() {
+        this.keydowns.push(key);
+        this.keyholds.push(key);
+    }.bind(this));
+
+    MouseTrap.bind(KeyMap[key], function() {
+        _.pull(this.keyholds, key);
+        this.keyups.push(key);
+    }.bind(this), 'keyup');
+}
 
 var commandMapping = {
     add: function() {
@@ -25,7 +37,7 @@ var commandMapping = {
             "ship": function() {
                 return new Ship();
             },
-            "playership": function(){
+            "playership": function() {
                 var ship = new Ship();
                 ship.addPlayerControl();
                 return ship;

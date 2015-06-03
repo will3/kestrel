@@ -1,4 +1,3 @@
-var Mousetrap = require("Mousetrap");
 var Component = require("../component");
 var Control = require("../control");
 var KeyMap = require("../keymap");

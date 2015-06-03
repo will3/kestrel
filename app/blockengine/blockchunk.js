@@ -17,7 +17,13 @@ var BlockChunk = function(origin, size) {
     this.size = size;
     this.radius = Math.sqrt(size * size * 3);
 
+    //  7   6  
+    //4   5
+    //  3   2  
+    //0   1
     this.children = [];
+    this.childrenMap = [];
+
     this.block = null;
 
     //mesh for chunk
@@ -61,10 +67,6 @@ BlockChunk.prototype = {
             chunk = chunk.getChunk(x, y, z);
         }
 
-        if (!block instanceof Block) {
-            throw "attempt to add non block object";
-        }
-
         chunk.block = block;
     },
 
@@ -78,10 +80,16 @@ BlockChunk.prototype = {
         chunk.block = null;
     },
 
-    visitBlocks: function(callback) {
+    visitBlocks: function(callback, stopFunc) {
         if (this.children.length == 0) {
             if (this.block != null) {
                 callback(this.block, this.origin.x, this.origin.y, this.origin.z);
+                if (stopFunc != null) {
+                    var stop = stopFunc();
+                    if (stop) {
+                        return;
+                    }
+                }
             }
         }
 
@@ -90,30 +98,79 @@ BlockChunk.prototype = {
         }
     },
 
-    // visitBlocksContiguous: function(x, y, z, callback, visitedBlocks) {
-    //     if (visitedBlocks == null) {
-    //         visitedBlocks = [];
-    //     }
+    visitBlocksContiguous: function(x, y, z, callback, visitedBlocks) {
+        if (visitedBlocks == null) {
+            visitedBlocks = [];
+        }
 
-    //     var block = this.get(x, y, z);
-    //     if (block == null) {
-    //         return;
-    //     }
+        var block = this.get(x, y, z);
+        if (block == null) {
+            return;
+        }
 
-    //     if (visitedBlocks.contains(block.uuid)) {
-    //         return;
-    //     }
+        if (_.contains(visitedBlocks, block.uuid)) {
+            return;
+        }
 
-    //     callback(block, x, y, z);
-    //     visitedBlocks.push(block.uuid);
+        callback(block, x, y, z);
+        visitedBlocks.push(block.uuid);
 
-    //     this.visitBlocksContiguous(x - 1, y, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x + 1, y, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y - 1, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y + 1, z, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y, z - 1, visitedBlocks);
-    //     this.visitBlocksContiguous(x, y, z + 1, visitedBlocks);
-    // },
+        this.visitBlocksContiguous(x - 1, y, z, callback, visitedBlocks);
+        this.visitBlocksContiguous(x + 1, y, z, callback, visitedBlocks);
+        this.visitBlocksContiguous(x, y - 1, z, callback, visitedBlocks);
+        this.visitBlocksContiguous(x, y + 1, z, callback, visitedBlocks);
+        this.visitBlocksContiguous(x, y, z - 1, callback, visitedBlocks);
+        this.visitBlocksContiguous(x, y, z + 1, callback, visitedBlocks);
+    },
+
+    getContiguousGroups: function() {
+        //construct block mapping
+        var total = 0;
+        var testChunk = new BlockChunk(this.origin, this.size);
+
+        this.visitBlocks(function(block, x, y, z) {
+            testChunk.add(x, y, z, {
+                block: block,
+                x: x,
+                y: y,
+                z: z
+            });
+
+            total++;
+        });
+
+        var groups = [];
+        var count = 0;
+        while (count < total) {
+            var firstResult = null;
+            var stop = false;
+
+            testChunk.visitBlocks(function(block, x, y, z) {
+                firstResult = block;
+                stop = true;
+            }, function() {
+                return stop;
+            })
+
+            var group = [];
+            this.visitBlocksContiguous(firstResult.x, firstResult.y, firstResult.z, function(block, x, y, z) {
+                group.push({
+                    block: block,
+                    x: x,
+                    y: y,
+                    z: z
+                });
+
+                testChunk.remove(x, y, z);
+
+                count++;
+            });
+
+            groups.push(group);
+        }
+
+        return groups;
+    },
 
     visitChunks: function(callback, minChunkSize) {
         if (this.size == minChunkSize) {
@@ -163,14 +220,14 @@ BlockChunk.prototype = {
             }
         }
 
-        for (var i in this.children) {
-            var chunk = this.children[i].getChunk(x, y, z, minChunkSize);
-            if (chunk != null) {
-                return chunk;
-            }
-        }
+        var size_half = this.size / 2.0;
+        var xIndex = (x < (this.origin.x + size_half)) ? 0 : 1;
+        var yIndex = (y < (this.origin.y + size_half)) ? 0 : 1;
+        var zIndex = (z < (this.origin.z + size_half)) ? 0 : 1;
 
-        return null;
+        var child = this.childrenMap[xIndex][yIndex][zIndex];
+
+        return child.getChunk(x, y, z, minChunkSize);
     },
 
     subdivide: function() {
@@ -195,9 +252,31 @@ BlockChunk.prototype = {
             new BlockCoord(x, y + size_half, z + size_half)
         ];
 
+        this.children = [];
         for (var i in coords) {
             this.children.push(new BlockChunk(coords[i], size_half));
         }
+
+        this.childrenMap = [
+            [
+                [],
+                []
+            ],
+            [
+                [],
+                []
+            ]
+        ];
+
+        this.childrenMap[0][0][0] = this.children[0];
+        this.childrenMap[1][0][0] = this.children[1];
+        this.childrenMap[1][0][1] = this.children[2];
+        this.childrenMap[0][0][1] = this.children[3];
+
+        this.childrenMap[0][1][0] = this.children[4];
+        this.childrenMap[1][1][0] = this.children[5];
+        this.childrenMap[1][1][1] = this.children[6];
+        this.childrenMap[0][1][1] = this.children[7];
     }
 };
 
