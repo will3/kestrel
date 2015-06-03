@@ -12,7 +12,7 @@ var AddCommand = function(objectMapping) {
 AddCommand.prototype = Object.create(Command.prototype);
 AddCommand.constructor = AddCommand;
 
-AddCommand.prototype.execute = function() {
+AddCommand.prototype.start = function() {
 	assert(this.objectMapping != null, "objectMapping cannot be null");
 	assert(this.game != null, "game cannot be null");
 

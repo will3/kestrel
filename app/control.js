@@ -53,24 +53,24 @@ Control.prototype.hookContainer = function(container) {
     }.bind(this));
 };
 
-Control.prototype.start = function(){
+Control.prototype.start = function() {
 
 };
 
-Control.prototype.update = function(){
+Control.prototype.update = function() {
     this.keyups = [];
     this.keydowns = [];
 };
 
-Control.prototype.isKeyHold = function(key) {
+Control.prototype.keyHold = function(key) {
     return _.includes(this.keyholds, key);
 };
 
-Control.prototype.isKeyDown = function(key) {
+Control.prototype.keyDown = function(key) {
     return _.includes(this.keydowns, key);
 };
 
-Control.prototype.isKeyUp = function(key) {
+Control.prototype.keyUp = function(key) {
     return _.includes(this.keyups, key);
 };
 
@@ -82,7 +82,7 @@ Control.prototype.registerKeys = function(keys) {
 
 Control.prototype.registerKey = function(key) {
     assert(this.registerKeyFunc != null, "registerKeyFunc cannot be empty");
-    
+
     if (_.includes(this.registeredKeys, key)) {
         return;
     }

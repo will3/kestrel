@@ -3,18 +3,20 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var _ = require("lodash");
 
-var ShipController = function() {
+var ShipController = function(params) {
     Component.call(this);
 
-    this.force = 0.025;
+    var params = params || {};
+    this.force = params.force || 0.025;
+    this.yawCurve = params.yawCurve || 0.1;
 
     this.yaw = {
-        yawForce: 0.015,
+        yawForce: params.yawForce || 0.015,
         value: 0,
 
-        update: function(roll) {
+        update: function(roll, accelerateAmount) {
             var bankFactor = Math.sin(roll.value);
-            var yawVelocity = bankFactor * -this.yawForce;
+            var yawVelocity = bankFactor * -this.yawForce * accelerateAmount;
 
             this.value += yawVelocity;
         }
@@ -23,31 +25,28 @@ var ShipController = function() {
     //engine
     this.pitch = {
         desired: null,
-        resting: 0,
         max: Math.PI / 2,
         curve: 0.1,
         maxSpeed: 0.1,
         friction: 0.95,
+        restingFriction: 0.95,
         value: 0,
 
         update: function() {
             if (this.desired == null) {
-                this.desired = this.resting;
+                this.value *= this.restingFriction;
+                return;
             }
 
-            if (this.desired != null) {
-                var speed = (this.desired - this.value) * this.curve;
-                if (speed > this.maxSpeed) {
-                    speed = this.maxSpeed;
-                } else if (speed < -this.maxSpeed) {
-                    speed = -this.maxSpeed;
-                }
-
-                this.value += speed;
-                this.value *= this.friction;
+            var speed = (this.desired - this.value) * this.curve;
+            if (speed > this.maxSpeed) {
+                speed = this.maxSpeed;
+            } else if (speed < -this.maxSpeed) {
+                speed = -this.maxSpeed;
             }
 
-            this.desired = this.resting;
+            this.value += speed;
+            this.value *= this.friction;
         }
     };
 
@@ -79,8 +78,15 @@ ShipController.prototype.update = function() {
     var entity = this.entity;
     this.roll.update();
     this.pitch.update();
-    this.yaw.update(this.roll);
+    this.yaw.update(this.roll, this.accelerateAmount);
     entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
+
+    this.accelerateAmount *= 0.9;
+    if(this.accelerateAmount < 0.01){
+        this.accelerateAmount = 0.0;
+    }
+    this.roll.desired = null;
+    this.pitch.desired = null;
 };
 
 ShipController.prototype.accelerate = function(amount) {
@@ -102,7 +108,7 @@ ShipController.prototype.align = function(point) {
 
     var angleBetween = MathUtils.angleBetween(a, b, c);
 
-    var desiredYawSpeed = angleBetween * 0.1;
+    var desiredYawSpeed = angleBetween * this.yawCurve;
 
     this._bankForYawVelocity(desiredYawSpeed);
     var xDiff = point.x - position.x;

@@ -11,12 +11,13 @@ var Game = require("./game");
 var Ship = require("./entities/ship");
 var Console = require("./console");
 var KeyMap = require("./keymap");
+var MouseTrap = require("Mousetrap");
+var _ = require("lodash");
 
 var container = $('#container');
 var input = $('#console_text');
 var game = Game.getInstance();
 var console = Console.getInstance();
-var MouseTrap = require("Mousetrap");
 
 game.control.registerKeyFunc = function(key) {
     MouseTrap.bind(KeyMap[key], function() {
@@ -39,7 +40,11 @@ var commandMapping = {
                 return new Ship();
             },
             "playership": function() {
-                var ship = new Ship();
+                var ship = new Ship({
+                    force : 0.05,
+                    yawForce : 0.25,
+                    yawCurve : 0.01
+                });
                 ship.addPlayerControl();
                 return ship;
             }
@@ -78,7 +83,7 @@ console.runScenario(
         "add ship 150 0 150",
         "select ship0",
         "orbit playership0 200",
-        // "attack ship0",
+        "attack playership0",
 
         // "add ship -150 0 150",
         // "select ship2",

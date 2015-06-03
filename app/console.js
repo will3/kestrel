@@ -62,7 +62,7 @@ Console.prototype = {
     },
 
     run: function(command) {
-        var result = command.execute();
+        var result = command.start();
         if(result != null){
             this.write(result);
         }else{

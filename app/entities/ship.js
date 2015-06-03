@@ -11,10 +11,10 @@ var Engine = require("./engine");
 var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
 
-var Ship = function() {
+var Ship = function(params) {
     Entity.call(this);
 
-    this.shipController = new ShipController();
+    this.shipController = new ShipController(params);
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
     this.playerControl = null;
@@ -57,13 +57,17 @@ Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
 
 Ship.prototype.setCommand = function(command) {
-    if (this.command != null) {
-        this.removeComponent(command);
-        this.command = null;
-    }
-
+    this.clearCommand();
+    this.command = command;
     this.addComponent(command);
 };
+
+Ship.prototype.clearCommand = function(){
+    if (this.command != null) {
+        this.removeComponent(this.command);
+        this.command = null;
+    }
+}
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -93,7 +97,7 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Ammo) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.4, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.3, 2);
             this.model.update();
         }
     }

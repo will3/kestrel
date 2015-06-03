@@ -15,7 +15,7 @@ var OrbitCommand = function() {
 OrbitCommand.prototype = Object.create(Command.prototype);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
-OrbitCommand.prototype.execute = function() {
+OrbitCommand.prototype.start = function() {
     assert(this.actor != null, "target cannot be empty");
 
     var params = this.params || [];

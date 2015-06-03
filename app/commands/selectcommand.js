@@ -11,7 +11,7 @@ var SelectCommand = function() {
 SelectCommand.prototype = Object.create(Command.prototype);
 SelectCommand.prototype.constructor = SelectCommand;
 
-SelectCommand.prototype.execute = function() {
+SelectCommand.prototype.start = function() {
     var entity = this.game.getEntity(this.params[0]);
     this.console.selectedEntity = entity;
 };

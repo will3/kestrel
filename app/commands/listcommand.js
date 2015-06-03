@@ -10,7 +10,7 @@ var ListCommand = function() {
 ListCommand.prototype = Object.create(Command.prototype);
 ListCommand.prototype.constructor = ListCommand;
 
-ListCommand.prototype.execute = function() {
+ListCommand.prototype.start = function() {
     var entities = _.filter(this.game.getEntities(), function(entity) {
         return entity.name != null;
     });

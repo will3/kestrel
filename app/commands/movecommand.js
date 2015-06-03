@@ -1,6 +1,7 @@
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
+var Debug = require("../debug");
 
 var MoveCommand = function() {
     Command.call(this);
@@ -11,7 +12,7 @@ var MoveCommand = function() {
 MoveCommand.prototype = Object.create(Command.prototype);
 MoveCommand.prototype.constructor = MoveCommand;
 
-MoveCommand.prototype.execute = function() {
+MoveCommand.prototype.start = function() {
 	assert(this.actor != null, "actor cannot be empty");
 
     var x = parseInt(this.params[0]);

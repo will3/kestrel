@@ -12,8 +12,4 @@ var Command = function() {
 Command.prototype = Object.create(Component.prototype);
 Command.prototype.constructor = Command;
 
-Command.execute = function() {
-    throw "must override";
-};
-
 module.exports = Command;

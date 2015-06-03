@@ -17,7 +17,7 @@ var Debug = function(){
 
 			indicator.position = point;
 
-			getGame().addEntity(indicator);
+			game.addEntity(indicator);
 		},
 	};
 }();

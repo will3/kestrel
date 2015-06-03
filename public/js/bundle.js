@@ -993,10 +993,6 @@ var Command = function() {
 Command.prototype = Object.create(Component.prototype);
 Command.prototype.constructor = Command;
 
-Command.execute = function() {
-    throw "must override";
-};
-
 module.exports = Command;
 },{"./component":16,"./game":37}],8:[function(require,module,exports){
 var Command = require("../command");
@@ -1013,7 +1009,7 @@ var AddCommand = function(objectMapping) {
 AddCommand.prototype = Object.create(Command.prototype);
 AddCommand.constructor = AddCommand;
 
-AddCommand.prototype.execute = function() {
+AddCommand.prototype.start = function() {
 	assert(this.objectMapping != null, "objectMapping cannot be null");
 	assert(this.game != null, "game cannot be null");
 
@@ -1081,7 +1077,7 @@ var AttackCommand = function() {
 AttackCommand.prototype = Object.create(Command.prototype);
 AttackCommand.prototype.constructor = AttackCommand;
 
-AttackCommand.prototype.execute = function() {
+AttackCommand.prototype.start = function() {
     var targetName = this.params[0];
     this.target = this.game.getEntity(targetName);
 
@@ -1101,7 +1097,7 @@ var DestroyCommand = function() {
 DestroyCommand.prototype = Object.create(Command.prototype);
 DestroyCommand.prototype.constructor = DestroyCommand;
 
-DestroyCommand.prototype.execute = function() {
+DestroyCommand.prototype.start = function() {
     var param = this.params == null ? null : this.params[0];
 
     if (param == "all") {
@@ -1136,7 +1132,7 @@ var ListCommand = function() {
 ListCommand.prototype = Object.create(Command.prototype);
 ListCommand.prototype.constructor = ListCommand;
 
-ListCommand.prototype.execute = function() {
+ListCommand.prototype.start = function() {
     var entities = _.filter(this.game.getEntities(), function(entity) {
         return entity.name != null;
     });
@@ -1158,6 +1154,7 @@ module.exports = ListCommand;
 var Command = require("../command");
 var THREE = require("THREE");
 var assert = require("assert");
+var Debug = require("../debug");
 
 var MoveCommand = function() {
     Command.call(this);
@@ -1168,7 +1165,7 @@ var MoveCommand = function() {
 MoveCommand.prototype = Object.create(Command.prototype);
 MoveCommand.prototype.constructor = MoveCommand;
 
-MoveCommand.prototype.execute = function() {
+MoveCommand.prototype.start = function() {
 	assert(this.actor != null, "actor cannot be empty");
 
     var x = parseInt(this.params[0]);
@@ -1186,7 +1183,7 @@ MoveCommand.prototype.update = function() {
 };
 
 module.exports = MoveCommand;
-},{"../command":7,"THREE":45,"assert":46}],14:[function(require,module,exports){
+},{"../command":7,"../debug":27,"THREE":45,"assert":46}],14:[function(require,module,exports){
 var Command = require("../command");
 var THREE = require("THREE");
 var MathUtils = require("../mathutils");
@@ -1204,7 +1201,7 @@ var OrbitCommand = function() {
 OrbitCommand.prototype = Object.create(Command.prototype);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
-OrbitCommand.prototype.execute = function() {
+OrbitCommand.prototype.start = function() {
     assert(this.actor != null, "target cannot be empty");
 
     var params = this.params || [];
@@ -1289,7 +1286,7 @@ var SelectCommand = function() {
 SelectCommand.prototype = Object.create(Command.prototype);
 SelectCommand.prototype.constructor = SelectCommand;
 
-SelectCommand.prototype.execute = function() {
+SelectCommand.prototype.start = function() {
     var entity = this.game.getEntity(this.params[0]);
     this.console.selectedEntity = entity;
 };
@@ -1357,6 +1354,8 @@ var Component = require("../component");
 var Control = require("../control");
 var KeyMap = require("../keymap");
 var MathUtils = require("../mathutils");
+var THREE = require("THREE");
+var MoveCommand = require("../commands/movecommand");
 
 var PlayerControl = function() {
     Component.call(this);
@@ -1379,28 +1378,57 @@ PlayerControl.prototype.update = function() {
     var ship = this.entity;
     var rotation = this.camera.rotation;
     var vector = MathUtils.getUnitVector(rotation);
-    vector.setY(0);
+    vector.setY(ship.position.y);
     vector.setLength(100);
 
-    if (this.control.isKeyHold("up")) {
-            	
+    var up = this.control.keyHold("up");
+    var down = this.control.keyHold("down");
+    var left = this.control.keyHold("left");
+    var right = this.control.keyHold("right");
+
+    var angle = null;
+    if (up && down) {
+        up = down = false;
+    }
+    if (left && right) {
+        left = right = false;
     }
 
-    if (this.control.isKeyHold("down")) {
-
+    if (down && left) {
+        angle = Math.PI * -0.25;
+    } else if (up && left) {
+        angle = Math.PI * -0.75;
+    } else if (up && right) {
+        angle = Math.PI * 0.75;
+    } else if (down && right) {
+        angle = Math.PI * 0.25;
+    } else if (up) {
+        angle = Math.PI;
+    } else if (down) {
+        angle = 0;
+    } else if (left) {
+        angle = -Math.PI / 2.0;
+    } else if (right) {
+        angle = Math.PI / 2.0;
     }
 
-    if (this.control.isKeyHold("left")) {
+    if (angle != null) {
+        // if (ship.command == null || ship.command instanceof MoveCommand) {
+        vector.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        vector.add(ship.position);
 
-    }
-
-    if (this.control.isKeyHold("right")) {
-
+        var moveCommand = new MoveCommand();
+        moveCommand.params = [vector.x, vector.y, vector.z];
+        moveCommand.actor = ship;
+        ship.setCommand(moveCommand);
+        // }
+    } else {
+        ship.clearCommand();
     }
 };
 
 module.exports = PlayerControl;
-},{"../component":16,"../control":26,"../keymap":38,"../mathutils":39}],19:[function(require,module,exports){
+},{"../commands/movecommand":13,"../component":16,"../control":26,"../keymap":38,"../mathutils":39,"THREE":45}],19:[function(require,module,exports){
 var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
@@ -1541,18 +1569,20 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var _ = require("lodash");
 
-var ShipController = function() {
+var ShipController = function(params) {
     Component.call(this);
 
-    this.force = 0.025;
+    var params = params || {};
+    this.force = params.force || 0.025;
+    this.yawCurve = params.yawCurve || 0.1;
 
     this.yaw = {
-        yawForce: 0.015,
+        yawForce: params.yawForce || 0.015,
         value: 0,
 
-        update: function(roll) {
+        update: function(roll, accelerateAmount) {
             var bankFactor = Math.sin(roll.value);
-            var yawVelocity = bankFactor * -this.yawForce;
+            var yawVelocity = bankFactor * -this.yawForce * accelerateAmount;
 
             this.value += yawVelocity;
         }
@@ -1561,31 +1591,28 @@ var ShipController = function() {
     //engine
     this.pitch = {
         desired: null,
-        resting: 0,
         max: Math.PI / 2,
         curve: 0.1,
         maxSpeed: 0.1,
         friction: 0.95,
+        restingFriction: 0.95,
         value: 0,
 
         update: function() {
             if (this.desired == null) {
-                this.desired = this.resting;
+                this.value *= this.restingFriction;
+                return;
             }
 
-            if (this.desired != null) {
-                var speed = (this.desired - this.value) * this.curve;
-                if (speed > this.maxSpeed) {
-                    speed = this.maxSpeed;
-                } else if (speed < -this.maxSpeed) {
-                    speed = -this.maxSpeed;
-                }
-
-                this.value += speed;
-                this.value *= this.friction;
+            var speed = (this.desired - this.value) * this.curve;
+            if (speed > this.maxSpeed) {
+                speed = this.maxSpeed;
+            } else if (speed < -this.maxSpeed) {
+                speed = -this.maxSpeed;
             }
 
-            this.desired = this.resting;
+            this.value += speed;
+            this.value *= this.friction;
         }
     };
 
@@ -1617,8 +1644,15 @@ ShipController.prototype.update = function() {
     var entity = this.entity;
     this.roll.update();
     this.pitch.update();
-    this.yaw.update(this.roll);
+    this.yaw.update(this.roll, this.accelerateAmount);
     entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
+
+    this.accelerateAmount *= 0.9;
+    if(this.accelerateAmount < 0.01){
+        this.accelerateAmount = 0.0;
+    }
+    this.roll.desired = null;
+    this.pitch.desired = null;
 };
 
 ShipController.prototype.accelerate = function(amount) {
@@ -1640,7 +1674,7 @@ ShipController.prototype.align = function(point) {
 
     var angleBetween = MathUtils.angleBetween(a, b, c);
 
-    var desiredYawSpeed = angleBetween * 0.1;
+    var desiredYawSpeed = angleBetween * this.yawCurve;
 
     this._bankForYawVelocity(desiredYawSpeed);
     var xDiff = point.x - position.x;
@@ -1803,7 +1837,7 @@ Console.prototype = {
     },
 
     run: function(command) {
-        var result = command.execute();
+        var result = command.start();
         if(result != null){
             this.write(result);
         }else{
@@ -1885,24 +1919,24 @@ Control.prototype.hookContainer = function(container) {
     }.bind(this));
 };
 
-Control.prototype.start = function(){
+Control.prototype.start = function() {
 
 };
 
-Control.prototype.update = function(){
+Control.prototype.update = function() {
     this.keyups = [];
     this.keydowns = [];
 };
 
-Control.prototype.isKeyHold = function(key) {
+Control.prototype.keyHold = function(key) {
     return _.includes(this.keyholds, key);
 };
 
-Control.prototype.isKeyDown = function(key) {
+Control.prototype.keyDown = function(key) {
     return _.includes(this.keydowns, key);
 };
 
-Control.prototype.isKeyUp = function(key) {
+Control.prototype.keyUp = function(key) {
     return _.includes(this.keyups, key);
 };
 
@@ -1914,7 +1948,7 @@ Control.prototype.registerKeys = function(keys) {
 
 Control.prototype.registerKey = function(key) {
     assert(this.registerKeyFunc != null, "registerKeyFunc cannot be empty");
-    
+
     if (_.includes(this.registeredKeys, key)) {
         return;
     }
@@ -1945,7 +1979,7 @@ var Debug = function(){
 
 			indicator.position = point;
 
-			getGame().addEntity(indicator);
+			game.addEntity(indicator);
 		},
 	};
 }();
@@ -2022,7 +2056,7 @@ Engine.prototype.update = function() {
     var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
     velocity.setLength(1);
 
-    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 10);
+    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 5);
 };
 
 module.exports = Engine;
@@ -2271,10 +2305,10 @@ var Engine = require("./engine");
 var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
 
-var Ship = function() {
+var Ship = function(params) {
     Entity.call(this);
 
-    this.shipController = new ShipController();
+    this.shipController = new ShipController(params);
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
     this.playerControl = null;
@@ -2317,13 +2351,17 @@ Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
 
 Ship.prototype.setCommand = function(command) {
-    if (this.command != null) {
-        this.removeComponent(command);
-        this.command = null;
-    }
-
+    this.clearCommand();
+    this.command = command;
     this.addComponent(command);
 };
+
+Ship.prototype.clearCommand = function(){
+    if (this.command != null) {
+        this.removeComponent(this.command);
+        this.command = null;
+    }
+}
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -2353,7 +2391,7 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Ammo) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.4, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.5, 2);
             this.model.update();
         }
     }
@@ -2886,7 +2924,7 @@ var KeyMap = {
 	up : "w",
 	down: "s",
 	left: "a",
-	right: "b"
+	right: "d"
 };
 
 module.exports = KeyMap;
@@ -75617,12 +75655,13 @@ var Game = require("./game");
 var Ship = require("./entities/ship");
 var Console = require("./console");
 var KeyMap = require("./keymap");
+var MouseTrap = require("Mousetrap");
+var _ = require("lodash");
 
 var container = $('#container');
 var input = $('#console_text');
 var game = Game.getInstance();
 var console = Console.getInstance();
-var MouseTrap = require("Mousetrap");
 
 game.control.registerKeyFunc = function(key) {
     MouseTrap.bind(KeyMap[key], function() {
@@ -75645,7 +75684,11 @@ var commandMapping = {
                 return new Ship();
             },
             "playership": function() {
-                var ship = new Ship();
+                var ship = new Ship({
+                    force : 0.05,
+                    yawForce : 0.25,
+                    yawCurve : 0.01
+                });
                 ship.addPlayerControl();
                 return ship;
             }
@@ -75684,7 +75727,7 @@ console.runScenario(
         "add ship 150 0 150",
         "select ship0",
         "orbit playership0 200",
-        // "attack ship0",
+        "attack playership0",
 
         // "add ship -150 0 150",
         // "select ship2",
@@ -75715,4 +75758,4 @@ game.stats = stats;
 Mousetrap.bind('`', function() {
     console.focus();
 }.bind(this), 'keyup');
-},{"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./console":25,"./entities/ship":33,"./game":37,"./keymap":38,"Mousetrap":44,"jquery":52}]},{},[55]);
+},{"./commands/addcommand":8,"./commands/aligncommand":9,"./commands/attackcommand":10,"./commands/destroycommand":11,"./commands/listcommand":12,"./commands/movecommand":13,"./commands/orbitcommand":14,"./commands/selectcommand":15,"./console":25,"./entities/ship":33,"./game":37,"./keymap":38,"Mousetrap":44,"jquery":52,"lodash":54}]},{},[55]);

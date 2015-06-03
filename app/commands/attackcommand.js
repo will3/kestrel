@@ -11,7 +11,7 @@ var AttackCommand = function() {
 AttackCommand.prototype = Object.create(Command.prototype);
 AttackCommand.prototype.constructor = AttackCommand;
 
-AttackCommand.prototype.execute = function() {
+AttackCommand.prototype.start = function() {
     var targetName = this.params[0];
     this.target = this.game.getEntity(targetName);
 

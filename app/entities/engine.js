@@ -25,7 +25,7 @@ Engine.prototype.update = function() {
     var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
     velocity.setLength(1);
 
-    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 10);
+    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 5);
 };
 
 module.exports = Engine;

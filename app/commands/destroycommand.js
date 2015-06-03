@@ -9,7 +9,7 @@ var DestroyCommand = function() {
 DestroyCommand.prototype = Object.create(Command.prototype);
 DestroyCommand.prototype.constructor = DestroyCommand;
 
-DestroyCommand.prototype.execute = function() {
+DestroyCommand.prototype.start = function() {
     var param = this.params == null ? null : this.params[0];
 
     if (param == "all") {
