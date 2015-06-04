@@ -3,6 +3,8 @@ var Block = require("../blockengine/block");
 var BlockCoord = require("../blockengine/blockcoord");
 var TestBlock = require("../testblock");
 var THREE = require("THREE");
+var WeaponModel = require("./weaponmodel");
+var CargoModel = require("./cargomodel");
 
 var ShipModel = function() {
     BlockModel.call(this, 64);
@@ -34,23 +36,13 @@ ShipModel.prototype.addHull = function(startX, startY, startZ) {
 };
 
 ShipModel.prototype.addCargo = function(startX, startY, startZ) {
-    for (var z = 0; z < 5; z++) {
-        this.add(startX, startY, startZ + z, new Block());
-    }
+    var cargoModel = new CargoModel();
+    this.mergeModel(cargoModel, startX, startY, startZ);
 };
 
 ShipModel.prototype.addWeapon = function(startX, startY, startZ) {
-    for (var z = 0; z < 6; z++) {
-        if (z == 3) {
-            this.add(startX, startY, startZ + z, new Block().withScale(new THREE.Vector3(0.75, 0.75, 1)));
-        } else if (z == 4) {
-            this.add(startX, startY, startZ + z, new Block().withScale(new THREE.Vector3(0.50, 0.50, 1)));
-        } else if (z == 5) {
-            this.add(startX, startY, startZ + z, new Block().withScale(new THREE.Vector3(0.25, 0.25, 1)));
-        } else {
-            this.add(startX, startY, startZ + z, new Block());
-        }
-    }
+    var weaponModel = new WeaponModel();
+    this.mergeModel(weaponModel, startX, startY, startZ);
 }
 
 module.exports = ShipModel;

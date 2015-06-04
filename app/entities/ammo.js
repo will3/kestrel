@@ -11,7 +11,7 @@ var Ammo = function() {
 
     this.collisionBody = {
         type: "sphere",
-        radius: 1,
+        radius: 2,
         getPosition: function() {
             return this.position
         }.bind(this),

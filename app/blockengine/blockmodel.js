@@ -30,6 +30,12 @@ BlockModel.prototype = {
         this._updateDirty(x, y, z);
     },
 
+    mergeModel: function(model, startX, startY, startZ) {
+        model.visitBlocks(function(block, x, y, z) {
+            this.add(startX + x, startY + y, startZ + z, block);
+        }.bind(this));
+    },
+
     // checkContiguous: function() {
     //     var count1 = 0;
     //     this.chunk.visitBlocksContiguous(function(block, x, y, z) {
@@ -156,6 +162,10 @@ BlockModel.prototype = {
 
     getWorldInverseMatrix: function() {
         return new THREE.Matrix4().getInverse(this.getWorldMatrix());
+    },
+
+    visitBlocks: function(callback){
+        this.chunk.visitBlocks(callback);
     },
 
     _updateDirty: function(x, y, z) {
