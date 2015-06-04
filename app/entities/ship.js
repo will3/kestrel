@@ -15,6 +15,8 @@ var _ = require("lodash");
 var Ship = function(params) {
     Entity.call(this);
 
+    params = params || {};
+
     this.shipController = new ShipController(params);
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
@@ -25,7 +27,7 @@ var Ship = function(params) {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 50
+        fireInterval: params.fireInterval || 50
     })];
 
     var sideEngine1 = new Engine(3);
@@ -51,22 +53,11 @@ var Ship = function(params) {
         }.bind(this)
     }
 
-    this.commands = [];
-}
+    this.command = null;
+};
 
 Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
-
-Ship.prototype.issueCommand = function(command) {
-    this.clearCommand(command.type);
-    this.commands.push(command);
-};
-
-Ship.prototype.clearCommand = function(commandType) {
-    _.pull(this.commands, function(command){
-        return command.type == commandType;
-    });
-}
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -92,9 +83,9 @@ Ship.prototype.update = function() {
         engine.emission = this.shipController.accelerateAmount;
     }.bind(this));
 
-    this.commands.forEach(function(command){
-        command.update();
-    });
+    if(this.command != null){
+        this.command.update();
+    }
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
@@ -104,11 +95,11 @@ Ship.prototype.onCollision = function(entity, hitTest) {
             this.model.update();
         }
     }
-}
+};
 
 Ship.prototype.addPlayerControl = function() {
     this.playerControl = new PlayerControl();
     this.addComponent(this.playerControl);
-}
+};
 
 module.exports = Ship;

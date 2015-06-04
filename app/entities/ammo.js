@@ -6,6 +6,7 @@ var Ammo = function() {
 
     this.actor = null;
     this.target = null;
+    this.point = null;
     this.destroyable = true;
 
     this.collisionBody = {

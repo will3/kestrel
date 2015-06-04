@@ -64,7 +64,7 @@ Console.prototype = {
     run: function(command) {
         var result = command.start();
         if(command.hasActor){
-            this.selectedEntity.issueCommand(command);
+            this.selectedEntity.command = command;
         }
 
         if (result != null) {

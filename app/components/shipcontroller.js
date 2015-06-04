@@ -120,6 +120,40 @@ ShipController.prototype.align = function(point) {
     this.pitch.desired = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
 };
 
+ShipController.prototype.orbit = function(target, distance){
+    var position = this.transform.position;
+    //a being vector from position to target
+    var a = new THREE.Vector3();
+    a.subVectors(target, position);
+    a.setY(position.y);
+
+    var yAxis = MathUtils.yAxis;
+
+    var b = new THREE.Vector3();
+    b.copy(a);
+    b.applyAxisAngle(yAxis, 3 * Math.PI / 4);
+
+    var c = new THREE.Vector3();
+    c.copy(a);
+    c.applyAxisAngle(yAxis, -3 * Math.PI / 4);
+
+    b.setLength(distance);
+    c.setLength(distance);
+
+    b.addVectors(b, target);
+    c.addVectors(c, target);
+
+    var unitFacing = this.getUnitFacing();
+    var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
+    var angle2 = Math.abs(MathUtils.angleBetween(c, position, unitFacing));
+
+    var point = angle1 < angle2 ? b : c;
+
+    this.align(point);
+
+    this.accelerate(1.0);
+}
+
 ShipController.prototype.move = function(point) {
     this.align(point);
     this.accelerate(1.0);

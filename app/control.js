@@ -13,6 +13,7 @@ var Control = function() {
 
     this.mouseX = null;
     this.mouseY = null;
+    this.mouseHold = false;
     this.mouseDown = false;
 
     this.keydowns = [];
@@ -28,19 +29,20 @@ Control.prototype.constructor = Control;
 
 Control.prototype.hookContainer = function(container) {
     container.mousedown(function() {
+        this.mouseHold = true;
         this.mouseDown = true;
     }.bind(this));
 
     container.mouseup(function() {
-        this.mouseDown = false;
+        this.mouseHold = false;
     }.bind(this));
 
     container.mouseleave(function() {
-        this.mouseDown = false;
+        this.mouseHold = false;
     }.bind(this));
 
     container.mousemove(function(event) {
-        if (this.mouseDown) {
+        if (this.mouseHold) {
             this.dragX = event.clientX - this.mouseX;
             this.dragY = event.clientY - this.mouseY;
         }
@@ -63,6 +65,7 @@ Control.prototype.lateUpdate = function() {
     this.keydowns = [];
     this.dragX = 0;
     this.dragY = 0;
+    this.mouseDown = false;
 };
 
 Control.prototype.keyHold = function(key) {

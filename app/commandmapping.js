@@ -18,7 +18,8 @@ var CommandMapping = function() {
                     var ship = new Ship({
                         force: 0.05,
                         yawForce: 0.25,
-                        yawCurve: 0.008
+                        yawCurve: 0.008,
+                        fireInterval: 8
                     });
                     ship.addPlayerControl();
                     return ship;

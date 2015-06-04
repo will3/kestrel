@@ -6,7 +6,6 @@ var Debug = require("../debug");
 var MoveCommand = function() {
     Command.call(this);
 
-    this.type = "navigation";
     this.hasActor = true;
     this.target = null;
 }

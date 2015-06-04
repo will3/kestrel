@@ -2,7 +2,6 @@ var Game = require("./game");
 
 var Command = function() {
     this.hasActor = false;
-    this.type = "none";
     this.actor = null;
     this.game = Game.getInstance();
 }

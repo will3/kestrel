@@ -56,6 +56,11 @@ Entity.prototype = {
             return component.type == type;
         });
 
+        if(components.length == 0){
+            throw "cannot find component " + type;
+        }else if(components.length > 1){
+            throw "more than one component " + type + " found";
+        }
         return components[0];
     },
 

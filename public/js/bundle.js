@@ -983,7 +983,6 @@ var Game = require("./game");
 
 var Command = function() {
     this.hasActor = false;
-    this.type = "none";
     this.actor = null;
     this.game = Game.getInstance();
 }
@@ -1018,7 +1017,8 @@ var CommandMapping = function() {
                     var ship = new Ship({
                         force: 0.05,
                         yawForce: 0.25,
-                        yawCurve: 0.008
+                        yawCurve: 0.008,
+                        fireInterval: 8
                     });
                     ship.addPlayerControl();
                     return ship;
@@ -1091,13 +1091,17 @@ module.exports = AddCommand;
 var Command = require("../command");
 var THREE = require("THREE");
 var Game = require("../game");
+var OrbitCommand = require("./orbitcommand");
 
 var AttackCommand = function() {
     Command.call(this);
 
-    this.type = "attack";
     this.hasActor = true;
     this.target = null;
+
+    // this.orbitCommand = new OrbitCommand();
+    this.shipController = null;
+    this.weaponController = null;
 }
 
 AttackCommand.prototype = Object.create(Command.prototype);
@@ -1107,8 +1111,16 @@ AttackCommand.prototype.start = function() {
 
 };
 
-AttackCommand.prototype.update = function(){
-	this.actor.weaponController.fireIfReady(this.target);
+AttackCommand.prototype.update = function() {
+    if (this.shipController == null) {
+        this.shipController = this.actor.getComponent("ShipController");
+    }
+    if (this.weaponController == null) {
+        this.weaponController = this.actor.getComponent("WeaponController");
+    }
+
+    this.actor.weaponController.fireIfReady(this.target);
+    this.shipController.orbit(this.target.position, 200);
 }
 
 AttackCommand.prototype.setParams = function(params) {
@@ -1117,7 +1129,7 @@ AttackCommand.prototype.setParams = function(params) {
 }
 
 module.exports = AttackCommand;
-},{"../command":7,"../game":37,"THREE":45}],11:[function(require,module,exports){
+},{"../command":7,"../game":37,"./orbitcommand":14,"THREE":45}],11:[function(require,module,exports){
 var Command = require("../command");
 var _ = require("lodash");
 var Game = require("../game");
@@ -1185,7 +1197,6 @@ var Debug = require("../debug");
 var MoveCommand = function() {
     Command.call(this);
 
-    this.type = "navigation";
     this.hasActor = true;
     this.target = null;
 }
@@ -1222,10 +1233,9 @@ var assert = require("assert");
 var OrbitCommand = function() {
     Command.call(this);
 
-    this.type = "navigation";
     this.hasActor = true;
     this.target = null;
-    this.distance = 0;
+    this.distance = 100;
 }
 
 OrbitCommand.prototype = Object.create(Command.prototype);
@@ -1247,39 +1257,10 @@ OrbitCommand.prototype.start = function() {
 };
 
 OrbitCommand.prototype.update = function() {
-    var shipController = this.actor.shipController;
-
-    var position = this.actor.position;
-    //a being vector from position to target
-    var a = new THREE.Vector3();
-    a.subVectors(this.target.position, position);
-    a.setY(0);
-
-    var yAxis = MathUtils.yAxis;
-
-    var b = new THREE.Vector3();
-    b.copy(a);
-    b.applyAxisAngle(yAxis, 3 * Math.PI / 4);
-
-    var c = new THREE.Vector3();
-    c.copy(a);
-    c.applyAxisAngle(yAxis, -3 * Math.PI / 4);
-
-    b.setLength(this.distance);
-    c.setLength(this.distance);
-
-    b.addVectors(b, this.target.position);
-    c.addVectors(c, this.target.position);
-
-    var unitFacing = shipController.getUnitFacing();
-    var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
-    var angle2 = Math.abs(MathUtils.angleBetween(c, position, unitFacing));
-
-    var point = angle1 < angle2 ? b : c;
-
-    shipController.align(point);
-
-    shipController.accelerate(1.0);
+    if (this.shipController == null) {
+        this.shipController = this.actor.getComponent("ShipController");
+    }
+    this.shipController.orbit(this.target.position, this.distance);
 };
 
 module.exports = OrbitCommand;
@@ -1400,7 +1381,6 @@ PlayerControl.prototype.start = function() {
     this.weaponController = this.getComponent("WeaponController");
 
     this.control.registerKeys(["up", "down", "left", "right"]);
-    this.control.registerKeys(["shoot"]);
 };
 
 PlayerControl.prototype.update = function() {
@@ -1409,13 +1389,36 @@ PlayerControl.prototype.update = function() {
 };
 
 PlayerControl.prototype.updateShoot = function() {
-    var shoot = this.control.keyDown("shoot");
+    var shoot = this.control.mouseHold;
     if (!shoot) {
         return;
     }
 
-    var target = this.root.getEntityNamed("ship0");
-    this.weaponController.fireIfReady(target);
+    var raycaster = this.root.getCameraRaycaster();
+
+    var x = this.transform.position.x;
+    var y = this.transform.position.y;
+    var z = this.transform.position.z;
+    var groundGeometry = new THREE.Geometry();
+    var groundWidth = 99999;
+    groundGeometry.vertices.push(new THREE.Vector3(x - groundWidth, y, z - groundWidth));
+    groundGeometry.vertices.push(new THREE.Vector3(x + groundWidth, y, z - groundWidth));
+    groundGeometry.vertices.push(new THREE.Vector3(x + groundWidth, y, z + groundWidth));
+    groundGeometry.vertices.push(new THREE.Vector3(x - groundWidth, y, z + groundWidth));
+    groundGeometry.faces.push(new THREE.Face3(0, 2, 1));
+    groundGeometry.faces.push(new THREE.Face3(3, 2, 0));
+
+    var ground = new THREE.Mesh(groundGeometry, new THREE.MeshBasicMaterial({
+        color: 0xff0000
+    }));
+
+    // var plane = new THREE.Mesh(geometry, new THREE.Material());
+    var result = raycaster.intersectObject(ground);
+    var groundPoint = result[0].point;
+
+    this.weaponController.fireIfReady(null, groundPoint);
+    // var target = this.root.getEntityNamed("ship0");
+    // this.weaponController.fireIfReady(target);
 }
 
 PlayerControl.prototype.updateDirection = function() {
@@ -1722,6 +1725,40 @@ ShipController.prototype.align = function(point) {
     this.pitch.desired = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
 };
 
+ShipController.prototype.orbit = function(target, distance){
+    var position = this.transform.position;
+    //a being vector from position to target
+    var a = new THREE.Vector3();
+    a.subVectors(target, position);
+    a.setY(position.y);
+
+    var yAxis = MathUtils.yAxis;
+
+    var b = new THREE.Vector3();
+    b.copy(a);
+    b.applyAxisAngle(yAxis, 3 * Math.PI / 4);
+
+    var c = new THREE.Vector3();
+    c.copy(a);
+    c.applyAxisAngle(yAxis, -3 * Math.PI / 4);
+
+    b.setLength(distance);
+    c.setLength(distance);
+
+    b.addVectors(b, target);
+    c.addVectors(c, target);
+
+    var unitFacing = this.getUnitFacing();
+    var angle1 = Math.abs(MathUtils.angleBetween(b, position, unitFacing));
+    var angle2 = Math.abs(MathUtils.angleBetween(c, position, unitFacing));
+
+    var point = angle1 < angle2 ? b : c;
+
+    this.align(point);
+
+    this.accelerate(1.0);
+}
+
 ShipController.prototype.move = function(point) {
     this.align(point);
     this.accelerate(1.0);
@@ -1802,12 +1839,12 @@ WeaponController.prototype.update = function() {
 
 };
 
-WeaponController.prototype.fireIfReady = function(target) {
+WeaponController.prototype.fireIfReady = function(target, point) {
     var weapons = this.entity.weapons;
     weapons.forEach(function(weapon) {
-        weapon.fireIfReady(target);
+        weapon.fireIfReady(target, point);
     });
-}
+};
 
 module.exports = WeaponController;
 },{"../component":16,"../game":37,"THREE":45}],25:[function(require,module,exports){
@@ -1877,7 +1914,7 @@ Console.prototype = {
     run: function(command) {
         var result = command.start();
         if(command.hasActor){
-            this.selectedEntity.issueCommand(command);
+            this.selectedEntity.command = command;
         }
 
         if (result != null) {
@@ -1923,6 +1960,7 @@ var Control = function() {
 
     this.mouseX = null;
     this.mouseY = null;
+    this.mouseHold = false;
     this.mouseDown = false;
 
     this.keydowns = [];
@@ -1938,19 +1976,20 @@ Control.prototype.constructor = Control;
 
 Control.prototype.hookContainer = function(container) {
     container.mousedown(function() {
+        this.mouseHold = true;
         this.mouseDown = true;
     }.bind(this));
 
     container.mouseup(function() {
-        this.mouseDown = false;
+        this.mouseHold = false;
     }.bind(this));
 
     container.mouseleave(function() {
-        this.mouseDown = false;
+        this.mouseHold = false;
     }.bind(this));
 
     container.mousemove(function(event) {
-        if (this.mouseDown) {
+        if (this.mouseHold) {
             this.dragX = event.clientX - this.mouseX;
             this.dragY = event.clientY - this.mouseY;
         }
@@ -1973,6 +2012,7 @@ Control.prototype.lateUpdate = function() {
     this.keydowns = [];
     this.dragX = 0;
     this.dragY = 0;
+    this.mouseDown = false;
 };
 
 Control.prototype.keyHold = function(key) {
@@ -2041,6 +2081,7 @@ var Ammo = function() {
 
     this.actor = null;
     this.target = null;
+    this.point = null;
     this.destroyable = true;
 
     this.collisionBody = {
@@ -2113,6 +2154,7 @@ var THREE = require("THREE");
 var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
+var MathUtils = require("../mathutils");
 
 var Laser = function() {
     Ammo.call(this);
@@ -2122,6 +2164,7 @@ var Laser = function() {
     });
 
     this.velocity = null;
+    this.speed = 16;
 }
 
 Laser.prototype = Object.create(Ammo.prototype);
@@ -2131,25 +2174,43 @@ Laser.prototype.createInstance = function() {
     return new Laser();
 };
 
-Laser.prototype.initVelocity = function() {
-    var velocity = new THREE.Vector3();
-    velocity.subVectors(this.target.worldPosition, this.actor.worldPosition);
+Laser.prototype.initPointVelocity = function() {
+    var velocity = new THREE.Vector3().subVectors(this.point, this.actor.worldPosition);
+    velocity.setLength(this.speed);
+    this.velocity = velocity;
+};
+
+Laser.prototype.initTargetVelocity = function() {
+    var distanceVector = new THREE.Vector3().subVectors(this.target.worldPosition, this.actor.worldPosition);
+    var distance = distanceVector.length();
+    var time = distance / this.speed;
+
+    var projectedTargetPosition = new THREE.Vector3().addVectors(
+        this.target.worldPosition,
+        new THREE.Vector3().copy(this.target.rigidBody.velocity).multiplyScalar(time)
+    );
+
+    var velocity = new THREE.Vector3().subVectors(projectedTargetPosition, this.actor.worldPosition);
 
     if (velocity.length() == 0) {
         velocity = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
     }
-    velocity.setLength(16);
+
+    velocity.setLength(this.speed);
 
     this.velocity = velocity;
 };
 
 Laser.prototype.start = function() {
     assert(this.actor != null, "actor cannot be empty");
-    assert(this.target != null, "target cannot be empty");
 
     this.life = 200;
 
-    this.initVelocity();
+    if (this.point != null) {
+        this.initPointVelocity();
+    } else if (this.target != null) {
+        this.initTargetVelocity();
+    }
 
     this.addComponent(this.rigidBody);
     this.rigidBody.velocity = this.velocity;
@@ -2169,7 +2230,8 @@ Laser.prototype.createSprites = function(time) {
 
     for (var i = 0; i < num; i++) {
         this.addEntity(this.createSprite(
-            power * (num - i) / num, -i * 0.5,
+            power * (num - i) / num, 
+            -i / this.speed * 4,
             this.life));
     }
 };
@@ -2207,7 +2269,7 @@ Laser.prototype.onCollision = function(entity) {
         return;
     }
 
-    if(entity instanceof Ammo){
+    if (entity instanceof Ammo) {
         return;
     }
 
@@ -2215,7 +2277,7 @@ Laser.prototype.onCollision = function(entity) {
 };
 
 module.exports = Laser;
-},{"../components/rigidbody":21,"./ammo":28,"./pointsprite":32,"THREE":45,"assert":46}],31:[function(require,module,exports){
+},{"../components/rigidbody":21,"../mathutils":39,"./ammo":28,"./pointsprite":32,"THREE":45,"assert":46}],31:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -2358,6 +2420,8 @@ var _ = require("lodash");
 var Ship = function(params) {
     Entity.call(this);
 
+    params = params || {};
+
     this.shipController = new ShipController(params);
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
@@ -2368,7 +2432,7 @@ var Ship = function(params) {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 50
+        fireInterval: params.fireInterval || 50
     })];
 
     var sideEngine1 = new Engine(3);
@@ -2394,22 +2458,11 @@ var Ship = function(params) {
         }.bind(this)
     }
 
-    this.commands = [];
-}
+    this.command = null;
+};
 
 Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
-
-Ship.prototype.issueCommand = function(command) {
-    this.clearCommand(command.type);
-    this.commands.push(command);
-};
-
-Ship.prototype.clearCommand = function(commandType) {
-    _.pull(this.commands, function(command){
-        return command.type == commandType;
-    });
-}
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -2435,9 +2488,9 @@ Ship.prototype.update = function() {
         engine.emission = this.shipController.accelerateAmount;
     }.bind(this));
 
-    this.commands.forEach(function(command){
-        command.update();
-    });
+    if(this.command != null){
+        this.command.update();
+    }
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
@@ -2447,12 +2500,12 @@ Ship.prototype.onCollision = function(entity, hitTest) {
             this.model.update();
         }
     }
-}
+};
 
 Ship.prototype.addPlayerControl = function() {
     this.playerControl = new PlayerControl();
     this.addComponent(this.playerControl);
-}
+};
 
 module.exports = Ship;
 },{"../components/modelrendercomponent":17,"../components/playercontrol":18,"../components/rigidbody":21,"../components/shipcontroller":22,"../components/weaponcontroller":24,"../entity":35,"../models/shipmodel":40,"./ammo":28,"./engine":29,"./laser":30,"./weapon":34,"THREE":45,"lodash":54}],34:[function(require,module,exports){
@@ -2474,7 +2527,7 @@ var Weapon = function(params) {
 
     this.ammo = params.ammo;
     this.actor = params.actor;
-    this.fireInterval = params.fireInterval || 50;
+    this.fireInterval = params.fireInterval || 8;
 
     this.cooldown = this.fireInterval;
 }
@@ -2486,13 +2539,13 @@ Weapon.prototype.setDelta = function(value) {
     cooldown = value;
 };
 
-Weapon.prototype.shoot = function(target) {
+Weapon.prototype.shoot = function(target, point) {
     assert(this.actor != null, "actor cannot be empty");
-    assert(target != null, "target cannot be empty");
 
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
     ammoInstance.target = target;
+    ammoInstance.point = point;
     ammoInstance.position = this.actor.worldPosition;
 
     this.root.addEntity(ammoInstance);
@@ -2508,11 +2561,13 @@ Weapon.prototype.update = function() {
     }
 };
 
-Weapon.prototype.fireIfReady = function(target) {
+Weapon.prototype.fireIfReady = function(target, point) {
     if (this.cooldown == this.fireInterval) {
-        this.shoot(target);
+        this.shoot(target, point);
         this.cooldown = 0;
+        return true;
     }
+    return false;
 };
 
 module.exports = Weapon;
@@ -2575,6 +2630,11 @@ Entity.prototype = {
             return component.type == type;
         });
 
+        if(components.length == 0){
+            throw "cannot find component " + type;
+        }else if(components.length > 1){
+            throw "more than one component " + type + " found";
+        }
         return components[0];
     },
 
@@ -2791,7 +2851,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
-    this.distance = 1000.0;
+    this.distance = 600.0;
     this.frameRate = 48.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -2819,6 +2879,17 @@ Game.getInstance = function() {
 
 Game.prototype = {
     constructor: Game,
+
+    getCameraRaycaster: function() {
+        var raycaster = new THREE.Raycaster();
+        var coords = new THREE.Vector2();
+        coords.x = (this.control.mouseX / this.container.width()) * 2 - 1;
+        coords.y = -(this.control.mouseY / this.container.height()) * 2 + 1;
+
+        raycaster.setFromCamera(coords, this.camera);
+
+        return raycaster;
+    },
 
     onEnterFrame: function() {
         this.entityRunner.run();
@@ -75724,8 +75795,7 @@ console.runScenario(
         "add playership",
         "add ship 150 0 150",
         "select ship0",
-        "orbit playership0 200",
-        // "attack playership0",
+        "orbit playership0"
     ]
 );
 

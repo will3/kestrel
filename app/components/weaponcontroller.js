@@ -25,11 +25,11 @@ WeaponController.prototype.update = function() {
 
 };
 
-WeaponController.prototype.fireIfReady = function(target) {
+WeaponController.prototype.fireIfReady = function(target, point) {
     var weapons = this.entity.weapons;
     weapons.forEach(function(weapon) {
-        weapon.fireIfReady(target);
+        weapon.fireIfReady(target, point);
     });
-}
+};
 
 module.exports = WeaponController;

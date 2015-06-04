@@ -16,7 +16,7 @@ var Weapon = function(params) {
 
     this.ammo = params.ammo;
     this.actor = params.actor;
-    this.fireInterval = params.fireInterval || 50;
+    this.fireInterval = params.fireInterval || 8;
 
     this.cooldown = this.fireInterval;
 }
@@ -28,13 +28,13 @@ Weapon.prototype.setDelta = function(value) {
     cooldown = value;
 };
 
-Weapon.prototype.shoot = function(target) {
+Weapon.prototype.shoot = function(target, point) {
     assert(this.actor != null, "actor cannot be empty");
-    assert(target != null, "target cannot be empty");
 
     var ammoInstance = this.ammo.createInstance();
     ammoInstance.actor = this.actor;
     ammoInstance.target = target;
+    ammoInstance.point = point;
     ammoInstance.position = this.actor.worldPosition;
 
     this.root.addEntity(ammoInstance);
@@ -50,11 +50,13 @@ Weapon.prototype.update = function() {
     }
 };
 
-Weapon.prototype.fireIfReady = function(target) {
+Weapon.prototype.fireIfReady = function(target, point) {
     if (this.cooldown == this.fireInterval) {
-        this.shoot(target);
+        this.shoot(target, point);
         this.cooldown = 0;
+        return true;
     }
+    return false;
 };
 
 module.exports = Weapon;

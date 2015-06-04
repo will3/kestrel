@@ -14,7 +14,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
-    this.distance = 1000.0;
+    this.distance = 600.0;
     this.frameRate = 48.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -42,6 +42,17 @@ Game.getInstance = function() {
 
 Game.prototype = {
     constructor: Game,
+
+    getCameraRaycaster: function() {
+        var raycaster = new THREE.Raycaster();
+        var coords = new THREE.Vector2();
+        coords.x = (this.control.mouseX / this.container.width()) * 2 - 1;
+        coords.y = -(this.control.mouseY / this.container.height()) * 2 + 1;
+
+        raycaster.setFromCamera(coords, this.camera);
+
+        return raycaster;
+    },
 
     onEnterFrame: function() {
         this.entityRunner.run();
