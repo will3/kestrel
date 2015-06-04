@@ -20,6 +20,10 @@ Component.prototype = {
 
 	},
 
+	lateUpdate: function(){
+
+	},
+
 	destroy: function(){
 
 	},
@@ -30,6 +34,10 @@ Component.prototype = {
 
 	get root(){
 		return this.entity.root;
+	},
+
+	getComponent: function(type){
+		return this.entity.getComponent(type);
 	}
 }
 

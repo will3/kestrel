@@ -26,7 +26,9 @@ ParticleSystem.prototype.createSprite = function(velocity, size, life) {
 };
 
 ParticleSystem.prototype.emit = function(position, velocity, size, life) {
-    this.root.addEntity(this.createSprite(velocity, size, life), position);
+    var sprite = this.createSprite(velocity, size, life);
+    sprite.position = position;
+    this.root.addEntity(sprite);
 };
 
 ParticleSystem.prototype.start = function() {

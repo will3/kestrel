@@ -10,6 +10,7 @@ var RigidBody = require("../components/rigidbody");
 var Engine = require("./engine");
 var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
+var _ = require("lodash");
 
 var Ship = function(params) {
     Entity.call(this);
@@ -50,23 +51,21 @@ var Ship = function(params) {
         }.bind(this)
     }
 
-    this.command = null;
+    this.commands = [];
 }
 
 Ship.prototype = Object.create(Entity.prototype);
 Ship.prototype.constructor = Ship;
 
-Ship.prototype.setCommand = function(command) {
-    this.clearCommand();
-    this.command = command;
-    this.addComponent(command);
+Ship.prototype.issueCommand = function(command) {
+    this.clearCommand(command.type);
+    this.commands.push(command);
 };
 
-Ship.prototype.clearCommand = function(){
-    if (this.command != null) {
-        this.removeComponent(this.command);
-        this.command = null;
-    }
+Ship.prototype.clearCommand = function(commandType) {
+    _.pull(this.commands, function(command){
+        return command.type == commandType;
+    });
 }
 
 Ship.prototype.start = function() {
@@ -92,18 +91,22 @@ Ship.prototype.update = function() {
     this.engines.forEach(function(engine) {
         engine.emission = this.shipController.accelerateAmount;
     }.bind(this));
+
+    this.commands.forEach(function(command){
+        command.update();
+    });
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Ammo) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.3, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
             this.model.update();
         }
     }
 }
 
-Ship.prototype.addPlayerControl = function(){
+Ship.prototype.addPlayerControl = function() {
     this.playerControl = new PlayerControl();
     this.addComponent(this.playerControl);
 }

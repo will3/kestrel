@@ -6,14 +6,18 @@ var SelectCommand = function() {
     Command.call(this);
 
     this.console = Console.getInstance();
+    this.target = null;
 };
 
 SelectCommand.prototype = Object.create(Command.prototype);
 SelectCommand.prototype.constructor = SelectCommand;
 
 SelectCommand.prototype.start = function() {
-    var entity = this.game.getEntity(this.params[0]);
-    this.console.selectedEntity = entity;
+    this.console.selectedEntity = this.target;
 };
+
+SelectCommand.prototype.setParams = function(params){
+	var name = params[0]; this.target = this.game.getEntityNamed(name);
+}
 
 module.exports = SelectCommand;

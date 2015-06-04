@@ -8,6 +8,8 @@ var assert = require("assert");
 var OrbitCommand = function() {
     Command.call(this);
 
+    this.type = "navigation";
+    this.hasActor = true;
     this.target = null;
     this.distance = 0;
 }
@@ -15,44 +17,25 @@ var OrbitCommand = function() {
 OrbitCommand.prototype = Object.create(Command.prototype);
 OrbitCommand.prototype.constructor = OrbitCommand;
 
-OrbitCommand.prototype.start = function() {
-    assert(this.actor != null, "target cannot be empty");
-
-    var params = this.params || [];
+OrbitCommand.prototype.setParams = function(params) {
     var name = params[0];
-    var entities = (name != null) ? this.game.getEntities({
-        name: name
-    }) : [];
 
-    var distance = null;
-    if (entities.length > 0) {
-        this.target = entities[0];
-        distance = params[1];
-    } else {
-        var x = parseInt(params[0] || 0);
-        var y = parseInt(params[1] || 0);
-        var z = parseInt(params[2] || 0);
-        distance = params[3];
-
-        this.target = new Entity();
-        this.target.position = new THREE.Vector3(x, y, z);
+    if (name == null) {
+        throw "must orbit something";
     }
 
-    if(distance == null){
-        distance = 100;
-    }
+    this.target = this.game.getEntityNamed(name);
+    this.distance = parseInt(params[1] || 100);
+};
 
-    this.distance = parseInt(distance);
+OrbitCommand.prototype.start = function() {
 
-    position = new THREE.Vector3(x, y, z);
-
-    this.actor.setCommand(this);
 };
 
 OrbitCommand.prototype.update = function() {
-    var shipController = this.entity.shipController;
+    var shipController = this.actor.shipController;
 
-    var position = this.entity.position;
+    var position = this.actor.position;
     //a being vector from position to target
     var a = new THREE.Vector3();
     a.subVectors(this.target.position, position);

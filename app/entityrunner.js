@@ -58,6 +58,22 @@ EntityRunner.prototype = {
         this.entities.forEach(function(entity) {
             this.runEntity(entity);
         }.bind(this));
+
+        this.entities.forEach(function(entity) {
+            this.runLateUpdate(entity);
+        }.bind(this));
+    },
+
+    runLateUpdate: function(entity){
+        entity.lateUpdate();
+
+        entity.components.forEach(function(component){
+            component.lateUpdate();
+        });
+
+        entity.childEntities.forEach(function(childEntity){
+            this.runLateUpdate(childEntity);
+        }.bind(this));
     },
 
     getEntityCount: function() {

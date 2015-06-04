@@ -51,6 +51,14 @@ Entity.prototype = {
         this.components.push(component);
     },
 
+    getComponent: function(type){
+        var components = _.filter(this.components, function(component){
+            return component.type == type;
+        });
+
+        return components[0];
+    },
+
     removeComponent: function(component) {
         component.destroy();
         _.pull(this.components, component);
@@ -70,6 +78,10 @@ Entity.prototype = {
 
     update: function() {
         //override to provide behaviour
+    },
+
+    lateUpdate: function(){
+
     },
 
     destroy: function() {

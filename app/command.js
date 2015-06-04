@@ -1,15 +1,18 @@
 var Game = require("./game");
-var Component = require("./component");
 
 var Command = function() {
-    Component.call(this);
-
+    this.hasActor = false;
+    this.type = "none";
     this.actor = null;
-    this.params = null;
     this.game = Game.getInstance();
 }
 
-Command.prototype = Object.create(Component.prototype);
-Command.prototype.constructor = Command;
+Command.prototype = {
+    constructor: Command,
+
+    setParams: function() {
+        throw "must override";
+    }
+}
 
 module.exports = Command;

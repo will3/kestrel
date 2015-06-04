@@ -14,8 +14,8 @@ var Game = function() {
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
-    this.distance = 800.0;
-    this.frameRate = 60.0;
+    this.distance = 1000.0;
+    this.frameRate = 48.0;
     this.keyboard = null;
     this.nameRegistry = {};
     this.stats = null;
@@ -104,41 +104,8 @@ Game.prototype = {
         this.updateCamera();
     },
 
-    moveCamera: function(xDiff, yDiff) {
-        var yVector = new THREE.Vector3(this.target.x - this.camera.position.x, 0, this.target.z - this.camera.position.z);
-        var m = MathUtils.getRotationMatrix(Math.PI / 2.0, 0, 0);
-        var xVector = new THREE.Vector3();
-        xVector.copy(yVector);
-        xVector.applyMatrix4(m);
-
-        xVector.normalize();
-        yVector.normalize();
-
-        this.target.add(xVector.multiplyScalar(xDiff / 2.0));
-        this.target.add(yVector.multiplyScalar(yDiff / 2.0));
-
-        this.updateCamera();
-    },
-
-    rotateCamera: function(xDiff, yDiff) {
-        this.cameraRotation.y += -xDiff * 0.01;
-        this.cameraRotation.x += yDiff * 0.01;
-
-        if (this.cameraRotation.x > Math.PI / 2.0) {
-            this.cameraRotation.x = Math.PI / 2.0;
-        } else if (this.cameraRotation.x < -Math.PI / 2.0) {
-            this.cameraRotation.x = -Math.PI / 2.0;
-        }
-
-        this.updateCamera();
-    },
-
     initControl: function() {
         this.control.hookContainer(this.container);
-
-        this.control.mouseMove(function(xDiff, yDiff) {
-            this.rotateCamera(xDiff, yDiff);
-        }.bind(this));
     },
 
     render: function() {
@@ -162,11 +129,7 @@ Game.prototype = {
         setInterval(this.onEnterFrame.bind(this), 1000 / this.frameRate);
     },
 
-    addEntity: function(entity, position) {
-        if (position != null) {
-            entity.position = position;
-        }
-
+    addEntity: function(entity) {
         entity.parent = this;
         this.entityRunner.addEntity(entity);
     },
@@ -177,7 +140,7 @@ Game.prototype = {
         this.entityRunner.removeEntity(entity);
     },
 
-    getEntity: function(name) {
+    getEntityNamed: function(name) {
         var entities = this.getEntities({
             name: name
         });

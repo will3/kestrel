@@ -6,6 +6,8 @@ var Debug = require("../debug");
 var MoveCommand = function() {
     Command.call(this);
 
+    this.type = "navigation";
+    this.hasActor = true;
     this.target = null;
 }
 
@@ -13,20 +15,20 @@ MoveCommand.prototype = Object.create(Command.prototype);
 MoveCommand.prototype.constructor = MoveCommand;
 
 MoveCommand.prototype.start = function() {
-	assert(this.actor != null, "actor cannot be empty");
 
-    var x = parseInt(this.params[0]);
-    var y = parseInt(this.params[1]);
-    var z = parseInt(this.params[2]);
-
-    this.target = new THREE.Vector3(x, y, z);
-
-    this.actor.setCommand(this);
 };
 
 MoveCommand.prototype.update = function() {
-    var shipController = this.entity.shipController;
+    var shipController = this.actor.shipController;
     shipController.move(this.target);
+};
+
+MoveCommand.prototype.setParams = function(params){
+    var x = parseInt(params[0]);
+    var y = parseInt(params[1]);
+    var z = parseInt(params[2]);
+
+    this.target = new THREE.Vector3(x,y,z);
 };
 
 module.exports = MoveCommand;

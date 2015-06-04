@@ -27,4 +27,8 @@ ListCommand.prototype.start = function() {
     return names.join(", ");
 };
 
+ListCommand.setParams = function(params){
+    //do nothing
+}
+
 module.exports = ListCommand;

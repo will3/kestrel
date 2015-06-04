@@ -1,21 +1,15 @@
 var $ = require('jquery');
-var AddCommand = require("./commands/addcommand");
-var AttackCommand = require("./commands/attackcommand");
-var ListCommand = require("./commands/listcommand");
-var DestroyCommand = require("./commands/destroycommand");
-var MoveCommand = require("./commands/movecommand");
-var OrbitCommand = require("./commands/orbitcommand");
-var SelectCommand = require("./commands/selectcommand");
-var AlignCommand = require("./commands/aligncommand");
 var Game = require("./game");
-var Ship = require("./entities/ship");
 var Console = require("./console");
 var KeyMap = require("./keymap");
 var MouseTrap = require("Mousetrap");
 var _ = require("lodash");
+var CommandMapping = require("./commandmapping");
+var AddCommand = require("./commands/addcommand");
 
 var container = $('#container');
-var input = $('#console_text');
+// <input type="text" id="console_text">
+// var input = $('#console_text');
 var game = Game.getInstance();
 var console = Console.getInstance();
 
@@ -33,49 +27,9 @@ game.control.registerKeyFunc = function(key) {
 
 game.initialize(container);
 
-var commandMapping = {
-    add: function() {
-        return new AddCommand({
-            "ship": function() {
-                return new Ship();
-            },
-            "playership": function() {
-                var ship = new Ship({
-                    force : 0.05,
-                    yawForce : 0.25,
-                    yawCurve : 0.01
-                });
-                ship.addPlayerControl();
-                return ship;
-            }
-        });
-    },
-    attack: function() {
-        return new AttackCommand();
-    },
-    list: function() {
-        return new ListCommand();
-    },
-    remove: function() {
-        return new DestroyCommand();
-    },
-    move: function() {
-        return new MoveCommand();
-    },
-    orbit: function() {
-        return new OrbitCommand();
-    },
-    select: function() {
-        return new SelectCommand();
-    },
-    align: function() {
-        return new AlignCommand();
-    }
-};
+console.commandMapping = CommandMapping;
 
-console.commandMapping = commandMapping;
-
-console.hookInput(input);
+// console.hookInput(input);
 
 console.runScenario(
     [
@@ -83,20 +37,7 @@ console.runScenario(
         "add ship 150 0 150",
         "select ship0",
         "orbit playership0 200",
-        "attack playership0",
-
-        // "add ship -150 0 150",
-        // "select ship2",
-        // "orbit ship0 200",
-        // "attack ship0",
-
-        // "add ship -150 0 -150",
-        // "select ship3",
-        // "orbit ship0 200",
-        // "attack ship0",
-        // "select ship0",
-        // "orbit ship1 100",
-        // "attack ship1",
+        // "attack playership0",
     ]
 );
 

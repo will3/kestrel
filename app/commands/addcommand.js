@@ -7,33 +7,33 @@ var AddCommand = function(objectMapping) {
     Command.call(this);
 
     this.objectMapping = objectMapping;
+    
+    this.objectName = null;
+    this.position = null;
 }
 
 AddCommand.prototype = Object.create(Command.prototype);
 AddCommand.constructor = AddCommand;
 
 AddCommand.prototype.start = function() {
-	assert(this.objectMapping != null, "objectMapping cannot be null");
-	assert(this.game != null, "game cannot be null");
 
-    if (this.params == null || this.params.length == 0 || this.params[0].length == 0) {
-        throw "must add something";
-    }
-
-    var param = this.params[0].toLowerCase();
-
-    var x = parseInt(this.params[1]);
-    var y = parseInt(this.params[2]);
-    var z = parseInt(this.params[3]);
-
-    var objectFunc = this.objectMapping[param];
-    if(objectFunc == null){
-        throw "cannot add " + param;
+    var objectFunc = this.objectMapping[this.objectName];
+    if (objectFunc == null) {
+        throw "cannot add " + this.objectName;
     }
 
     var entity = objectFunc();
-    this.game.nameEntity(param, entity);
-    this.game.addEntity(entity, new THREE.Vector3(x, y, z));
+    this.game.nameEntity(this.objectName, entity);
+    entity.position = this.position;
+    this.game.addEntity(entity);
 };
+
+AddCommand.prototype.setParams = function(params) {
+    this.objectName = params[0];
+    var x = parseInt(params[1]);
+    var y = parseInt(params[2]);
+    var z = parseInt(params[3]);
+    this.position = new THREE.Vector3(x, y, z);
+}
 
 module.exports = AddCommand;

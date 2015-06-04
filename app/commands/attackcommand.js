@@ -3,8 +3,10 @@ var THREE = require("THREE");
 var Game = require("../game");
 
 var AttackCommand = function() {
-	Command.call(this);
+    Command.call(this);
 
+    this.type = "attack";
+    this.hasActor = true;
     this.target = null;
 }
 
@@ -12,10 +14,16 @@ AttackCommand.prototype = Object.create(Command.prototype);
 AttackCommand.prototype.constructor = AttackCommand;
 
 AttackCommand.prototype.start = function() {
-    var targetName = this.params[0];
-    this.target = this.game.getEntity(targetName);
 
-    this.actor.weaponController.setTarget(this.target);
 };
+
+AttackCommand.prototype.update = function(){
+	this.actor.weaponController.fireIfReady(this.target);
+}
+
+AttackCommand.prototype.setParams = function(params) {
+    var targetName = params[0];
+    this.target = this.game.getEntityNamed(targetName);
+}
 
 module.exports = AttackCommand;

@@ -6,6 +6,8 @@ var _ = require("lodash");
 var ShipController = function(params) {
     Component.call(this);
 
+    this.type = "ShipController";
+
     var params = params || {};
     this.force = params.force || 0.025;
     this.yawCurve = params.yawCurve || 0.1;

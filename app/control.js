@@ -7,45 +7,42 @@ var assert = require("assert");
 var Control = function() {
     Entity.call(this);
 
+    this.registerKeyFunc = null;
+
+    this.registeredKeys = [];
+
     this.mouseX = null;
     this.mouseY = null;
-    this.mouseMoveHandler = null;
-    this.isDragging = false;
-    this.registeredKeys = [];
+    this.mouseDown = false;
 
     this.keydowns = [];
     this.keyups = [];
     this.keyholds = [];
 
-    this.registerKeyFunc = null;
+    this.dragX = 0;
+    this.dragY = 0;
 }
 
 Control.prototype = Object.create(Entity.prototype);
 Control.prototype.constructor = Control;
 
-Control.prototype.mouseMove = function(handler) {
-    this.mouseMoveHandler = handler;
-};
-
 Control.prototype.hookContainer = function(container) {
     container.mousedown(function() {
-        this.isDragging = true;
+        this.mouseDown = true;
     }.bind(this));
 
     container.mouseup(function() {
-        this.isDragging = false;
+        this.mouseDown = false;
     }.bind(this));
 
     container.mouseleave(function() {
-        this.isDragging = false;
+        this.mouseDown = false;
     }.bind(this));
 
     container.mousemove(function(event) {
-        if (this.isDragging) {
-            var xDiff = event.clientX - this.mouseX;
-            var yDiff = event.clientY - this.mouseY;
-
-            this.mouseMoveHandler(xDiff, yDiff);
+        if (this.mouseDown) {
+            this.dragX = event.clientX - this.mouseX;
+            this.dragY = event.clientY - this.mouseY;
         }
 
         this.mouseX = event.clientX;
@@ -58,8 +55,14 @@ Control.prototype.start = function() {
 };
 
 Control.prototype.update = function() {
+
+};
+
+Control.prototype.lateUpdate = function() {
     this.keyups = [];
     this.keydowns = [];
+    this.dragX = 0;
+    this.dragY = 0;
 };
 
 Control.prototype.keyHold = function(key) {

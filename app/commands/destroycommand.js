@@ -4,30 +4,20 @@ var Game = require("../game");
 
 var DestroyCommand = function() {
 	Command.call(this);
+
+    this.target = null;
 }
 
 DestroyCommand.prototype = Object.create(Command.prototype);
 DestroyCommand.prototype.constructor = DestroyCommand;
 
 DestroyCommand.prototype.start = function() {
-    var param = this.params == null ? null : this.params[0];
-
-    if (param == "all") {
-        var entities = _.filter(this.game.getEntities(), function(entity) {
-            return entity.destroyable;
-        });
-        entities.forEach(
-            function(e) {
-                this.game.removeEntity(e);
-            }.bind(this)
-        );
-
-        return;
-    }
-
-    var entity = this.game.getEntity(param);
-    this.game.removeEntity(entity);
+    this.game.removeEntity(this.target);
 };
 
+DestroyCommand.prototype.setParams = function(params){
+    var param = params[0];
+    this.target = this.game.getEntityNamed(param);
+};
 
 module.exports = DestroyCommand;

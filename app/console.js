@@ -8,8 +8,8 @@ var Console = function(commandMapping) {
 }
 
 Console._instance = null;
-Console.getInstance = function(){
-    if(Console._instance == null){
+Console.getInstance = function() {
+    if (Console._instance == null) {
         Console._instance = new Console();
     }
 
@@ -55,18 +55,24 @@ Console.prototype = {
 
         var command = this.commandMapping[commandName]();
         params.splice(0, 1);
-        command.params = params;
         command.actor = this.selectedEntity;
+        command.setParams(params);
 
         return command
     },
 
     run: function(command) {
         var result = command.start();
-        if(result != null){
+        if(command.hasActor){
+            this.selectedEntity.issueCommand(command);
+        }
+
+        if (result != null) {
             this.write(result);
-        }else{
-            this.input.val("");
+        } else {
+            if (this.input != null) {
+                this.input.val("");
+            }
         }
     },
 
