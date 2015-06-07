@@ -16,8 +16,10 @@ AddCommand.prototype = Object.create(Command.prototype);
 AddCommand.constructor = AddCommand;
 
 AddCommand.prototype.start = function() {
-
     var objectFunc = this.objectMapping[this.objectName];
+    if(this.objectName == null){
+        throw "must add something";
+    }
     if (objectFunc == null) {
         throw "cannot add " + this.objectName;
     }
@@ -29,10 +31,11 @@ AddCommand.prototype.start = function() {
 };
 
 AddCommand.prototype.setParams = function(params) {
+    params = params || [];
     this.objectName = params[0];
-    var x = parseInt(params[1]);
-    var y = parseInt(params[2]);
-    var z = parseInt(params[3]);
+    var x = parseInt(params[1] || 0);
+    var y = parseInt(params[2] || 0);
+    var z = parseInt(params[3] || 0);
     this.position = new THREE.Vector3(x, y, z);
 }
 

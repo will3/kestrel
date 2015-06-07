@@ -304,22 +304,17 @@ BlockChunk.prototype = {
         var z = this.origin.z;
         var size_half = this.size / 2.0;
 
-        var coords = [
-            new BlockCoord(x, y, z),
-            new BlockCoord(x + size_half, y, z),
-            new BlockCoord(x + size_half, y, z + size_half),
-            new BlockCoord(x, y, z + size_half),
+        this.children = [
+            new BlockChunk(new BlockCoord(x, y, z), size_half),
+            new BlockChunk(new BlockCoord(x + size_half, y, z), size_half),
+            new BlockChunk(new BlockCoord(x + size_half, y, z + size_half), size_half),
+            new BlockChunk(new BlockCoord(x, y, z + size_half), size_half),
 
-            new BlockCoord(x, y + size_half, z),
-            new BlockCoord(x + size_half, y + size_half, z),
-            new BlockCoord(x + size_half, y + size_half, z + size_half),
-            new BlockCoord(x, y + size_half, z + size_half)
+            new BlockChunk(new BlockCoord(x, y + size_half, z), size_half),
+            new BlockChunk(new BlockCoord(x + size_half, y + size_half, z), size_half),
+            new BlockChunk(new BlockCoord(x + size_half, y + size_half, z + size_half), size_half),
+            new BlockChunk(new BlockCoord(x, y + size_half, z + size_half), size_half)
         ];
-
-        this.children = [];
-        for (var i in coords) {
-            this.children.push(new BlockChunk(coords[i], size_half));
-        }
 
         this.childrenMap = [
             [

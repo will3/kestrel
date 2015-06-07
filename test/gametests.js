@@ -42,21 +42,21 @@ describe('Game', function() {
         });
     });
 
-    describe('getEntity', function() {
+    describe('#getEntityNamed', function() {
         it('should return entity with name', function() {
             var expectedEntity = entityWithName("name1");
             entityRunner.entities = [
                 expectedEntity
             ];
 
-            expect(game.getEntity("name1")).to.equal(expectedEntity);
+            expect(game.getEntityNamed("name1")).to.equal(expectedEntity);
         });
 
         it('should throw when entity not found', function() {
             entityRunner.entities = [];
 
             expect(function() {
-                game.getEntity("name1")
+                game.getEntityNamed("name1")
             }).to.throw("cannot find entity with name: name1");
         });
 
@@ -67,7 +67,7 @@ describe('Game', function() {
             ];
 
             expect(function() {
-                game.getEntity("name1")
+                game.getEntityNamed("name1")
             }).to.throw("more than one entity with name: name1 found");
         });
     });

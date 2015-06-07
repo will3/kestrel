@@ -5,26 +5,12 @@ var DestroyCommand = require("./commands/destroycommand");
 var MoveCommand = require("./commands/movecommand");
 var OrbitCommand = require("./commands/orbitcommand");
 var SelectCommand = require("./commands/selectcommand");
-var Ship = require("./entities/ship");
+var ObjectMapping = require("./objectmapping");
 
 var CommandMapping = function() {
     return {
         add: function() {
-            return new AddCommand({
-                "ship": function() {
-                    return new Ship();
-                },
-                "playership": function() {
-                    var ship = new Ship({
-                        force: 0.05,
-                        yawForce: 0.25,
-                        yawCurve: 0.008,
-                        fireInterval: 8
-                    });
-                    ship.addPlayerControl();
-                    return ship;
-                }
-            });
+            return new AddCommand(ObjectMapping);
         },
         attack: function() {
             return new AttackCommand();

@@ -19,20 +19,11 @@ describe("MoveCommand", function(){
 		mockShipController = sinon.mock(shipController);
 	})
 
-	describe("#execute", function(){
+	describe("#start", function(){
 		it("should initialize target", function(){
 			moveCommand.params = [100, 100, 100];
-			moveCommand.execute();
+			moveCommand.start();
 			expect(moveCommand.target.equals(new THREE.Vector3(100, 100, 100))).to.be.true;
-		})
-
-		it("should set ship controller command", function(){
-			moveCommand.params = [100, 100, 100];
-			mockShipController.expects("setCommand").withArgs(moveCommand);
-
-			moveCommand.execute();
-
-			mockShipController.verify();
 		})
 	})
 
@@ -42,7 +33,7 @@ describe("MoveCommand", function(){
 			mockShipController.expects("move").withArgs(sinon.match(function(point){
 				return point.equals(new THREE.Vector3(100, 100, 100));
 			}));
-			moveCommand.execute();
+			moveCommand.start();
 			moveCommand.update();
 			mockShipController.verify();
 		})

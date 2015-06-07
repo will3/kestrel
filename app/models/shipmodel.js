@@ -1,13 +1,14 @@
 var BlockModel = require("../blockengine/blockmodel");
 var Block = require("../blockengine/block");
 var BlockCoord = require("../blockengine/blockcoord");
-var TestBlock = require("../testblock");
 var THREE = require("THREE");
 var WeaponModel = require("./weaponmodel");
 var CargoModel = require("./cargomodel");
 
 var ShipModel = function() {
-    BlockModel.call(this, 64);
+    BlockModel.call(this, {
+        halfSize: 64
+    });
 
     this.gridSize = 2;
 

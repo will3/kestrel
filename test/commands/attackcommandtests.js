@@ -24,20 +24,12 @@ describe("Attack Command", function(){
 		}
 	})
 
-	describe("execute", function(){
+	describe("start", function(){
 		it("should parse target correctly", function(){
-			game.getEntity = sinon.stub().returns(target).withArgs("test");
+			game.getEntityNamed = sinon.stub().returns(target).withArgs("test");
 			attackCommand.params = ["test"];
-			attackCommand.execute();
+			attackCommand.start();
 			expect(attackCommand.target).to.equal(target);
-		})
-
-		it("should issue command", function(){
-			game.getEntity = sinon.stub().returns(target);
-			attackCommand.params = ["test"];
-			mockWeaponController.expects("setTarget").withArgs(target);
-			attackCommand.execute();
-			mockWeaponController.verify();
-		})
+		});
 	})
 })

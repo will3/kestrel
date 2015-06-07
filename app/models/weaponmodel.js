@@ -3,7 +3,9 @@ var Block = require("../blockengine/block");
 var THREE = require("THREE");
 
 var WeaponModel = function() {
-    BlockModel.call(this, 8);
+    BlockModel.call(this, {
+        halfSize: 8
+    });
 
     for (var z = 0; z < 6; z++) {
         if (z == 3) {

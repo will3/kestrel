@@ -5,10 +5,17 @@ var _ = require("lodash");
 var CANNON = require("CANNON");
 var BlockUtils = require("./blockutils");
 
-var BlockModel = function(halfSize) {
-    this.chunk = new BlockChunk(new BlockCoord(-halfSize, -halfSize, -halfSize), halfSize * 2);
-    this.gridSize = 2;
-    this.minChunkSize = 4;
+var BlockModel = function(params) {
+    params = params || {};
+
+    var halfSize = params.halfSize;
+    var gridSize = params.gridSize || 2;
+    var minChunkSize = params.minChunkSize || 4;
+
+    var chunkHalfSize = Math.pow(2, Math.ceil(Math.log(halfSize)/ Math.log(2)));
+    this.chunk = new BlockChunk(new BlockCoord(-chunkHalfSize, -chunkHalfSize, -chunkHalfSize), chunkHalfSize * 2);
+    this.gridSize = gridSize;
+    this.minChunkSize = minChunkSize;
 
     this.object = new THREE.Object3D();
 
@@ -36,6 +43,7 @@ BlockModel.prototype = {
         }.bind(this));
     },
 
+    //smoke test contiguous
     // checkContiguous: function() {
     //     var count1 = 0;
     //     this.chunk.visitBlocksContiguous(function(block, x, y, z) {

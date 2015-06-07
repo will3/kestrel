@@ -8,20 +8,4 @@ describe("Command", function(){
 	beforeEach(function(){
 		command = new Command();
 	})
-
-	describe("#execute", function(){
-		it("must override", function(){
-			expect(function(){
-				command.execute();
-			}).to.throw("must override");
-		})
-	})
-
-	describe("#update", function(){
-		it("must override", function(){
-			expect(function(){
-				command.update();
-			}).to.throw("must override");
-		})
-	})
 })

@@ -19,14 +19,6 @@ var MathUtils = (function(){
 
 		//v * w = ||v|| ||w|| cos0
 		angleBetween: function(p1, p2, p3){
-			// p12 = new THREE.Vector3();
-			// p23 = new THREE.Vector3();
-
-			// p12.subVectors(p2, p1);
-			// p23.subVectors(p3, p2);
-
-			// return Math.acos(p12.dot(p23) / (p12.length() * p23.length()));
-
 			var v1x = p1.x - p2.x;
 			var v1y = p1.z - p2.z;
 			var v2x = p3.x - p2.x;

@@ -16,41 +16,15 @@ describe("DestroyCommand", function(){
 		mockGame = sinon.mock(game);
 	})
 
-	describe("#execute", function(){
-		context("destroy all", function(){
-			it("should remove destroyable entities", function(){
-				var entity = {};
-				entity.destroyable = true;
-				entities = [entity];
-				destroyCommand.params = ["all"];
-				mockGame.expects("removeEntity").withArgs(entity);
-
-				destroyCommand.execute();
-
-				mockGame.verify();
-			})
-
-			it("should ignore non destroyable entities", function(){
-				var entity = {};
-				entity.destroyable = false;
-				entities = [entity];
-				destroyCommand.params = ["all"];
-				mockGame.expects("removeEntity").never();
-
-				destroyCommand.execute();
-
-				mockGame.verify();
-			})
-		})
-
+	describe("#start", function(){
 		context("destroy specific", function(){
 			it("should remove entity with matching name", function(){
 				var entity = {};
-				game.getEntity = sinon.stub().returns(entity).withArgs("test");
+				game.getEntityNamed = sinon.stub().returns(entity).withArgs("test");
 				destroyCommand.params = ["test"];
 				mockGame.expects("removeEntity");
 
-				destroyCommand.execute();
+				destroyCommand.start();
 
 				mockGame.verify();
 			})

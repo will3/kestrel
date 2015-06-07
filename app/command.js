@@ -11,6 +11,18 @@ Command.prototype = {
 
     setParams: function() {
         throw "must override";
+    },
+
+    set params(value){
+    	this.setParams(value);
+    },
+
+    start: function(){
+
+    },
+
+    update: function(){
+
     }
 }
 

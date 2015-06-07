@@ -11,7 +11,7 @@ describe("ShipController", function() {
         shipController = new ShipController();
         entity = {
             transform: {
-            	rotation: new THREE.Vector3(0, 0, 0)
+                rotation: new THREE.Vector3(0, 0, 0)
             }
         };
         rigidBody = {
@@ -29,25 +29,10 @@ describe("ShipController", function() {
         })
     })
 
-    describe("update", function() {
-        it("should update command", function() {
-            var command = {
-                update: function() {}
-            };
-            var mockCommand = sinon.mock(command);
-            shipController.command = command;
-            mockCommand.expects("update");
-
-            shipController.update();
-
-            mockCommand.verify();
-        })
-    })
-
     describe("accelerate", function() {
         it("should apply acceleration to rigid body", function() {
             var rotation = new THREE.Vector3(1, 1, 1);
-            entity.transform.rotation = rotation;
+            entity.rotation = rotation;
             var expectedForce = MathUtils.getUnitVector(1, 1, 1);
             expectedForce.multiplyScalar(100);
             shipController.force = 100;

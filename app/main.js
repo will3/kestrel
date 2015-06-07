@@ -33,10 +33,11 @@ console.commandMapping = CommandMapping;
 
 console.runScenario(
     [
-        "add playership",
-        "add ship 150 0 150",
-        "select ship0",
-        "orbit playership0"
+        // "add playership",
+        // "add ship 150 0 150",
+        // "select ship0",
+        // "orbit playership0"
+        "add sphere"
     ]
 );
 

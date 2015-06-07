@@ -12,7 +12,7 @@ describe("ListCommand", function() {
         listCommand.game = game;
     })
 
-    describe("#execute", function() {
+    describe("#start", function() {
         it("should return names of entities", function() {
         	var entity1 = new Entity();
         	entity1.name = "entity1";
@@ -22,7 +22,7 @@ describe("ListCommand", function() {
         		entity1, entity2
         		])
         	game.getEntities = getEntities;
-        	var result = listCommand.execute();
+        	var result = listCommand.start();
         	expect(result).to.equal("entity1, entity2");
         })
     })

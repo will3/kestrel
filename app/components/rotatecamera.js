@@ -1,4 +1,14 @@
-    // rotateCamera: function(xDiff, yDiff) {
+var Component = require("../component");
+
+var RotateCamera = function(){
+    Component.call(this);
+};
+
+RotateCamera.prototype = Object.create(Component.prototype);
+RotateCamera.prototype.constructor = RotateCamera;
+
+RotateCamera.prototype.start = function(){
+  // rotateCamera: function(xDiff, yDiff) {
     //     this.cameraRotation.y += -xDiff * 0.01;
     //     this.cameraRotation.x += yDiff * 0.01;
 
@@ -10,3 +20,10 @@
 
     //     this.updateCamera();
     // },
+};
+
+RotateCamera.prototype.update = function(){
+
+};
+
+module.exports = RotateCamera;

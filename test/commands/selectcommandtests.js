@@ -18,9 +18,9 @@ describe("SelectCommand", function(){
 	describe("#execute", function(){
 		it("should set select entity for console", function(){
 			var entity = {};
-			game.getEntity = sinon.stub().returns(entity).withArgs("name1");
+			game.getEntityNamed = sinon.stub().returns(entity).withArgs("name1");
 			selectCommand.params = ["name1"];
-			selectCommand.execute();
+			selectCommand.start();
 			expect(console.selectedEntity).to.equal(entity);
 		});
 	});

@@ -25,8 +25,9 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "mocha --recursive",
-    "cov": "istanbul cover node_modules/.bin/_mocha -- --recursive",
+    "test": "mocha test --recursive",
+    "testp" : "mocha testp --recursive",
+    "cov": "istanbul cover node_modules/.bin/_mocha -- test --recursive",
     "start": "nodemon server.js",
     "build": "browserify app/main.js -o public/js/bundle.js",
     "buildblock": "browserify app/blocktest.js -o public/js/bundle.js"
