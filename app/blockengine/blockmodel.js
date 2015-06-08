@@ -12,7 +12,7 @@ var BlockModel = function(params) {
     var gridSize = params.gridSize || 2;
     var minChunkSize = params.minChunkSize || 4;
 
-    var chunkHalfSize = Math.pow(2, Math.ceil(Math.log(halfSize)/ Math.log(2)));
+    var chunkHalfSize = Math.pow(2, Math.ceil(Math.log(halfSize) / Math.log(2)));
     this.chunk = new BlockChunk(new BlockCoord(-chunkHalfSize, -chunkHalfSize, -chunkHalfSize), chunkHalfSize * 2);
     this.gridSize = gridSize;
     this.minChunkSize = minChunkSize;
@@ -20,8 +20,15 @@ var BlockModel = function(params) {
     this.object = new THREE.Object3D();
 
     this.chunkStates = {};
-    this._centerOffset = null;
     this.blockRadius = null;
+
+    this.blocks = {};
+    this.blockTypesToMap = params.blockTypesToMap || null;
+
+    this._centerOffset = null;
+    this.centerOfMass = null;
+    this.min = null;
+    this.max = null;
 };
 
 BlockModel.prototype = {
@@ -30,11 +37,38 @@ BlockModel.prototype = {
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block);
         this._updateDirty(x, y, z);
+        this._updateBlockMapping(x, y, z, block, false);
+        this.blockCount++;
     },
 
     remove: function(x, y, z) {
         this.chunk.remove(x, y, z);
         this._updateDirty(x, y, z);
+        this._updateBlockMapping(x, y, z, block, true);
+        this.blockCount--;
+    },
+
+    get blockCount() {
+        return this.chunk.blockCount;
+    },
+
+    _updateBlockMapping: function(x, y, z, block, isRemove) {
+        if (this.blockTypesToMap == null) {
+            return;
+        }
+
+        if (_.includes(this.blockTypesToMap, block.blockType)) {
+            var chunk = this.blocks[block.blockType];
+            if (chunk == null) {
+                chunk = this.blocks[block.blockType] = new BlockChunk(this.chunk.origin, this.chunk.size);
+            }
+
+            if (isRemove) {
+                chunk.remove(x, y, z);
+            } else {
+                chunk.add(x, y, z, block);
+            }
+        }
     },
 
     mergeModel: function(model, startX, startY, startZ) {
@@ -54,6 +88,8 @@ BlockModel.prototype = {
     //     this.chunk.visitBlocks(function(block, x, y, z){
     //         count2 ++;
     //     });
+
+    //     return (count1 == count2);
     // },
 
     update: function() {
@@ -64,6 +100,10 @@ BlockModel.prototype = {
             }
 
             chunkState.dirty = false;
+        }
+
+        if (this.blockCountIsDirty) {
+            this._updateBlockCount();
         }
     },
 
@@ -95,25 +135,28 @@ BlockModel.prototype = {
         }.bind(this));
     },
 
-    //centers model
+    //centers model around center of mass
     center: function() {
         var xCoords = [];
         var yCoords = [];
         var zCoords = [];
+        var count = 0.0;
         this.chunk.visitBlocks(function(block, x, y, z) {
             xCoords.push(x);
             yCoords.push(y);
             zCoords.push(z);
+            count ++;
         });
 
-        var min = new THREE.Vector3(_.min(xCoords), _.min(yCoords), _.min(zCoords));
-        var max = new THREE.Vector3(_.max(xCoords), _.max(yCoords), _.max(zCoords));
+        this.min = new THREE.Vector3(_.min(xCoords), _.min(yCoords), _.min(zCoords));
+        this.max = new THREE.Vector3(_.max(xCoords), _.max(yCoords), _.max(zCoords));
+        this.centerOfMass = new THREE.Vector3(_.sum(xCoords) / count + 0.5, _.sum(yCoords) / count + 0.5, _.sum(zCoords) / count + 0.5);
 
-        var center = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);
+        this._centerOffset = new THREE.Vector3().copy(this.centerOfMass).multiplyScalar(-1);
 
-        this._centerOffset = center.multiplyScalar(-1);
-
-        this.blockRadius = new THREE.Vector3().subVectors(max, min).multiplyScalar(0.5).length();
+        var minRadius = new THREE.Vector3().subVectors(this.centerOfMass, this.min).length();
+        var maxRadius = new THREE.Vector3().subVectors(this.max, this.centerOfMass).length();
+        this.blockRadius = (maxRadius > minRadius) ? maxRadius : minRadius;
 
         for (var uuid in this.chunkStates) {
             this._updateChunkPosition(uuid);
@@ -155,15 +198,28 @@ BlockModel.prototype = {
         return false;
     },
 
-    getWorldMatrix: function() {
+    getLocalPosition: function(blockCoords) {
+        return new THREE.Vector3().copy(blockCoords).applyMatrix4(this.getLocalMatrix());
+    },
+
+    getLocalMatrix: function() {
         var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
         var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
+        var m = new THREE.Matrix4();
+
+        m.multiply(gridSize);
+        m.multiply(centerOffset);
+
+        return m;
+    },
+
+    getWorldMatrix: function() {
+        var localMatrix = this.getLocalMatrix();
         var objectMatrixWorld = this.object.matrixWorld;
 
         var m = new THREE.Matrix4();
         m.multiply(objectMatrixWorld);
-        m.multiply(gridSize);
-        m.multiply(centerOffset);
+        m.multiply(localMatrix);
 
         return m;
     },
@@ -172,7 +228,7 @@ BlockModel.prototype = {
         return new THREE.Matrix4().getInverse(this.getWorldMatrix());
     },
 
-    visitBlocks: function(callback){
+    visitBlocks: function(callback) {
         this.chunk.visitBlocks(callback);
     },
 

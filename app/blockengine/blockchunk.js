@@ -29,6 +29,8 @@ var BlockChunk = function(origin, size) {
 
     //mesh for chunk
     this.mesh = null;
+
+    this.blockCount = 0;
 };
 
 BlockChunk.prototype = {
@@ -84,6 +86,7 @@ BlockChunk.prototype = {
         }
 
         chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = block;
+        this.blockCount++;
     },
 
     remove: function(x, y, z) {
@@ -99,6 +102,7 @@ BlockChunk.prototype = {
         }
 
         chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = null;
+        this.blockCount--;
     },
 
     //return true in callback to stop loop

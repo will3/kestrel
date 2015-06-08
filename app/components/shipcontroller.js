@@ -83,12 +83,15 @@ ShipController.prototype.update = function() {
     this.yaw.update(this.roll, this.accelerateAmount);
     entity.rotation.set(this.pitch.value, this.yaw.value, this.roll.value);
 
-    this.accelerateAmount *= 0.9;
-    if(this.accelerateAmount < 0.01){
-        this.accelerateAmount = 0.0;
-    }
     this.roll.desired = null;
     this.pitch.desired = null;
+};
+
+ShipController.prototype.lateUpdate = function() {
+    this.accelerateAmount *= 0.9;
+    if (this.accelerateAmount < 0.01) {
+        this.accelerateAmount = 0.0;
+    }
 };
 
 ShipController.prototype.accelerate = function(amount) {
@@ -120,7 +123,7 @@ ShipController.prototype.align = function(point) {
     this.pitch.desired = Math.atan2(-yDiff, Math.sqrt(xDiff * xDiff + zDiff * zDiff));
 };
 
-ShipController.prototype.orbit = function(target, distance){
+ShipController.prototype.orbit = function(target, distance) {
     var position = this.transform.position;
     //a being vector from position to target
     var a = new THREE.Vector3();

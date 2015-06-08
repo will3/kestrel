@@ -1,6 +1,9 @@
 var THREE = require("THREE");
 
 var Block = function() {
+    this.type = "Block";
+    this.blockType = "block";
+    
     this.uuid = THREE.Math.generateUUID();
     this.scale = null;
     this.hasGaps = false;
@@ -21,6 +24,11 @@ Block.prototype = {
 
     get integrity(){
         return this._integrity;
+    },
+
+    setColor: function(value){
+        this.originalColor = value;
+        this._updateColor();
     },
 
     _updateColor: function(){

@@ -1,6 +1,7 @@
 var BlockModel = require("../blockengine/blockmodel");
 var Block = require("../blockengine/block");
 var THREE = require("THREE");
+var EngineBlock = require("../blocks/engineblock");
 
 var WeaponModel = function() {
     BlockModel.call(this, {
@@ -14,6 +15,8 @@ var WeaponModel = function() {
             this.add(0, 0, z, new Block().withScale(new THREE.Vector3(0.50, 0.50, 1)));
         } else if (z == 5) {
             this.add(0, 0, z, new Block().withScale(new THREE.Vector3(0.25, 0.25, 1)));
+        } else if (z == 0) {
+            this.add(0, 0, z, new EngineBlock(new THREE.Vector3(0, 0, -1)));
         } else {
             this.add(0, 0, z, new Block());
         }

@@ -2,7 +2,7 @@ var BlockChunk = require("../app/blockengine/blockchunk");
 var BlockCoord = require("../app/blockengine/blockcoord");
 var Block = require("../app/blockengine/block");
 
-describe("BlockChunk performance", function() {
+describe("BlockChunk performance 100000", function() {
     it("should get blocks timely", function() {
         var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
         chunk.add(123, 234, 345, new Block());

@@ -2,12 +2,15 @@ var Entity = require("../entity");
 var ParticleSystem = require("./particlesystem");
 var THREE = require("THREE");
 
-var Engine = function(power) {
+var Engine = function(engineBlock) {
     Entity.call(this);
 
-    this.emission = 0;
+    this.engineBlock = engineBlock;
+
+    this.amount = 0;
+
     this.particleSystem = new ParticleSystem();
-    this.power = power || 5;
+    this.power = engineBlock.power;
 };
 
 Engine.prototype = Object.create(Entity.prototype);
@@ -22,10 +25,10 @@ Engine.prototype.update = function() {
         return;
     }
 
-    var velocity = new THREE.Vector3(0, 0, -1).applyMatrix4(this.worldRotationMatrix);
+    var velocity = this.engineBlock.direction.applyMatrix4(this.worldRotationMatrix);
     velocity.setLength(1);
 
-    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.emission, 5);
+    this.particleSystem.emit(this.worldPosition, velocity, this.power * this.amount, 5);
 };
 
 module.exports = Engine;

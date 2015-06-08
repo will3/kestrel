@@ -1,13 +1,10 @@
 var BlockModel = require("../blockengine/blockmodel");
 var Block = require("../blockengine/block");
 
-var SphereModel = function(params) {
-    params = params || {};
-    var radius = params.radius || 5;
-
-    this.radius = radius;
-
-    BlockModel.call(this, params);
+var SphereModel = function() {
+    BlockModel.call(this, {
+        halfSize : 5
+    });
 
     for (var x = -radius; x <= radius; x++) {
         for (var y = -radius; y <= radius; y++) {

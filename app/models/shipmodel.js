@@ -7,7 +7,8 @@ var CargoModel = require("./cargomodel");
 
 var ShipModel = function() {
     BlockModel.call(this, {
-        halfSize: 64
+        halfSize: 64,
+        blockTypesToMap: ["engine"]
     });
 
     this.gridSize = 2;

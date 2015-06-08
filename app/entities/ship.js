@@ -17,6 +17,7 @@ var Ship = function(params) {
 
     params = params || {};
 
+    this.model = new ShipModel();
     this.shipController = new ShipController(params);
     this.rigidBody = new RigidBody();
     this.weaponController = new WeaponController();
@@ -30,18 +31,15 @@ var Ship = function(params) {
         fireInterval: params.fireInterval || 50
     })];
 
-    var sideEngine1 = new Engine(3);
-    sideEngine1.position = new THREE.Vector3(10, 0, -9);
-    var sideEngine2 = new Engine(3);
-    sideEngine2.position = new THREE.Vector3(-10, 0, -9);
+    this.engines = [];
+    this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
+        var blockCoord = new THREE.Vector3(x, y, z);
+        var localPosition = this.model.getLocalPosition(blockCoord);
+        var engine = new Engine(engineBlock);
+        engine.position = localPosition;
+        this.engines.push(engine);
+    }.bind(this));
 
-    this.engines = [
-        // mainEngine,
-        sideEngine1,
-        sideEngine2
-    ];
-
-    this.model = new ShipModel();
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
 
@@ -83,7 +81,7 @@ Ship.prototype.update = function() {
         engine.emission = this.shipController.accelerateAmount;
     }.bind(this));
 
-    if(this.command != null){
+    if (this.command != null) {
         this.command.update();
     }
 };

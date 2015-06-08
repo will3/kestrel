@@ -4,38 +4,42 @@ var Component = require("../../app/component");
 var _ = require("lodash");
 
 
-describe("Ship", function(){
-	var ship, weapons;
+describe("Ship", function() {
+    var ship, weapons;
 
-	beforeEach(function(){
-		ship = new Ship();
-		ship.shipController = {};
-		ship.rigidBody = {};
-		ship.renderComponent = {};
-		ship.weaponController = {};
-		ship.weapons = [];
-		ship.smokeTrail = {};
-	});
+    beforeEach(function() {
+        ship = new Ship();
+        ship.shipController = {};
+        ship.rigidBody = {};
+        ship.renderComponent = {};
+        ship.weaponController = {};
+        ship.weapons = [];
+        ship.smokeTrail = {};
+    });
 
-	describe("start", function(){
-		it("should add components", function(){
-			ship.start();
+    it("should initialize engines from model", function() {
+    	
+    });
 
-			expect(_.includes(ship.components, ship.shipController)).to.equal(true);
-			expect(_.includes(ship.components, ship.rigidBody)).to.equal(true);
-			expect(_.includes(ship.components, ship.renderComponent)).to.equal(true);
-			expect(_.includes(ship.components, ship.weaponController)).to.equal(true);
-		});
+    describe("start", function() {
+        it("should add components", function() {
+            ship.start();
 
-		it("should add weapons", function(){
-			var weapon1 = {};
-			var weapon2 = {};
-			ship.weapons = [weapon1, weapon2];
-			
-			ship.start();
+            expect(_.includes(ship.components, ship.shipController)).to.equal(true);
+            expect(_.includes(ship.components, ship.rigidBody)).to.equal(true);
+            expect(_.includes(ship.components, ship.renderComponent)).to.equal(true);
+            expect(_.includes(ship.components, ship.weaponController)).to.equal(true);
+        });
 
-			expect(ship.childEntities).to.contain(weapon1);
-			expect(ship.childEntities).to.contain(weapon2);
-		});
-	});
+        it("should add weapons", function() {
+            var weapon1 = {};
+            var weapon2 = {};
+            ship.weapons = [weapon1, weapon2];
+
+            ship.start();
+
+            expect(ship.childEntities).to.contain(weapon1);
+            expect(ship.childEntities).to.contain(weapon2);
+        });
+    });
 });
