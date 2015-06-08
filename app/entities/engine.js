@@ -13,6 +13,8 @@ var Engine = function(engineBlock) {
 
     this.particleSystem = new ParticleSystem();
     this.power = engineBlock.power;
+
+    this.rigidBody = null;
 };
 
 Engine.prototype = Object.create(Entity.prototype);
@@ -39,6 +41,8 @@ Engine.prototype.update = function() {
 
     var emitOffset = new THREE.Vector3().copy(velocity).setLength(5);
     this.particleSystem.emit(this.worldPosition.add(emitOffset), velocity, this.power * this.amount, 5);
+
+    this.updateAcceleration();
 };
 
 Engine.prototype.lateUpdate = function() {
@@ -48,12 +52,12 @@ Engine.prototype.lateUpdate = function() {
     }
 };
 
-Engine.prototype.accelerate = function(amount) {
-    var powerToFoce = 3.0;
+Engine.prototype.updateAcceleration = function() {
+    var powerToForce = 3.0;
     var direction = this.getEmissionDirection();
-    direction.setLength(-amount * this.power * powerToFoce);
+    var force = this.power * powerToForce * this.engineBlock.integrity;
+    direction.setLength(-this.amount * force);
     this.rigidBody.applyForce(direction);
-    this.amount = amount;
 };
 
 module.exports = Engine;

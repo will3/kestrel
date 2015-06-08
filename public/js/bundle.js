@@ -571,6 +571,15 @@ BlockModel.prototype = {
         return this.chunk.blockCount;
     },
 
+    get mass(){
+        return this.blockCount * Math.pow(this.gridSize, 3);
+    },
+
+    //simplify to sphere r n
+    get rotationalInertia(){
+        return 2 / 5.0 * this.mass * this.blockRadius * this.blockRadius;
+    },
+
     _updateBlockMapping: function(x, y, z, block, isRemove) {
         if (this.blockTypesToMap == null) {
             return;
@@ -1723,7 +1732,7 @@ var ShipController = function(engines) {
     this.engines = engines;
 
     this.force = 0.025;
-    this.yawForce = 0.025;
+    this.yawForce = 0.035;
     this.yawCurve = 0.1;
 
     this.yaw = {
@@ -1743,7 +1752,7 @@ var ShipController = function(engines) {
         desired: null,
         max: Math.PI / 2,
         curve: 0.1,
-        maxSpeed: 0.10,
+        maxSpeed: 0.05,
         friction: 0.95,
         restingFriction: 0.99,
         value: 0,
@@ -1809,7 +1818,7 @@ ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
     this.engines.forEach(function(engine){
-        engine.accelerate(amount);
+        engine.amount = amount;
     }.bind(this));
 };
 
@@ -2241,6 +2250,8 @@ var Engine = function(engineBlock) {
 
     this.particleSystem = new ParticleSystem();
     this.power = engineBlock.power;
+
+    this.rigidBody = null;
 };
 
 Engine.prototype = Object.create(Entity.prototype);
@@ -2267,6 +2278,8 @@ Engine.prototype.update = function() {
 
     var emitOffset = new THREE.Vector3().copy(velocity).setLength(5);
     this.particleSystem.emit(this.worldPosition.add(emitOffset), velocity, this.power * this.amount, 5);
+
+    this.updateAcceleration();
 };
 
 Engine.prototype.lateUpdate = function() {
@@ -2276,16 +2289,15 @@ Engine.prototype.lateUpdate = function() {
     }
 };
 
-Engine.prototype.accelerate = function(amount) {
-    var powerToFoce = 3.0;
+Engine.prototype.updateAcceleration = function() {
+    var powerToForce = 3.0;
     var direction = this.getEmissionDirection();
-    direction.setLength(-amount * this.power * powerToFoce);
+    var force = this.power * powerToForce * this.engineBlock.integrity;
+    direction.setLength(-this.amount * force);
     this.rigidBody.applyForce(direction);
-    this.amount = amount;
 };
 
 module.exports = Engine;
-
 },{"../entity":36,"../mathutils":40,"./particlesystem":32,"THREE":49,"assert":50}],31:[function(require,module,exports){
 var Ammo = require("./ammo");
 var THREE = require("THREE");
@@ -2582,7 +2594,7 @@ var Ship = function() {
         this.engines.push(engine);
     }.bind(this));
 
-    this.shipController = new ShipController(this.engines);
+    this.shipController = new ShipController(this, this.engines);
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
@@ -2988,7 +3000,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
-    this.distance = 1000.0;
+    this.distance = 800.0;
     this.frameRate = 48.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -75986,8 +75998,8 @@ console.runScenario(
     [
         "add playership",
         "add ship 150 0 150",
-        // "select ship0",
-        // "orbit playership0"
+        "select ship0",
+        "orbit playership0 150"
     ]
 );
 

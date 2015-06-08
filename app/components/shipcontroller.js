@@ -11,7 +11,7 @@ var ShipController = function(engines) {
     this.engines = engines;
 
     this.force = 0.025;
-    this.yawForce = 0.025;
+    this.yawForce = 0.035;
     this.yawCurve = 0.1;
 
     this.yaw = {
@@ -31,7 +31,7 @@ var ShipController = function(engines) {
         desired: null,
         max: Math.PI / 2,
         curve: 0.1,
-        maxSpeed: 0.10,
+        maxSpeed: 0.05,
         friction: 0.95,
         restingFriction: 0.99,
         value: 0,
@@ -97,7 +97,7 @@ ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
     this.engines.forEach(function(engine){
-        engine.accelerate(amount);
+        engine.amount = amount;
     }.bind(this));
 };
 

@@ -39,7 +39,7 @@ var Ship = function() {
         this.engines.push(engine);
     }.bind(this));
 
-    this.shipController = new ShipController(this.engines);
+    this.shipController = new ShipController(this, this.engines);
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;

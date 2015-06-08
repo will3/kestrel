@@ -52,6 +52,15 @@ BlockModel.prototype = {
         return this.chunk.blockCount;
     },
 
+    get mass(){
+        return this.blockCount * Math.pow(this.gridSize, 3);
+    },
+
+    //simplify to sphere r n
+    get rotationalInertia(){
+        return 2 / 5.0 * this.mass * this.blockRadius * this.blockRadius;
+    },
+
     _updateBlockMapping: function(x, y, z, block, isRemove) {
         if (this.blockTypesToMap == null) {
             return;
