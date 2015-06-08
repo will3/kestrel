@@ -66,7 +66,7 @@ Laser.prototype.start = function() {
 
     var startPosition = new THREE.Vector3();
     startPosition.copy(this.velocity);
-    startPosition.multiplyScalar(2);
+    startPosition.multiplyScalar(1);
 
     this.position.add(startPosition);
 

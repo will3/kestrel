@@ -42,8 +42,8 @@ BlockChunk.prototype = {
         }
 
         chunk.visitBlocks(function(block, x, y, z) {
-            this.add(x + xOffset, y + yOffset, z + zOffset, block);
-        });
+            this.add(x + xOffset, y + yOffset, z + zOffset, block, true);
+        }.bind(this));
     },
 
     get: function(x, y, z) {
@@ -62,9 +62,18 @@ BlockChunk.prototype = {
         return chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z];
     },
 
-    add: function(x, y, z, block) {
+    add: function(x, y, z, block, force) {
+        force = force || false;
+
         if (!this.inBound(x, y, z)) {
             throw "out of bounds for " + x + " " + y + " " + z;
+        }
+
+        if (this.get(x, y, z) != null) {
+            if (!force) {
+                throw "something already at " + x + " " + y + " " + z;
+            }
+            this.remove(x, y, z);
         }
 
         var chunk = this.getChunk(x, y, z);
@@ -103,10 +112,12 @@ BlockChunk.prototype = {
 
         chunk.object[x - chunk.origin.x][y - chunk.origin.y][z - chunk.origin.z] = null;
         this.blockCount--;
+
+        return block;
     },
 
     //return true in callback to stop loop
-    visitBlocks: function(callback, firstOnly) {
+    visitBlocks: function(callback) {
         if (this.children.length != 0) {
             for (var i in this.children) {
                 this.children[i].visitBlocks(callback);
@@ -123,13 +134,43 @@ BlockChunk.prototype = {
                     var block = this.object[x][y][z];
                     if (block != null) {
                         callback(block, x + this.origin.x, y + this.origin.y, z + this.origin.z);
-                        if (firstOnly) {
-                            return;
-                        }
                     }
                 }
             }
         }
+    },
+
+    getFirstBlock: function(callback) {
+        if (this.children.length != 0) {
+            for (var i in this.children) {
+                var firstBlock = this.children[i].getFirstBlock();
+                if (firstBlock != null) {
+                    return firstBlock;
+                }
+            }
+        }
+
+        if (this.object == null) {
+            return null;
+        }
+
+        for (var x = 0; x < this.object.length; x++) {
+            for (y = 0; y < this.object[x].length; y++) {
+                for (z = 0; z < this.object[x][y].length; z++) {
+                    var block = this.object[x][y][z];
+                    if (block != null) {
+                        return {
+                            block: block,
+                            x: x + this.origin.x,
+                            y: y + this.origin.y,
+                            z: z + this.origin.z
+                        };
+                    }
+                }
+            }
+        }
+
+        return null;
     },
 
     visitBlocksContiguous: function(x, y, z, callback) {
@@ -187,6 +228,18 @@ BlockChunk.prototype = {
         }
     },
 
+    //smoke test contiguous
+    checkContiguous: function() {
+        var count = 0;
+        var firstBlock = this.getFirstBlock();
+
+        this.visitBlocksContiguous(firstBlock.x, firstBlock.y, firstBlock.z, function(block, x, y, z) {
+            count++;
+        });
+
+        return (count == this.blockCount);
+    },
+
     getContiguousGroups: function() {
         //construct block mapping
         var total = 0;
@@ -200,16 +253,7 @@ BlockChunk.prototype = {
         var groups = [];
         var count = 0;
         while (count < total) {
-            var firstResult = null;
-
-            tempChunk.visitBlocks(function(block, x, y, z) {
-                firstResult = {
-                    block: block,
-                    x: x,
-                    y: y,
-                    z: z
-                }
-            }, true);
+            var firstResult = tempChunk.getFirstBlock();
 
             var group = [];
 

@@ -25,39 +25,59 @@ var BlockModel = function(params) {
     this.blocks = {};
     this.blockTypesToMap = params.blockTypesToMap || null;
 
-    this._centerOffset = null;
+    this.centerOffset = null;
     this.centerOfMass = null;
     this.min = null;
     this.max = null;
+
+    this.onRemoveCallback = null;
+    this.onBrokenCallback = null;
 };
 
 BlockModel.prototype = {
     constructor: BlockModel,
 
     add: function(x, y, z, block) {
-        this.chunk.add(x, y, z, block);
+        this.chunk.add(x, y, z, block, true);
         this._updateDirty(x, y, z);
         this._updateBlockMapping(x, y, z, block, false);
-        this.blockCount++;
     },
 
     remove: function(x, y, z) {
-        this.chunk.remove(x, y, z);
+        var block = this.chunk.remove(x, y, z);
         this._updateDirty(x, y, z);
         this._updateBlockMapping(x, y, z, block, true);
-        this.blockCount--;
+
+        if (this.onRemoveCallback != null) {
+            this.onRemoveCallback(x, y, z);
+        }
+
+        if (this.onBrokenCallback != null) {
+            var contiguous = this.chunk.checkContiguous();
+            if (!contiguous) {
+                this.onBrokenCallback();
+            }
+        }
+    },
+
+    onRemove: function(callback) {
+        this.onRemoveCallback = callback;
+    },
+
+    onBroken: function(callback) {
+        this.onBrokenCallback = callback;
     },
 
     get blockCount() {
         return this.chunk.blockCount;
     },
 
-    get mass(){
+    get mass() {
         return this.blockCount * Math.pow(this.gridSize, 3);
     },
 
     //simplify to sphere r n
-    get rotationalInertia(){
+    get rotationalInertia() {
         return 2 / 5.0 * this.mass * this.blockRadius * this.blockRadius;
     },
 
@@ -81,25 +101,11 @@ BlockModel.prototype = {
     },
 
     mergeModel: function(model, startX, startY, startZ) {
+        this.chunk.merge(model.chunk,startX, startY, startZ);
         model.visitBlocks(function(block, x, y, z) {
             this.add(startX + x, startY + y, startZ + z, block);
         }.bind(this));
     },
-
-    //smoke test contiguous
-    // checkContiguous: function() {
-    //     var count1 = 0;
-    //     this.chunk.visitBlocksContiguous(function(block, x, y, z) {
-    //         count1 ++;
-    //     });
-
-    //     var count2 = 0;
-    //     this.chunk.visitBlocks(function(block, x, y, z){
-    //         count2 ++;
-    //     });
-
-    //     return (count1 == count2);
-    // },
 
     update: function() {
         for (var uuid in this.chunkStates) {
@@ -131,7 +137,7 @@ BlockModel.prototype = {
         block.integrity = integrity;
 
         if (block.integrity == 0) {
-            this.chunk.remove(x, y, z);
+            this.remove(x, y, z);
         }
 
         this._updateDirty(x, y, z);
@@ -154,14 +160,14 @@ BlockModel.prototype = {
             xCoords.push(x);
             yCoords.push(y);
             zCoords.push(z);
-            count ++;
+            count++;
         });
 
         this.min = new THREE.Vector3(_.min(xCoords), _.min(yCoords), _.min(zCoords));
         this.max = new THREE.Vector3(_.max(xCoords), _.max(yCoords), _.max(zCoords));
         this.centerOfMass = new THREE.Vector3(_.sum(xCoords) / count + 0.5, _.sum(yCoords) / count + 0.5, _.sum(zCoords) / count + 0.5);
 
-        this._centerOffset = new THREE.Vector3().copy(this.centerOfMass).multiplyScalar(-1);
+        this.centerOffset = new THREE.Vector3().copy(this.centerOfMass).multiplyScalar(-1);
 
         var minRadius = new THREE.Vector3().subVectors(this.centerOfMass, this.min).length();
         var maxRadius = new THREE.Vector3().subVectors(this.max, this.centerOfMass).length();
@@ -212,7 +218,7 @@ BlockModel.prototype = {
     },
 
     getLocalMatrix: function() {
-        var centerOffset = new THREE.Matrix4().makeTranslation(this._centerOffset.x, this._centerOffset.y, this._centerOffset.z);
+        var centerOffset = new THREE.Matrix4().makeTranslation(this.centerOffset.x, this.centerOffset.y, this.centerOffset.z);
         var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
         var m = new THREE.Matrix4();
 
@@ -374,8 +380,8 @@ BlockModel.prototype = {
         var chunk = this.chunkStates[uuid].chunk;
 
         var meshPosition = new THREE.Vector3();
-        if (this._centerOffset != null) {
-            meshPosition.add(this._centerOffset);
+        if (this.centerOffset != null) {
+            meshPosition.add(this.centerOffset);
         }
 
         meshPosition.multiplyScalar(this.gridSize);

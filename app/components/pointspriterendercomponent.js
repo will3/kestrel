@@ -17,7 +17,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
     map.minFilter = THREE.NearestFilter;
     var material = new THREE.SpriteMaterial({
         map: map,
-        color: this.color || 0xffffff,
+        color: this.color != null ? this.color.getHex() : 0xffffff,
         fog: true
     });
 

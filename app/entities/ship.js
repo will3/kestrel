@@ -11,6 +11,7 @@ var Engine = require("./engine");
 var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
 var _ = require("lodash");
+var Debug = require("../debug");
 
 var Ship = function() {
     Entity.call(this);
@@ -39,7 +40,7 @@ var Ship = function() {
         this.engines.push(engine);
     }.bind(this));
 
-    this.shipController = new ShipController(this, this.engines);
+    this.shipController = new ShipController(this.engines);
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
@@ -53,6 +54,9 @@ var Ship = function() {
     }
 
     this.command = null;
+
+    this.model.onRemove(this.onRemove.bind(this));
+    this.model.onBroken(this.onBroken.bind(this));
 };
 
 Ship.prototype = Object.create(Entity.prototype);
@@ -81,6 +85,8 @@ Ship.prototype.update = function() {
     if (this.command != null) {
         this.command.update();
     }
+
+    Debug.draw(this.worldPosition.clone().add(new THREE.Vector3(0, 10, 0)), 8, new THREE.Color(1.0, 0.0, 0.0), 8);
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
@@ -90,6 +96,26 @@ Ship.prototype.onCollision = function(entity, hitTest) {
             this.model.update();
         }
     }
+};
+
+Ship.prototype.onRemove = function() {
+    var c1 = this.model.centerOfMass.clone();
+    this.model.center();
+    var c2 = this.model.centerOfMass.clone();
+
+    var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
+    this.engines.forEach(function(engine) {
+        engine.position.add(diff.clone().multiplyScalar(-1.0));
+    });
+
+    diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
+    this.position.add(diff);
+
+    this.model.update();
+};
+
+Ship.prototype.onBroken = function(){
+    alert("oh no");
 };
 
 Ship.prototype.addPlayerControl = function() {

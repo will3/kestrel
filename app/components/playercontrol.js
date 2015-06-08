@@ -5,6 +5,7 @@ var MathUtils = require("../mathutils");
 var THREE = require("THREE");
 var MoveCommand = require("../commands/movecommand");
 var AttackCommand = require("../commands/attackcommand");
+var Debug = require("../debug");
 
 var PlayerControl = function() {
     Component.call(this);
@@ -25,24 +26,49 @@ PlayerControl.prototype.start = function() {
     this.weaponController = this.getComponent("WeaponController");
 
     this.control.registerKeys(["up", "down", "left", "right"]);
+    this.control.registerKeys(["shoot"]);
 };
 
 PlayerControl.prototype.update = function() {
     this.updateDirection();
     this.updateShoot();
+    this.updateMouseShoot();
 };
 
 PlayerControl.prototype.updateShoot = function() {
+    var shoot = this.control.keyHold("shoot");
+    if (!shoot) {
+        return;
+    }
+
+    var vector = MathUtils.getUnitVector(this.entity.rotation).setLength(100);
+    var position = new THREE.Vector3().copy(this.entity.worldPosition).add(vector);
+
+    this.weaponController.fireIfReady(null, position);
+};
+
+PlayerControl.prototype.updateMouseShoot = function() {
     var shoot = this.control.mouseHold;
     if (!shoot) {
         return;
     }
 
+    var point = this.getGroundIntersectPoint();
+    if (point == null) {
+        return;
+    }
+
+    this.weaponController.fireIfReady(null, point);
+};
+
+// get intersect point with plane where y == entity.y, from camera ray caster
+PlayerControl.prototype.getGroundIntersectPoint = function() {
     var raycaster = this.root.getCameraRaycaster();
 
     var x = this.transform.position.x;
     var y = this.transform.position.y;
     var z = this.transform.position.z;
+
     var groundGeometry = new THREE.Geometry();
     var groundWidth = 99999;
     groundGeometry.vertices.push(new THREE.Vector3(x - groundWidth, y, z - groundWidth));
@@ -60,10 +86,8 @@ PlayerControl.prototype.updateShoot = function() {
     var result = raycaster.intersectObject(ground);
     var groundPoint = result[0].point;
 
-    this.weaponController.fireIfReady(null, groundPoint);
-    // var target = this.root.getEntityNamed("ship0");
-    // this.weaponController.fireIfReady(target);
-}
+    return groundPoint;
+};
 
 PlayerControl.prototype.updateDirection = function() {
     var up = this.control.keyHold("up");

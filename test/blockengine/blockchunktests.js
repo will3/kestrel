@@ -71,6 +71,24 @@ describe("BlockChunk", function() {
         });
     });
 
+    describe("#getFirstBlock", function() {
+        it("should get first block", function() {
+            var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
+
+            var block = new Block();
+            chunk.add(123, 234, 345, block);
+
+            var firstBlock = chunk.getFirstBlock();
+            expect(firstBlock).to.exist;
+            expect(firstBlock).to.eql({
+                block: block,
+                x: 123,
+                y: 234,
+                z: 345
+            });
+        });
+    });
+
     describe("#getContiguousGroups", function() {
         it("should return contiguous groups", function() {
             var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
@@ -84,7 +102,7 @@ describe("BlockChunk", function() {
                 }
             }
 
-            10 * 10 * 10
+            // 10 * 10 * 10
             for (var x = 100; x < 110; x++) {
                 for (var y = 100; y < 110; y++) {
                     for (var z = 100; z < 110; z++) {
@@ -93,7 +111,7 @@ describe("BlockChunk", function() {
                 }
             }
 
-            1
+            // 1
             chunk.add(500, 500, 500, new Block());
 
             var groups = chunk.getContiguousGroups();

@@ -12,7 +12,7 @@ var ShipController = function(engines) {
 
     this.force = 0.025;
     this.yawForce = 0.035;
-    this.yawCurve = 0.1;
+    this.yawCurve = this.yawForce / 0.35;
 
     this.yaw = {
         yawForce: this.yawForce,
@@ -89,14 +89,14 @@ ShipController.prototype.update = function() {
     this.pitch.desired = null;
 };
 
-ShipController.prototype.lateUpdate = function(){
+ShipController.prototype.lateUpdate = function() {
     this.accelerateAmount = 0;
 };
 
 ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
-    this.engines.forEach(function(engine){
+    this.engines.forEach(function(engine) {
         engine.amount = amount;
     }.bind(this));
 };

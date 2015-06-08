@@ -5,11 +5,12 @@ var Debug = function(){
 	var game = Game.getInstance();
 
 	return {
-		addIndicator: function(point, duration){
+		draw: function(point, duration, color, size){
 			var indicator = new PointSprite();
-			indicator.size = 2;
-			var life = duration == null ? 8 : duration;
+			indicator.size = size || 2;
+			var life = duration || 8;
 
+			indicator.color = color || new THREE.Color(1.0, 1.0, 1.0);
 			indicator.life = life;
 			indicator.sizeOverTime(function(time){
 				return 2 - time * (2 / life);

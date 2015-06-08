@@ -40,7 +40,7 @@ Engine.prototype.update = function() {
     var velocity = this.getEmissionDirection();
 
     var emitOffset = new THREE.Vector3().copy(velocity).setLength(5);
-    this.particleSystem.emit(this.worldPosition.add(emitOffset), velocity, this.power * this.amount, 5);
+    this.particleSystem.emit(this.worldPosition.add(emitOffset), velocity, this.power * this.amount * this.engineBlock.integrity, 5);
 
     this.updateAcceleration();
 };
