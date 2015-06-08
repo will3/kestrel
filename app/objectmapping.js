@@ -9,12 +9,7 @@ var ObjectMapping = function() {
             return new Ship();
         },
         "playership": function() {
-            var ship = new Ship({
-                force: 0.05,
-                yawForce: 0.25,
-                yawCurve: 0.008,
-                fireInterval: 8
-            });
+            var ship = new Ship();
             ship.addPlayerControl();
             return ship;
         },

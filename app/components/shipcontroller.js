@@ -3,17 +3,19 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var _ = require("lodash");
 
-var ShipController = function(params) {
+var ShipController = function(engines) {
     Component.call(this);
 
     this.type = "ShipController";
 
-    var params = params || {};
-    this.force = params.force || 0.025;
-    this.yawCurve = params.yawCurve || 0.1;
+    this.engines = engines;
+
+    this.force = 0.025;
+    this.yawForce = 0.025;
+    this.yawCurve = 0.1;
 
     this.yaw = {
-        yawForce: params.yawForce || 0.015,
+        yawForce: this.yawForce,
         value: 0,
 
         update: function(roll, accelerateAmount) {
@@ -29,9 +31,9 @@ var ShipController = function(params) {
         desired: null,
         max: Math.PI / 2,
         curve: 0.1,
-        maxSpeed: 0.1,
+        maxSpeed: 0.10,
         friction: 0.95,
-        restingFriction: 0.95,
+        restingFriction: 0.99,
         value: 0,
 
         update: function() {
@@ -87,19 +89,16 @@ ShipController.prototype.update = function() {
     this.pitch.desired = null;
 };
 
-ShipController.prototype.lateUpdate = function() {
-    this.accelerateAmount *= 0.9;
-    if (this.accelerateAmount < 0.01) {
-        this.accelerateAmount = 0.0;
-    }
+ShipController.prototype.lateUpdate = function(){
+    this.accelerateAmount = 0;
 };
 
 ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
-    var rotation = this.transform.rotation;
-    var vector = MathUtils.getUnitVector(this.transform.rotation);
-    vector.multiplyScalar(amount * this.force);
-    this.rigidBody.applyForce(vector);
+
+    this.engines.forEach(function(engine){
+        engine.accelerate(amount);
+    }.bind(this));
 };
 
 ShipController.prototype.align = function(point) {

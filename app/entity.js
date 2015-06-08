@@ -170,6 +170,10 @@ Entity.prototype = {
         }
 
         return m;
+    },
+
+    get worldRotation(){
+        return new THREE.Euler().setFromRotationMatrix(this.worldRotationMatrix);
     }
 }
 

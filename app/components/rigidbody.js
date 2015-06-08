@@ -4,6 +4,8 @@ var THREE = require("THREE");
 var RigidBody = function(params) {
     Component.call(this);
 
+    this.type = "RigidBody";
+
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
     this.friction = 0.98;
@@ -13,6 +15,7 @@ var RigidBody = function(params) {
     }
 
     this.defaultFriction = params.defaultFriction || 0.98;
+    this.mass = params.mass || 1;
 };
 
 RigidBody.prototype = Object.create(Component.prototype);
@@ -32,7 +35,8 @@ RigidBody.prototype.update = function() {
 };
 
 RigidBody.prototype.applyForce = function(force) {
-    this.acceleration.add(force);
+    var acceleration = new THREE.Vector3().copy(force).multiplyScalar(1 / this.mass);
+    this.acceleration.add(acceleration);
 };
 
 RigidBody.prototype.applyFriction = function(friction) {

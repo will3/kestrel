@@ -10,6 +10,7 @@ var EngineBlock = function(direction) {
     this.setColor(new THREE.Color(0.8, 0.8, 0.8));
     this.scale = new THREE.Vector3(1.2, 1.2, 1.2);
     this.direction = direction;
+    this.power = 3;
 };
 
 EngineBlock.prototype = Object.create(Block.prototype);

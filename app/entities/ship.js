@@ -12,14 +12,13 @@ var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
 var _ = require("lodash");
 
-var Ship = function(params) {
+var Ship = function() {
     Entity.call(this);
 
-    params = params || {};
-
     this.model = new ShipModel();
-    this.shipController = new ShipController(params);
-    this.rigidBody = new RigidBody();
+    this.rigidBody = new RigidBody({
+        mass: this.model.blockCount * Math.pow(this.model.gridSize, 3)
+    });
     this.weaponController = new WeaponController();
     this.playerControl = null;
 
@@ -28,7 +27,7 @@ var Ship = function(params) {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: params.fireInterval || 50
+        fireInterval: 10
     })];
 
     this.engines = [];
@@ -39,6 +38,8 @@ var Ship = function(params) {
         engine.position = localPosition;
         this.engines.push(engine);
     }.bind(this));
+
+    this.shipController = new ShipController(this.engines);
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
@@ -77,10 +78,6 @@ Ship.prototype.start = function() {
 };
 
 Ship.prototype.update = function() {
-    this.engines.forEach(function(engine) {
-        engine.emission = this.shipController.accelerateAmount;
-    }.bind(this));
-
     if (this.command != null) {
         this.command.update();
     }
