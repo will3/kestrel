@@ -33,10 +33,13 @@ var Ship = function() {
 
     this.engines = [];
     this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
-        var blockCoord = new THREE.Vector3(x, y, z);
-        var localPosition = this.model.getLocalPosition(blockCoord);
-        var engine = new Engine(engineBlock);
-        engine.position = localPosition;
+        var engine = new Engine({
+            block: engineBlock,
+            x: x,
+            y: y,
+            z: z
+        });
+        engine.setPositionFromModel(this.model);
         this.engines.push(engine);
     }.bind(this));
 
@@ -105,8 +108,9 @@ Ship.prototype.onRemove = function() {
 
     var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
     this.engines.forEach(function(engine) {
-        engine.position.add(diff.clone().multiplyScalar(-1.0));
-    });
+        // engine.position.add(diff.clone().multiplyScalar(-1.0));
+        engine.setPositionFromModel(this.model);
+    }.bind(this));
 
     diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
     this.position.add(diff);

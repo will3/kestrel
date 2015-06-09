@@ -13,6 +13,8 @@ var container = $('#container');
 var game = Game.getInstance();
 var console = Console.getInstance();
 
+game.seedRandom("kestrel");
+
 game.control.registerKeyFunc = function(key) {
     MouseTrap.bind(KeyMap[key], function() {
         this.keydowns.push(key);

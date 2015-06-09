@@ -1,8 +1,9 @@
 var BlockChunk = require("../app/blockengine/blockchunk");
 var BlockCoord = require("../app/blockengine/blockcoord");
 var Block = require("../app/blockengine/block");
+var BlockChunkUtils = require("../app/blockengine/blockchunkutils");
 
-describe("BlockChunk performance 100000", function() {
+describe("BlockEngine performance 100000", function() {
     it("should get blocks timely", function() {
         var chunk = new BlockChunk(new BlockCoord(0, 0, 0), 512);
         chunk.add(123, 234, 345, new Block());
@@ -57,7 +58,7 @@ describe("BlockChunk performance 100000", function() {
             }
         }
 
-        chunk.visitBlocksContiguous(0, 0, 0, function(block, x, y, z) {
+        BlockChunkUtils._visitBlocksContiguous(chunk, 0, 0, 0, function(block, x, y, z) {
 
         });
     });

@@ -4,7 +4,7 @@ var expect = require("chai").expect;
 describe("ShipModel", function(){
 	it("should have 61 blocks", function(){
 		var model = new ShipModel();
-		expect(model.blockCount).to.equal(61);
+		expect(model.blockCount).to.equal(51);
 	});
 
 	it("should have 2 engine blocks", function(){

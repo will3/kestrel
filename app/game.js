@@ -6,6 +6,7 @@ var _ = require("lodash");
 var Console = require("./console");
 var CANNON = require("CANNON");
 var Collision = require("./collision");
+require("seedrandom");
 
 var Game = function() {
     this.scene = null;
@@ -42,6 +43,10 @@ Game.getInstance = function() {
 
 Game.prototype = {
     constructor: Game,
+
+    seedRandom: function(seed){
+        Math.seedrandom(seed);
+    },
 
     getCameraRaycaster: function() {
         var raycaster = new THREE.Raycaster();

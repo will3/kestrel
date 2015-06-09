@@ -20,13 +20,14 @@
     "nodemon": "^1.3.7",
     "noisejs": "^2.1.0",
     "observe-js": "^0.4.2",
+    "seedrandom": "^2.4.0",
     "sinon": "^1.14.1",
     "three": "^0.71.0"
   },
   "devDependencies": {},
   "scripts": {
     "test": "mocha test --recursive",
-    "testp" : "mocha testp --recursive",
+    "testp": "mocha testp --recursive",
     "cov": "istanbul cover node_modules/.bin/_mocha -- test --recursive",
     "start": "nodemon server.js",
     "build": "browserify app/main.js -o public/js/bundle.js",

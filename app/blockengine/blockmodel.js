@@ -25,7 +25,7 @@ var BlockModel = function(params) {
     this.blocks = {};
     this.blockTypesToMap = params.blockTypesToMap || null;
 
-    this.centerOffset = null;
+    this.centerOffset = new THREE.Vector3(0,0,0);
     this.centerOfMass = null;
     this.min = null;
     this.max = null;
@@ -213,21 +213,25 @@ BlockModel.prototype = {
         return false;
     },
 
+    //gets local vector from block coords
     getLocalPosition: function(blockCoords) {
         return new THREE.Vector3().copy(blockCoords).applyMatrix4(this.getLocalMatrix());
     },
 
+    //matrix that transforms block coords to local vector
     getLocalMatrix: function() {
         var centerOffset = new THREE.Matrix4().makeTranslation(this.centerOffset.x, this.centerOffset.y, this.centerOffset.z);
         var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
         var m = new THREE.Matrix4();
-
+        
         m.multiply(gridSize);
         m.multiply(centerOffset);
 
         return m;
     },
 
+    //matrix that transforms block coords to world vector
+    // = local matrix * this.object.matrixWorld
     getWorldMatrix: function() {
         var localMatrix = this.getLocalMatrix();
         var objectMatrixWorld = this.object.matrixWorld;
@@ -239,6 +243,7 @@ BlockModel.prototype = {
         return m;
     },
 
+    //inverse of world matrix
     getWorldInverseMatrix: function() {
         return new THREE.Matrix4().getInverse(this.getWorldMatrix());
     },

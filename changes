@@ -1,0 +1,41 @@
+9 June 2015 #1
+
+package.json 
+added reference to seedrandom ^2.4.0
+
+add |seedRandom function in Game
+- set seed for Math.random
+
+move |visitBlocksContiguous, |checkContiguous and |getContiguousGroups to BlockChunkUtils
+
+.centerOffset for blockmodel now defaults to 0, 0, 0
+
+fix null exception in shipcontroller |accelerate
+
+add BlockEntity class 
+- an entity representing a block
+|setPositionFromModel
+- convert block coords to local position and set entity's .position
+
+Engine class now inherits from BlockEntity class,
+changed references to PartileSystem (see ParticleSystem class changes)
+
+ParticleSystem class now configures particles through property |position, |velocity, |size, |life
+these properties will propergate to particle objects through |emit
+|emit no longer takes arguments (position, velocity, size, life), takes these from own properties instead
+moved emit to update function
+
+Ship class
+changed references to Engine (see Engine class changes)
+changed how position is updated for Engine in |onRemove
+
+Added /planetary folder
+	Added Star class
+	Added StarManager class 
+		- encapsulates stars
+		- intent to render as a particle system
+		- inherits from Entity
+
+updated tests
+102 tests
+Statements: 65.41% (1180 / 1804)      Branches: 44.87% (210 / 468)      Functions: 54.63% (183 / 335)      Lines: 65.39% (1179 / 1803)

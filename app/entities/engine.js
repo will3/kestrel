@@ -3,21 +3,21 @@ var ParticleSystem = require("./particlesystem");
 var THREE = require("THREE");
 var assert = require("assert");
 var MathUtils = require("../mathutils");
+var BlockEntity = require("./blockentity");
 
 var Engine = function(engineBlock) {
-    Entity.call(this);
-
-    this.engineBlock = engineBlock;
+    BlockEntity.call(this, engineBlock);
 
     this.amount = 0;
 
     this.particleSystem = new ParticleSystem();
+    this.particleSystem.life = 5;
     this.power = engineBlock.power;
 
     this.rigidBody = null;
 };
 
-Engine.prototype = Object.create(Entity.prototype);
+Engine.prototype = Object.create(BlockEntity.prototype);
 Engine.prototype.constructor = Engine;
 
 Engine.prototype.start = function() {
@@ -27,7 +27,7 @@ Engine.prototype.start = function() {
 };
 
 Engine.prototype.getEmissionDirection = function() {
-    var velocity = new THREE.Vector3().copy(this.engineBlock.direction).applyMatrix4(this.worldRotationMatrix);
+    var velocity = new THREE.Vector3().copy(this.block.direction).applyMatrix4(this.worldRotationMatrix);
     velocity.setLength(1);
     return velocity;
 };
@@ -40,9 +40,19 @@ Engine.prototype.update = function() {
     var velocity = this.getEmissionDirection();
 
     var emitOffset = new THREE.Vector3().copy(velocity).setLength(5);
-    this.particleSystem.emit(this.worldPosition.add(emitOffset), velocity, this.power * this.amount * this.engineBlock.integrity, 5);
+    this.particleSystem.position = this.worldPosition.add(emitOffset);
+    this.particleSystem.velocity = velocity;
+    this.particleSystem.size = this.power * this.amount * this.block.integrity;
 
     this.updateAcceleration();
+};
+
+Engine.prototype.updateAcceleration = function() {
+    var powerToForce = 3.0;
+    var direction = this.getEmissionDirection();
+    var force = this.power * powerToForce * this.block.integrity;
+    direction.setLength(-this.amount * force);
+    this.rigidBody.applyForce(direction);
 };
 
 Engine.prototype.lateUpdate = function() {
@@ -50,14 +60,6 @@ Engine.prototype.lateUpdate = function() {
     if (this.amount < 0.01) {
         this.amount = 0.0;
     }
-};
-
-Engine.prototype.updateAcceleration = function() {
-    var powerToForce = 3.0;
-    var direction = this.getEmissionDirection();
-    var force = this.power * powerToForce * this.engineBlock.integrity;
-    direction.setLength(-this.amount * force);
-    this.rigidBody.applyForce(direction);
 };
 
 module.exports = Engine;

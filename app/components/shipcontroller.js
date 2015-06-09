@@ -96,6 +96,10 @@ ShipController.prototype.lateUpdate = function() {
 ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
+    if(this.engines == null){
+        return;
+    }
+    
     this.engines.forEach(function(engine) {
         engine.amount = amount;
     }.bind(this));

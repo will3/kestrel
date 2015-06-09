@@ -8,26 +8,30 @@ var ParticleSystem = function() {
     Entity.call(this);
 
     this.amount = 0;
+
+    this.position = new THREE.Vector3();
+    this.velocity = new THREE.Vector3(0, 1, 0);
+    this.size = 1;
+    this.life = null;
 }
 
 ParticleSystem.prototype = Object.create(Entity.prototype);
 ParticleSystem.prototype.constructor = ParticleSystem;
 
-ParticleSystem.prototype.createSprite = function(velocity, size, life) {
-    var pointsprite = new PointSprite();
-    pointsprite.size = size;
-    pointsprite.life = life;
-    pointsprite.sizeOverTime(function(time) {
-        return size - time * (size / life);
-    });
-    pointsprite.velocity = velocity;
-
-    return pointsprite;
-};
-
+//emit in world space
 ParticleSystem.prototype.emit = function(position, velocity, size, life) {
-    var sprite = this.createSprite(velocity, size, life);
-    sprite.position = position;
+    var sprite = new PointSprite();
+    sprite.position = this.position;
+    sprite.velocity = this.velocity;
+    sprite.size = this.size;
+    sprite.life = this.life;
+
+    if (this.life != null) {
+        sprite.sizeOverTime(function(time) {
+            return size - time * (size / life);
+        });
+    }
+
     this.root.addEntity(sprite);
 };
 
@@ -36,7 +40,7 @@ ParticleSystem.prototype.start = function() {
 };
 
 ParticleSystem.prototype.update = function() {
-
+    this.emit();
 };
 
 module.exports = ParticleSystem;

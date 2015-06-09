@@ -13,11 +13,21 @@ describe('Game', function() {
         };
         mockEntityRunner = sinon.mock(entityRunner);
         entity = {
-            destroy: function(){}
+            destroy: function() {}
         };
         mockEntity = sinon.mock(entity);
         game = new Game();
         game.entityRunner = entityRunner;
+    });
+
+    describe("#seedRandom", function() {
+        it("should generate same number", function() {
+            game.seedRandom("kestrel");
+            var random1 = Math.random();
+            game.seedRandom("kestrel");
+            var random2 = Math.random();
+            expect(random1).to.equal(random2);
+        });
     });
 
     describe('addEntity', function() {
