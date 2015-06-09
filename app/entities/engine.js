@@ -8,6 +8,8 @@ var BlockEntity = require("./blockentity");
 var Engine = function(blockInfo) {
     BlockEntity.call(this, blockInfo);
 
+    this.type = "Engine";
+
     this.amount = 0;
 
     this.particleSystem = new ParticleSystem();

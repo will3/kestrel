@@ -15,12 +15,8 @@ var Debug = require("../debug");
 var ModelEntity = require("./modelentity");
 
 var Ship = function() {
-    ModelEntity.call(this);
+    ModelEntity.call(this, new ShipModel());
 
-    this.model = new ShipModel();
-    this.rigidBody = new RigidBody({
-        mass: this.model.blockCount * Math.pow(this.model.gridSize, 3)
-    });
     this.weaponController = new WeaponController();
     this.playerControl = null;
 
@@ -32,17 +28,9 @@ var Ship = function() {
         fireInterval: 10
     })];
 
-    this.engines = [];
-    this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
-        var engine = new Engine({
-            block: engineBlock,
-            x: x,
-            y: y,
-            z: z
-        });
-        engine.setPositionFromModel(this.model);
-        this.engines.push(engine);
-    }.bind(this));
+    this.engines = _.filter(this.blockEntities, function(entity){
+        return entity.type == "Engine";
+    });
 
     this.shipController = new ShipController(this.engines);
 
@@ -58,13 +46,26 @@ var Ship = function() {
     }
 
     this.command = null;
-
-    this.model.onRemove(this.onRemove.bind(this));
-    this.model.onBroken(this.onBroken.bind(this));
 };
 
 Ship.prototype = Object.create(ModelEntity.prototype);
 Ship.prototype.constructor = Ship;
+
+Ship.prototype.initBlockEntities = function(){
+    var engines = [];
+    this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
+        var engine = new Engine({
+            block: engineBlock,
+            x: x,
+            y: y,
+            z: z
+        });
+        engine.setPositionFromModel(this.model);
+        engines.push(engine);
+    }.bind(this));
+    
+    return engines;
+};
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -100,26 +101,6 @@ Ship.prototype.onCollision = function(entity, hitTest) {
             this.model.update();
         }
     }
-};
-
-Ship.prototype.onRemove = function() {
-    var c1 = this.model.centerOfMass.clone();
-    this.model.center();
-    var c2 = this.model.centerOfMass.clone();
-
-    var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
-    this.engines.forEach(function(engine) {
-        engine.setPositionFromModel(this.model);
-    }.bind(this));
-
-    diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
-    this.position.add(diff);
-
-    this.model.update();
-};
-
-Ship.prototype.onBroken = function(){
-
 };
 
 Ship.prototype.addPlayerControl = function() {

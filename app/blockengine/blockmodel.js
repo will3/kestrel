@@ -26,7 +26,7 @@ var BlockModel = function(params) {
     this.blocks = {};
     this.blockTypesToMap = params.blockTypesToMap || null;
 
-    this.centerOffset = new THREE.Vector3(0,0,0);
+    this.centerOffset = new THREE.Vector3(0, 0, 0);
     this.centerOfMass = null;
     this.min = null;
     this.max = null;
@@ -61,6 +61,12 @@ BlockModel.prototype = {
         }
     },
 
+    quickremove: function(x, y, z) {
+        var block = this.chunk.remove(x, y, z);
+        this._updateDirty(x, y, z);
+        this._updateBlockMapping(x, y, z, block, true);
+    },
+
     onRemove: function(callback) {
         this.onRemoveCallback = callback;
     },
@@ -80,6 +86,33 @@ BlockModel.prototype = {
     //simplify to sphere r n
     get rotationalInertia() {
         return 2 / 5.0 * this.mass * this.blockRadius * this.blockRadius;
+    },
+
+    breakApart: function() {
+        var groups = BlockChunkUtils.getContiguousGroups(this.chunk);
+
+        if (groups.count <= 1) {
+            throw "can't break apart contiguous block model";
+        }
+
+        var maxLength = 0;
+        var maxGroup = null;
+        groups.forEach(function(group) {
+            if (group.length > maxLength) {
+                maxLength = group.length;
+                maxGroup = group;
+            }
+        });
+
+        groups.forEach(function(group) {
+            if (group == maxGroup) {
+                return;
+            }
+
+            group.forEach(function(blockInfo) {
+                this.quickremove(blockInfo.x, blockInfo.y, blockInfo.z);
+            }.bind(this));
+        }.bind(this));
     },
 
     _updateBlockMapping: function(x, y, z, block, isRemove) {
@@ -102,7 +135,7 @@ BlockModel.prototype = {
     },
 
     mergeModel: function(model, startX, startY, startZ) {
-        this.chunk.merge(model.chunk,startX, startY, startZ);
+        this.chunk.merge(model.chunk, startX, startY, startZ);
         model.visitBlocks(function(block, x, y, z) {
             this.add(startX + x, startY + y, startZ + z, block);
         }.bind(this));
@@ -224,7 +257,7 @@ BlockModel.prototype = {
         var centerOffset = new THREE.Matrix4().makeTranslation(this.centerOffset.x, this.centerOffset.y, this.centerOffset.z);
         var gridSize = new THREE.Matrix4().makeScale(this.gridSize, this.gridSize, this.gridSize);
         var m = new THREE.Matrix4();
-        
+
         m.multiply(gridSize);
         m.multiply(centerOffset);
 

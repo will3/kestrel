@@ -17,7 +17,7 @@ var ShipModel = function() {
     this.addComponents();
 
     this.center();
-}
+};
 
 ShipModel.prototype = Object.create(BlockModel.prototype);
 ShipModel.prototype.constructor = ShipModel;
