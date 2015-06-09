@@ -4,6 +4,7 @@ var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
 var CANNON = require("CANNON");
 var BlockUtils = require("./blockutils");
+var BlockChunkUtils = require("./blockchunkutils");
 
 var BlockModel = function(params) {
     params = params || {};
@@ -53,7 +54,7 @@ BlockModel.prototype = {
         }
 
         if (this.onBrokenCallback != null) {
-            var contiguous = this.chunk.checkContiguous();
+            var contiguous = BlockChunkUtils.checkContiguous(this.chunk);
             if (!contiguous) {
                 this.onBrokenCallback();
             }

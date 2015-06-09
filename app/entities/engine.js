@@ -5,14 +5,14 @@ var assert = require("assert");
 var MathUtils = require("../mathutils");
 var BlockEntity = require("./blockentity");
 
-var Engine = function(engineBlock) {
-    BlockEntity.call(this, engineBlock);
+var Engine = function(blockInfo) {
+    BlockEntity.call(this, blockInfo);
 
     this.amount = 0;
 
     this.particleSystem = new ParticleSystem();
     this.particleSystem.life = 5;
-    this.power = engineBlock.power;
+    this.power = this.block.power;
 
     this.rigidBody = null;
 };
@@ -43,6 +43,7 @@ Engine.prototype.update = function() {
     this.particleSystem.position = this.worldPosition.add(emitOffset);
     this.particleSystem.velocity = velocity;
     this.particleSystem.size = this.power * this.amount * this.block.integrity;
+    this.particleSystem.emit();
 
     this.updateAcceleration();
 };

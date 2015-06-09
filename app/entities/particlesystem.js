@@ -19,7 +19,7 @@ ParticleSystem.prototype = Object.create(Entity.prototype);
 ParticleSystem.prototype.constructor = ParticleSystem;
 
 //emit in world space
-ParticleSystem.prototype.emit = function(position, velocity, size, life) {
+ParticleSystem.prototype.emit = function() {
     var sprite = new PointSprite();
     sprite.position = this.position;
     sprite.velocity = this.velocity;
@@ -28,8 +28,8 @@ ParticleSystem.prototype.emit = function(position, velocity, size, life) {
 
     if (this.life != null) {
         sprite.sizeOverTime(function(time) {
-            return size - time * (size / life);
-        });
+            return this.size - time * (this.size / this.life);
+        }.bind(this));
     }
 
     this.root.addEntity(sprite);
@@ -40,7 +40,7 @@ ParticleSystem.prototype.start = function() {
 };
 
 ParticleSystem.prototype.update = function() {
-    this.emit();
+
 };
 
 module.exports = ParticleSystem;

@@ -12,9 +12,10 @@ var THREE = require("THREE");
 var PlayerControl = require("../components/playercontrol");
 var _ = require("lodash");
 var Debug = require("../debug");
+var ModelEntity = require("./modelentity");
 
 var Ship = function() {
-    Entity.call(this);
+    ModelEntity.call(this);
 
     this.model = new ShipModel();
     this.rigidBody = new RigidBody({
@@ -62,7 +63,7 @@ var Ship = function() {
     this.model.onBroken(this.onBroken.bind(this));
 };
 
-Ship.prototype = Object.create(Entity.prototype);
+Ship.prototype = Object.create(ModelEntity.prototype);
 Ship.prototype.constructor = Ship;
 
 Ship.prototype.start = function() {
@@ -108,7 +109,6 @@ Ship.prototype.onRemove = function() {
 
     var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
     this.engines.forEach(function(engine) {
-        // engine.position.add(diff.clone().multiplyScalar(-1.0));
         engine.setPositionFromModel(this.model);
     }.bind(this));
 
@@ -119,7 +119,7 @@ Ship.prototype.onRemove = function() {
 };
 
 Ship.prototype.onBroken = function(){
-    alert("oh no");
+
 };
 
 Ship.prototype.addPlayerControl = function() {
