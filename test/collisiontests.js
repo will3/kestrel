@@ -4,107 +4,59 @@ var sinon = require('sinon');
 var Entity = require("../app/entity");
 var RigidBody = require("../app/components/rigidbody");
 var THREE = require("THREE");
+var CollisionBody = require("../app/components/collisionbody");
 
-describe("Collision", function(){
-	var collision, mockCollision, game, entities;
+describe("Collision", function() {
+    var collision, mockCollision, game, entities;
 
-	beforeEach(function(){
-		collision = new Collision();
-		mockCollision = sinon.mock(collision);
-		entities = [];
-		game = {
-			getEntities: function(){
-				return entities;
-			}
-		};
-		collision.game = game;
-	})
+    beforeEach(function() {
+        collision = new Collision();
+        mockCollision = sinon.mock(collision);
+        entities = [];
+        game = {
+            getEntities: function() {
+                return entities;
+            }
+        };
+        collision.parent = game;
+    });
 
-	describe("#update", function(){
-		// it("should visit colliable objects and perform hit tests", function(){
-		// 	entities = [createCollidable(), createCollidable()];
-		// 	mockCollision.expects("hitTest").once();
-		// 	collision.update();
-		// 	mockCollision.verify();
-		// })
+    describe("#update", function() {
+        it("should hit test bodies and notify", function() {
+            var entity1 = createMockCollidable();
+            var entity2 = createMockCollidable();
+            var body1 = entity1.collisionBody;
+            var body2 = entity2.collisionBody;
 
-		it("should ignore non colliable objects", function(){
-			entities = [createNonColliable(), createNonColliable()];
-			mockCollision.expects("hitTest").never();
-			collision.update();
-			mockCollision.verify();
-		})
+            var mockBody1 = sinon.mock(body1);
 
-		// it("should notify collision when hit test returns true", function(){
-		// 	collision.hitTest = function(){
-		// 		return true;
-		// 	}
+            entities = [entity1, entity2];
 
-		// 	var entity1 = createCollidable(null, null, true);
-		// 	var entity2 = createCollidable(null, null, true);
-		// 	entities = [entity1, entity2];
-		// 	var mockEntity1 = sinon.mock(entity1);
-		// 	var mockEntity2 = sinon.mock(entity2);
-		// 	mockEntity1.expects("onCollision");
-		// 	mockEntity2.expects("onCollision");
+            mockCollision.expects("notifyCollision").withArgs(body1, body2);
+            collision.update();
+            mockCollision.verify();
+        });
+    });
 
-		// 	collision.update();
+    function createMockCollidable(params) {
+        params = params || {};
 
-		// 	mockEntity1.verify();
-		// 	mockEntity2.verify();
-		// })
-	})
+        var entity = new Entity();
+        var body = new CollisionBody();
+        entity.collisionBody = body;
 
-	describe("#hitTest", function(){
-		// it("should return true when collision radiuses just overlap", function(){
-		// 	var entity1 = createCollidable(new THREE.Vector3(100, 0, 0), 50);
-		// 	var entity2 = createCollidable(new THREE.Vector3(0, 0, 0), 50);
+        body.hitTest = function(body) {
+            return {
+                result: true
+            };
+        };
 
-		// 	expect(collision.hitTest(entity1, entity2)).to.equal(true);
-		// })
+        body.shouldResolveHitTest = function(body) {
+            return params.shouldResolveHitTestResult != null ?
+                params.shouldResolveHitTestResult : true;
+        };
 
-		// it("should return true when collision radiuses overlap", function(){
-		// 	var entity1 = createCollidable(new THREE.Vector3(50, 0, 0), 50);
-		// 	var entity2 = createCollidable(new THREE.Vector3(0, 0, 0), 50);
-
-		// 	expect(collision.hitTest(entity1, entity2)).to.equal(true);
-		// })
-
-		// it("should return false when collision radius don't overlap", function(){
-		// 	var entity1 = createCollidable(new THREE.Vector3(101, 0, 0), 50);
-		// 	var entity2 = createCollidable(new THREE.Vector3(0, 0, 0), 50);
-
-		// 	expect(collision.hitTest(entity1, entity2)).to.equal(false);
-		// })
-	})
-
-	//creates a collidable entity
-	//position: if not null, set position of entity
-	//collisionradius: if not null, set collision radius of rigid body
-	function createCollidable(position, collisionRadius, hasOnCollision){
-		var entity = new Entity();
-
-		if(position != null){
-			entity.position = position;
-		}
-
-		entity.collisionBody = {
-
-		}
-
-		if(hasOnCollision == true){
-			entity.onCollision = function(){ };
-		}
-
-		return entity;
-	}
-
-	function createNonColliable(){
-		var entity = new Entity();
-		entity.hasCollision = function(){
-			return false;
-		}
-
-		return entity;
-	}
+        entity.addComponent(body);
+        return entity;
+    }
 });

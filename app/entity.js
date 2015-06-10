@@ -13,24 +13,10 @@ var Entity = function() {
     this.started = false;
     this.life = null;
     this.destroyable = false;
-
-    this.collisionBody = null;
-    this.collisionFilter = null;
 };
 
 Entity.prototype = {
     constructor: Entity,
-
-    setCollisionRadius: function(radius) {
-        this.collisionBody = {
-            getPosition: function() {
-                return this.position
-            }.bind(this),
-
-            type: 'sphere',
-            radius: radius
-        };
-    },
 
     addEntity: function(entity) {
         if (entity.parent != null) {
@@ -51,17 +37,40 @@ Entity.prototype = {
         this.components.push(component);
     },
 
-    getComponent: function(type){
-        var components = _.filter(this.components, function(component){
-            return component.type == type;
-        });
+    getComponent: function(type) {
+        var components = this.getComponents(type);
 
-        if(components.length == 0){
+        if (components.length == 0) {
             throw "cannot find component " + type;
-        }else if(components.length > 1){
+        } else if (components.length > 1) {
             throw "more than one component " + type + " found";
         }
+
         return components[0];
+    },
+
+    getComponentOrEmpty: function(type) {
+        var components = this.getComponents(type);
+
+        if (components.length == 0) {
+            return null;
+        } else if (components.length > 1) {
+            throw "more than one component " + type + " found";
+        }
+
+        return components[0];
+    },
+
+    getComponents: function(type) {
+        if (_.isFunction(type)) {
+            return _.filter(this.components, function(component) {
+                return component instanceof type;
+            });
+        }
+
+        return _.filter(this.components, function(component) {
+            return component.type == type;
+        });
     },
 
     removeComponent: function(component) {
@@ -69,10 +78,10 @@ Entity.prototype = {
         _.pull(this.components, component);
     },
 
-    removeFromParent: function(){
-        if(this.parent == null){
+    removeFromParent: function() {
+        if (this.parent == null) {
             this.destroy();
-        }else{
+        } else {
             this.parent.removeEntity(this);
         }
     },
@@ -85,7 +94,7 @@ Entity.prototype = {
         //override to provide behaviour
     },
 
-    lateUpdate: function(){
+    lateUpdate: function() {
 
     },
 
@@ -123,7 +132,7 @@ Entity.prototype = {
         this.transform.rotation = rotation;
     },
 
-    get quaternion(){
+    get quaternion() {
         return this.transform.quaternion;
     },
 
@@ -149,7 +158,7 @@ Entity.prototype = {
     },
 
     get worldTransformMatrix() {
-        if(this.parent == null){
+        if (this.parent == null) {
             return this.transformMatrix;
         }
 
@@ -172,7 +181,7 @@ Entity.prototype = {
         return m;
     },
 
-    get worldRotation(){
+    get worldRotation() {
         return new THREE.Euler().setFromRotationMatrix(this.worldRotationMatrix);
     }
 }

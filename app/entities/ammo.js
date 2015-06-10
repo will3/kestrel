@@ -1,5 +1,6 @@
 var Entity = require("../entity.js");
 var THREE = require("THREE");
+var SphereCollisionBody = require("../components/spherecollisionbody");
 
 var Ammo = function() {
     Entity.call(this);
@@ -9,18 +10,8 @@ var Ammo = function() {
     this.point = null;
     this.destroyable = true;
 
-    this.collisionBody = {
-        type: "sphere",
-        radius: 2,
-        getPosition: function() {
-            return this.position
-        }.bind(this),
-        getVelocity: function() {
-            return this.rigidBody.velocity;
-        }.bind(this)
-    }
-
-    this.collisionFilter = function(entity) {
+    this.collisionBody = new SphereCollisionBody(2);
+    this.collisionBody.filter(function(entity) {
         if (entity == this.actor) {
             return false;
         }
@@ -30,7 +21,9 @@ var Ammo = function() {
         }
 
         return true;
-    }
+    }.bind(this));
+
+    this.addComponent(this.collisionBody);
 }
 
 Ammo.prototype = Object.create(Entity.prototype);

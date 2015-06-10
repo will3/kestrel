@@ -25,7 +25,7 @@ var Missile = function(){
 			if(rigidBody == null){
 				rigidBody = new RigidBody();
 				rigidBody.setDefaultFriction(launchFriction);
-				rigidBody.setCollisionRadius(1);
+				// rigidBody.setCollisionRadius(1);
 			}
 
 			return rigidBody;

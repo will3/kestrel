@@ -13,6 +13,7 @@ var PlayerControl = require("../components/playercontrol");
 var _ = require("lodash");
 var Debug = require("../debug");
 var ModelEntity = require("./modelentity");
+var BlockCollisionBody = require("../components/blockcollisionbody");
 
 var Ship = function() {
     ModelEntity.call(this, new ShipModel());
@@ -37,13 +38,8 @@ var Ship = function() {
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
 
-    this.collisionBody = {
-        type: "block",
-        entity: this,
-        hitTest: function(position, radius) {
-            return this.model.hitTest(position, radius);
-        }.bind(this)
-    }
+    this.collisionBody = new BlockCollisionBody();
+    this.addComponent(this.collisionBody);
 
     this.command = null;
 };

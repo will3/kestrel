@@ -212,41 +212,6 @@ BlockModel.prototype = {
         }
     },
 
-    hitTest: function(position, radius) {
-        var distance = position.distanceTo(this.object.position);
-        if (distance > (radius + this.blockRadius * this.gridSize)) {
-            return false;
-        }
-
-        var coords = new THREE.Vector3().copy(position).applyMatrix4(this.getWorldInverseMatrix());
-
-        var blockRadius = Math.ceil(radius * this.gridSize);
-
-        var blockCoord = new BlockCoord(Math.round(coords.x), Math.round(coords.y), Math.round(coords.z));
-        var blockRadius = Math.ceil(radius * 2);
-
-        var result = null;
-        BlockUtils.visitRange(blockCoord.x, blockCoord.y, blockCoord.z, blockRadius, function(x, y, z, distance) {
-            if (result != null) {
-                return;
-            }
-            var block = this.chunk.get(x, y, z);
-            if (block != null) {
-                result = {
-                    result: true,
-                    block: block,
-                    coord: new BlockCoord(x, y, z)
-                }
-            }
-        }.bind(this));
-
-        if (result != null) {
-            return result;
-        }
-
-        return false;
-    },
-
     //gets local vector from block coords
     getLocalPosition: function(blockCoords) {
         return new THREE.Vector3().copy(blockCoords).applyMatrix4(this.getLocalMatrix());

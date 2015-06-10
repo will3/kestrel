@@ -2,7 +2,7 @@ var Ship = require("../../app/entities/ship");
 var expect = require("chai").expect;
 var Component = require("../../app/component");
 var _ = require("lodash");
-
+var CollisionBody = require("../../app/components/collisionbody");
 
 describe("Ship", function() {
     var ship, weapons;
@@ -17,8 +17,9 @@ describe("Ship", function() {
         ship.smokeTrail = {};
     });
 
-    it("should initialize engines from model", function() {
-    	
+    it("has collision body", function(){
+        var collisionBody = ship.getComponent(CollisionBody);
+        expect(collisionBody).to.exist;
     });
 
     describe("start", function() {
