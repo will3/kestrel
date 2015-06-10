@@ -25,7 +25,7 @@ BlockCollisionBody.prototype.hitTest = function(body) {
         var velocity = body.velocity;
 
         if(velocity == null){
-            return this.hitTestSphere(body);
+            return this.hitTestSphere(body, body.transform.position);
         }
 
         var testInterval = Math.ceil(velocity.length() * this.velocityIteration);
@@ -33,7 +33,7 @@ BlockCollisionBody.prototype.hitTest = function(body) {
 
         var position = new THREE.Vector3().copy(body.transform.position);
         for (var i = 0; i < testInterval; i++) {
-            var hitTest = this.hitTestSphere(body);
+            var hitTest = this.hitTestSphere(body, position);
             if (hitTest.result) {
                 return hitTest;
             }
@@ -52,8 +52,7 @@ BlockCollisionBody.prototype.hitTest = function(body) {
     throw "hitTest not implemented for type " + body.type;
 };
 
-BlockCollisionBody.prototype.hitTestSphere = function(sphere) {
-    var position = sphere.transform.position;
+BlockCollisionBody.prototype.hitTestSphere = function(sphere, position) {
     var radius = sphere.radius;
 
     var distance = position.distanceTo(this.model.object.position);
@@ -95,7 +94,7 @@ BlockCollisionBody.prototype.hitTestSphere = function(sphere) {
     };
 }
 
-BlockCollisionBody.prototype.shouldResolveCollision = function(body) {
+BlockCollisionBody.prototype.shouldResolveHitTest = function(body) {
     return body.type == "SphereCollisionBody" || body.type == "BlockCollisionBody";
 }
 

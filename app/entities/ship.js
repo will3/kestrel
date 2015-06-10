@@ -38,7 +38,7 @@ var Ship = function() {
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
 
-    this.collisionBody = new BlockCollisionBody();
+    this.collisionBody = new BlockCollisionBody(this.model);
     this.addComponent(this.collisionBody);
 
     this.command = null;
