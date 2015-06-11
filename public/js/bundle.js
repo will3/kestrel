@@ -589,6 +589,7 @@ var BlockModel = function(params) {
     this.chunk = new BlockChunk(new BlockCoord(-chunkHalfSize, -chunkHalfSize, -chunkHalfSize), chunkHalfSize * 2);
     this.gridSize = gridSize;
     this.minChunkSize = minChunkSize;
+    this.halfSize = halfSize;
 
     this.object = new THREE.Object3D();
 
@@ -983,12 +984,17 @@ BlockModel.prototype = {
 
 module.exports = BlockModel;
 },{"./blockchunk":2,"./blockchunkutils":3,"./blockcoord":4,"./blockutils":6,"CANNON":54,"THREE":56,"lodash":224}],6:[function(require,module,exports){
+var Block = require("./block");
+var BlockChunk = require("./blockchunk");
+var BlockCoord = require("./blockcoord");
+var _ = require("lodash");
+
 var BlockUtils = function() {
     return {
         visitRange: function(center_x, center_y, center_z, radius, callback) {
             for (var distance = 0; distance <= radius; distance++) {
                 this.visitDistance(distance, function(x, y, z) {
-                	callback(center_x + x, center_y + y, center_z + z, distance);
+                    callback(center_x + x, center_y + y, center_z + z, distance);
                 }.bind(this));
             }
         },
@@ -1009,7 +1015,7 @@ var BlockUtils = function() {
 }();
 
 module.exports = BlockUtils;
-},{}],7:[function(require,module,exports){
+},{"./block":1,"./blockchunk":2,"./blockcoord":4,"lodash":224}],7:[function(require,module,exports){
 var Block = require("../blockengine/block");
 var THREE = require("THREE");
 
@@ -1915,24 +1921,25 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var _ = require("lodash");
 
-var ShipController = function(engines) {
+var ShipController = function(params) {
     Component.call(this);
 
+    params = params || {};
+
     this.type = "ShipController";
-
-    this.engines = engines;
-
-    this.force = 0.025;
-    this.yawForce = 0.035;
-    this.yawCurve = this.yawForce / 0.35;
+    this.model = params.model;
+    this.engines = params.engines;
+    this.agilityBonus = params.agilityBonus || 1;
+    var powerSource = params.powerSource;
+    this.powerSource = powerSource;
 
     this.yaw = {
-        yawForce: this.yawForce,
+        controller: this,
         value: 0,
 
         update: function(roll, accelerateAmount) {
             var bankFactor = Math.sin(roll.value);
-            var yawVelocity = bankFactor * -this.yawForce * accelerateAmount;
+            var yawVelocity = bankFactor * -this.controller.turnRate * accelerateAmount;
 
             this.value += yawVelocity;
         }
@@ -1947,6 +1954,7 @@ var ShipController = function(engines) {
         friction: 0.95,
         restingFriction: 0.99,
         value: 0,
+        powerSource: powerSource,
 
         update: function() {
             if (this.desired == null) {
@@ -1955,6 +1963,8 @@ var ShipController = function(engines) {
             }
 
             var speed = (this.desired - this.value) * this.curve;
+            speed *= this.powerSource.power;
+
             if (speed > this.maxSpeed) {
                 speed = this.maxSpeed;
             } else if (speed < -this.maxSpeed) {
@@ -1966,10 +1976,7 @@ var ShipController = function(engines) {
         }
     };
 
-    this.roll = _.clone(this.pitch, true);
-
-    //yaw
-    this.yawForce = 0.015;
+    this.roll = _.clone(this.pitch);
 
     this.engines = null;
 
@@ -1979,9 +1986,21 @@ var ShipController = function(engines) {
 ShipController.prototype = Object.create(Component.prototype);
 ShipController.prototype.constructor = ShipController;
 
-Object.defineProperty(ShipController.prototype, 'rigidBody', {
+Object.defineProperty(ShipController.prototype, "rigidBody", {
     get: function() {
         return this.entity.rigidBody;
+    }
+});
+
+Object.defineProperty(ShipController.prototype, "turnRate", {
+    get: function() {
+        return 0.035 * this.agilityBonus * this.powerSource.power;
+    }
+});
+
+Object.defineProperty(ShipController.prototype, "yawCurve", {
+    get: function() {
+        return 0.035 / this.turnRate * 0.6;
     }
 });
 
@@ -2008,10 +2027,10 @@ ShipController.prototype.lateUpdate = function() {
 ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
-    if(this.engines == null){
+    if (this.engines == null) {
         return;
     }
-    
+
     this.engines.forEach(function(engine) {
         engine.amount = amount;
     }.bind(this));
@@ -2089,7 +2108,7 @@ ShipController.prototype.getUnitFacing = function() {
 
 //bank to achieve yaw velocity
 ShipController.prototype._bankForYawVelocity = function(yawVelocity) {
-    var bankFactor = yawVelocity / -this.yawForce;
+    var bankFactor = yawVelocity / -this.turnRate;
     if (bankFactor > 1) {
         bankFactor = 1;
     } else if (bankFactor < -1) {
@@ -2462,11 +2481,13 @@ var Entity = require("../entity");
 var THREE = require("THREE");
 var BlockCoord = require("../blockengine/blockcoord");
 
-var BlockEntity = function(blockInfo) {
+var BlockEntity = function(params) {
     Entity.call(this);
 
-    this.block = blockInfo.block;
-    this.blockCoord = new BlockCoord(blockInfo.x, blockInfo.y, blockInfo.z);
+    params = params || null;
+
+    this.block = params.block;
+    this.blockCoord = new BlockCoord(params.x, params.y, params.z);
 };
 
 BlockEntity.prototype = Object.create(Entity.prototype);
@@ -2494,8 +2515,8 @@ var assert = require("assert");
 var MathUtils = require("../mathutils");
 var BlockEntity = require("./blockentity");
 
-var Engine = function(blockInfo) {
-    BlockEntity.call(this, blockInfo);
+var Engine = function(params) {
+    BlockEntity.call(this, params);
 
     this.type = "Engine";
 
@@ -2506,10 +2527,18 @@ var Engine = function(blockInfo) {
     this.power = this.block.power;
 
     this.rigidBody = null;
+
+    this.powerSource = params.powerSource;
 };
 
 Engine.prototype = Object.create(BlockEntity.prototype);
 Engine.prototype.constructor = Engine;
+
+Object.defineProperty(Engine.prototype, "health", {
+    get: function() {
+        return this.block.integrity;
+    }
+});
 
 Engine.prototype.start = function() {
     this.addEntity(this.particleSystem);
@@ -2531,18 +2560,33 @@ Engine.prototype.update = function() {
     var velocity = this.getEmissionDirection();
 
     var emitOffset = new THREE.Vector3().copy(velocity).setLength(5);
-    this.particleSystem.position = this.worldPosition.add(emitOffset);
-    this.particleSystem.velocity = velocity;
-    this.particleSystem.size = this.power * this.amount * this.block.integrity;
-    this.particleSystem.emit();
 
-    this.updateAcceleration();
+    if (this.output > 0) {
+        this.particleSystem.position = this.worldPosition.add(emitOffset);
+        this.particleSystem.velocity = velocity;
+        this.particleSystem.size = this.output;
+        this.particleSystem.emit();
+
+        this.updateAcceleration();
+    }
 };
+
+Object.defineProperty(Engine.prototype, "output", {
+    get: function(){
+        return this.power * this.outputRatio;
+    }
+});
+
+Object.defineProperty(Engine.prototype, "outputRatio", {
+    get: function(){
+        return this.amount * this.health * this.powerSource.power;
+    }
+});
 
 Engine.prototype.updateAcceleration = function() {
     var powerToForce = 3.0;
     var direction = this.getEmissionDirection();
-    var force = this.power * powerToForce * this.block.integrity;
+    var force = this.output * powerToForce;
     direction.setLength(-this.amount * force);
     this.rigidBody.applyForce(direction);
 };
@@ -2694,6 +2738,8 @@ var ModelEntity = function(model) {
 
     this.model = model;
 
+    this.maxHealth = this.model.blockCount;
+
     this.rigidBody = new RigidBody({
         mass: this.model.blockCount * Math.pow(this.model.gridSize, 3)
     });
@@ -2702,10 +2748,16 @@ var ModelEntity = function(model) {
 
     this.model.onRemove(this.onRemove.bind(this));
     this.model.onBroken(this.onBroken.bind(this));
+
+    this.maxBlockSize = this.model.blockCount;
 };
 
 ModelEntity.prototype = Object.create(Entity.prototype);
 ModelEntity.prototype.constructor = ModelEntity;
+
+Object.defineProperty(ModelEntity.prototype, "health", function(){
+    return this.model.blockCount / this.maxHealth;
+});
 
 //override this
 ModelEntity.prototype.initBlockEntities = function(){
@@ -2880,8 +2932,12 @@ var Debug = require("../debug");
 var ModelEntity = require("./modelentity");
 var BlockCollisionBody = require("../components/blockcollisionbody");
 
-var Ship = function() {
+var Ship = function(params) {
     ModelEntity.call(this, new ShipModel());
+
+    this.type = "Ship";
+
+    params = params || {};
 
     this.weaponController = new WeaponController();
     this.playerControl = null;
@@ -2891,14 +2947,19 @@ var Ship = function() {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 10
+        fireInterval: 5
     })];
 
-    this.engines = _.filter(this.blockEntities, function(entity){
+    this.engines = _.filter(this.blockEntities, function(entity) {
         return entity.type == "Engine";
     });
 
-    this.shipController = new ShipController(this.engines);
+    this.shipController = new ShipController({
+        engine: this.engines,
+        model: this.model,
+        agilityBonus: params.agilityBonus,
+        powerSource: this
+    });
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
@@ -2907,26 +2968,45 @@ var Ship = function() {
     this.addComponent(this.collisionBody);
 
     this.command = null;
+
+    this.minPowerIntegrity = 0.2;
 };
 
 Ship.prototype = Object.create(ModelEntity.prototype);
 Ship.prototype.constructor = Ship;
 
-Ship.prototype.initBlockEntities = function(){
+Ship.prototype.initBlockEntities = function() {
     var engines = [];
     this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
         var engine = new Engine({
             block: engineBlock,
             x: x,
             y: y,
-            z: z
+            z: z,
+            powerSource: this
         });
         engine.setPositionFromModel(this.model);
         engines.push(engine);
     }.bind(this));
-    
+
     return engines;
 };
+
+Object.defineProperty(Ship.prototype, "integrity", {
+    get: function() {
+        return this.model.blockCount / this.maxBlockSize;
+    }
+});
+
+Object.defineProperty(Ship.prototype, "power", {
+    get: function() {
+        var power = this.integrity - this.minPowerIntegrity;
+        if (power < 0) {
+            power = 0;
+        }
+        return Math.pow(power, 2);
+    }
+});
 
 Ship.prototype.start = function() {
     Ship.id++;
@@ -3327,7 +3407,7 @@ var Game = function() {
     this.target = new THREE.Vector3();
     this.cameraRotation = new THREE.Euler();
     this.cameraRotation.order = 'YXZ';
-    this.distance = 400.0;
+    this.distance = 800.0;
     this.frameRate = 48.0;
     this.keyboard = null;
     this.nameRegistry = {};
@@ -3747,7 +3827,9 @@ var ObjectMapping = function() {
             return new Ship();
         },
         "playership": function() {
-            var ship = new Ship();
+            var ship = new Ship({
+                agilityBonus: 5
+            });
             ship.addPlayerControl();
             return ship;
         },
@@ -94531,7 +94613,7 @@ console.runScenario(
         "add playership",
         "add ship 150 0 150",
         "select ship0",
-        // "orbit playership0 300"
+        "orbit playership0 300"
     ]
 );
 

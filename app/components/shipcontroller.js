@@ -3,24 +3,25 @@ var THREE = require("THREE");
 var MathUtils = require("../mathutils");
 var _ = require("lodash");
 
-var ShipController = function(engines) {
+var ShipController = function(params) {
     Component.call(this);
 
+    params = params || {};
+
     this.type = "ShipController";
-
-    this.engines = engines;
-
-    this.force = 0.025;
-    this.yawForce = 0.035;
-    this.yawCurve = this.yawForce / 0.35;
+    this.model = params.model;
+    this.engines = params.engines;
+    this.agilityBonus = params.agilityBonus || 1;
+    var powerSource = params.powerSource;
+    this.powerSource = powerSource;
 
     this.yaw = {
-        yawForce: this.yawForce,
+        controller: this,
         value: 0,
 
         update: function(roll, accelerateAmount) {
             var bankFactor = Math.sin(roll.value);
-            var yawVelocity = bankFactor * -this.yawForce * accelerateAmount;
+            var yawVelocity = bankFactor * -this.controller.turnRate * accelerateAmount;
 
             this.value += yawVelocity;
         }
@@ -35,6 +36,7 @@ var ShipController = function(engines) {
         friction: 0.95,
         restingFriction: 0.99,
         value: 0,
+        powerSource: powerSource,
 
         update: function() {
             if (this.desired == null) {
@@ -43,6 +45,8 @@ var ShipController = function(engines) {
             }
 
             var speed = (this.desired - this.value) * this.curve;
+            speed *= this.powerSource.power;
+
             if (speed > this.maxSpeed) {
                 speed = this.maxSpeed;
             } else if (speed < -this.maxSpeed) {
@@ -54,10 +58,7 @@ var ShipController = function(engines) {
         }
     };
 
-    this.roll = _.clone(this.pitch, true);
-
-    //yaw
-    this.yawForce = 0.015;
+    this.roll = _.clone(this.pitch);
 
     this.engines = null;
 
@@ -67,9 +68,21 @@ var ShipController = function(engines) {
 ShipController.prototype = Object.create(Component.prototype);
 ShipController.prototype.constructor = ShipController;
 
-Object.defineProperty(ShipController.prototype, 'rigidBody', {
+Object.defineProperty(ShipController.prototype, "rigidBody", {
     get: function() {
         return this.entity.rigidBody;
+    }
+});
+
+Object.defineProperty(ShipController.prototype, "turnRate", {
+    get: function() {
+        return 0.035 * this.agilityBonus * this.powerSource.power;
+    }
+});
+
+Object.defineProperty(ShipController.prototype, "yawCurve", {
+    get: function() {
+        return 0.035 / this.turnRate * 0.6;
     }
 });
 
@@ -96,10 +109,10 @@ ShipController.prototype.lateUpdate = function() {
 ShipController.prototype.accelerate = function(amount) {
     this.accelerateAmount = amount;
 
-    if(this.engines == null){
+    if (this.engines == null) {
         return;
     }
-    
+
     this.engines.forEach(function(engine) {
         engine.amount = amount;
     }.bind(this));
@@ -177,7 +190,7 @@ ShipController.prototype.getUnitFacing = function() {
 
 //bank to achieve yaw velocity
 ShipController.prototype._bankForYawVelocity = function(yawVelocity) {
-    var bankFactor = yawVelocity / -this.yawForce;
+    var bankFactor = yawVelocity / -this.turnRate;
     if (bankFactor > 1) {
         bankFactor = 1;
     } else if (bankFactor < -1) {

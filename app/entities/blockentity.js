@@ -2,11 +2,13 @@ var Entity = require("../entity");
 var THREE = require("THREE");
 var BlockCoord = require("../blockengine/blockcoord");
 
-var BlockEntity = function(blockInfo) {
+var BlockEntity = function(params) {
     Entity.call(this);
 
-    this.block = blockInfo.block;
-    this.blockCoord = new BlockCoord(blockInfo.x, blockInfo.y, blockInfo.z);
+    params = params || null;
+
+    this.block = params.block;
+    this.blockCoord = new BlockCoord(params.x, params.y, params.z);
 };
 
 BlockEntity.prototype = Object.create(Entity.prototype);

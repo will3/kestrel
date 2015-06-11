@@ -9,7 +9,9 @@ var ObjectMapping = function() {
             return new Ship();
         },
         "playership": function() {
-            var ship = new Ship();
+            var ship = new Ship({
+                agilityBonus: 5
+            });
             ship.addPlayerControl();
             return ship;
         },

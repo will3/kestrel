@@ -15,8 +15,12 @@ var Debug = require("../debug");
 var ModelEntity = require("./modelentity");
 var BlockCollisionBody = require("../components/blockcollisionbody");
 
-var Ship = function() {
+var Ship = function(params) {
     ModelEntity.call(this, new ShipModel());
+
+    this.type = "Ship";
+
+    params = params || {};
 
     this.weaponController = new WeaponController();
     this.playerControl = null;
@@ -26,14 +30,19 @@ var Ship = function() {
     this.weapons = [new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 10
+        fireInterval: 5
     })];
 
-    this.engines = _.filter(this.blockEntities, function(entity){
+    this.engines = _.filter(this.blockEntities, function(entity) {
         return entity.type == "Engine";
     });
 
-    this.shipController = new ShipController(this.engines);
+    this.shipController = new ShipController({
+        engine: this.engines,
+        model: this.model,
+        agilityBonus: params.agilityBonus,
+        powerSource: this
+    });
 
     this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
@@ -42,26 +51,45 @@ var Ship = function() {
     this.addComponent(this.collisionBody);
 
     this.command = null;
+
+    this.minPowerIntegrity = 0.2;
 };
 
 Ship.prototype = Object.create(ModelEntity.prototype);
 Ship.prototype.constructor = Ship;
 
-Ship.prototype.initBlockEntities = function(){
+Ship.prototype.initBlockEntities = function() {
     var engines = [];
     this.model.blocks.engine.visitBlocks(function(engineBlock, x, y, z) {
         var engine = new Engine({
             block: engineBlock,
             x: x,
             y: y,
-            z: z
+            z: z,
+            powerSource: this
         });
         engine.setPositionFromModel(this.model);
         engines.push(engine);
     }.bind(this));
-    
+
     return engines;
 };
+
+Object.defineProperty(Ship.prototype, "integrity", {
+    get: function() {
+        return this.model.blockCount / this.maxBlockSize;
+    }
+});
+
+Object.defineProperty(Ship.prototype, "power", {
+    get: function() {
+        var power = this.integrity - this.minPowerIntegrity;
+        if (power < 0) {
+            power = 0;
+        }
+        return Math.pow(power, 2);
+    }
+});
 
 Ship.prototype.start = function() {
     Ship.id++;

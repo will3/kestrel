@@ -17,6 +17,7 @@ var BlockModel = function(params) {
     this.chunk = new BlockChunk(new BlockCoord(-chunkHalfSize, -chunkHalfSize, -chunkHalfSize), chunkHalfSize * 2);
     this.gridSize = gridSize;
     this.minChunkSize = minChunkSize;
+    this.halfSize = halfSize;
 
     this.object = new THREE.Object3D();
 

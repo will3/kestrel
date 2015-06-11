@@ -7,6 +7,8 @@ var ModelEntity = function(model) {
 
     this.model = model;
 
+    this.maxHealth = this.model.blockCount;
+
     this.rigidBody = new RigidBody({
         mass: this.model.blockCount * Math.pow(this.model.gridSize, 3)
     });
@@ -15,10 +17,16 @@ var ModelEntity = function(model) {
 
     this.model.onRemove(this.onRemove.bind(this));
     this.model.onBroken(this.onBroken.bind(this));
+
+    this.maxBlockSize = this.model.blockCount;
 };
 
 ModelEntity.prototype = Object.create(Entity.prototype);
 ModelEntity.prototype.constructor = ModelEntity;
+
+Object.defineProperty(ModelEntity.prototype, "health", function(){
+    return this.model.blockCount / this.maxHealth;
+});
 
 //override this
 ModelEntity.prototype.initBlockEntities = function(){
