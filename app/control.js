@@ -15,6 +15,7 @@ var Control = function() {
     this.mouseY = null;
     this.mouseHold = false;
     this.mouseDown = false;
+    this.mouseUp = false;
 
     this.keydowns = [];
     this.keyups = [];
@@ -35,6 +36,7 @@ Control.prototype.hookContainer = function(container) {
 
     container.mouseup(function() {
         this.mouseHold = false;
+        this.mouseUp = true;
     }.bind(this));
 
     container.mouseleave(function() {
@@ -66,6 +68,7 @@ Control.prototype.lateUpdate = function() {
     this.dragX = 0;
     this.dragY = 0;
     this.mouseDown = false;
+    this.mouseUp = false;
 };
 
 Control.prototype.keyHold = function(key) {

@@ -49,14 +49,7 @@ Collision.prototype.start = function() {
 
 Collision.prototype.update = function() {
     this.visitCollisionBodies(function(a, b) {
-        var hitTestResult;
-        if (a.shouldResolveHitTest(b)) {
-            hitTestResult = a.hitTest(b);
-        } else if (b.shouldResolveHitTest(a)) {
-            hitTestResult = b.hitTest(a);
-        } else {
-            throw "cannot resolve collisions between " + a.type + " and " + b.type;
-        }
+        var hitTestResult = this.hitTest(a, b);
 
         if (hitTestResult.result == true) {
             this.notifyCollision(a, b, hitTestResult);
@@ -64,12 +57,24 @@ Collision.prototype.update = function() {
     }.bind(this));
 };
 
+Collision.prototype.hitTest = function(a, b) {
+    var hitTestResult;
+    if (a.shouldResolveHitTest(b)) {
+        hitTestResult = a.hitTest(b);
+    } else if (b.shouldResolveHitTest(a)) {
+        hitTestResult = b.hitTest(a);
+    } else {
+        throw "cannot resolve collisions between " + a.type + " and " + b.type;
+    }
+    return hitTestResult;
+}
+
 Collision.prototype.notifyCollision = function(a, b, hitTest) {
-    if(a.entity.onCollision != null){
+    if (a.entity.onCollision != null) {
         a.entity.onCollision(b.entity, hitTest);
     }
 
-    if(b.entity.onCollision != null){
+    if (b.entity.onCollision != null) {
         b.entity.onCollision(a.entity, hitTest);
     }
 };

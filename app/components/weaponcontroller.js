@@ -6,7 +6,7 @@ var WeaponController = function() {
     Component.call(this);
 
     this.type = "WeaponController";
-    
+
     this.targets = [];
 };
 
@@ -25,11 +25,26 @@ WeaponController.prototype.update = function() {
 
 };
 
-WeaponController.prototype.fireIfReady = function(target, point) {
+WeaponController.prototype.updateTarget = function(target, point) {
     var weapons = this.entity.weapons;
     weapons.forEach(function(weapon) {
-        weapon.fireIfReady(target, point);
+        weapon.target = target;
+        weapon.point = point;
     });
 };
+
+WeaponController.prototype.triggerDown = function() {
+    var weapons = this.entity.weapons;
+    weapons.forEach(function(weapon) {
+        weapon.triggerDown();
+    });
+}
+
+WeaponController.prototype.triggerUp = function() {
+    var weapons = this.entity.weapons;
+    weapons.forEach(function(weapon) {
+        weapon.triggerUp();
+    });
+}
 
 module.exports = WeaponController;

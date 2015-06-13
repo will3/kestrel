@@ -31,6 +31,7 @@ var Game = function() {
     this.transformMatrix = new THREE.Matrix4();
     this.worldTransformMatrix = new THREE.Matrix4();
     this.control = new Control();
+    this.composer = null;
 }
 
 Game._instance = null;
@@ -44,7 +45,7 @@ Game.getInstance = function() {
 Game.prototype = {
     constructor: Game,
 
-    seedRandom: function(seed){
+    seedRandom: function(seed) {
         Math.seedrandom(seed);
     },
 
@@ -99,15 +100,32 @@ Game.prototype = {
 
         this.container.append(this.renderer.domElement);
 
-        this.render();
-
         this.cameraRotation.set(Math.PI / 4.0, Math.PI / 4.0, 0);
 
         this.updateCamera();
 
         this.scene.add(this.camera);
 
-        THREEx.WindowResize(this.renderer, this.camera);
+        // var renderModel = new THREE.RenderPass(this.scene, this.camera);
+        // var effectBloom = new THREE.BloomPass(1.3);
+        // var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+
+        // var effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+
+        // var width = this.container.width() || 2;
+        // var height = this.container.height() || 2;
+
+        // effectFXAA.uniforms['resolution'].value.set(1 / width, 1 / height);
+        // effectCopy.renderToScreen = true;
+
+        // this.composer = new THREE.EffectComposer(renderer);
+
+        // this.composer.addPass(renderModel);
+        // this.composer.addPass(effectFXAA);
+        // this.composer.addPass(effectBloom);
+        // this.composer.addPass(effectCopy);
+
+        this.render();
     },
 
     zoomIn: function() {
@@ -128,10 +146,15 @@ Game.prototype = {
         if (this.stats != null) {
             this.stats.begin();
         }
+
         this.renderer.render(this.scene, this.camera);
+        // this.renderer.clear();
+        // this.composer.render();
+
         if (this.stats != null) {
             this.stats.end();
         }
+
         requestAnimationFrame(this.render.bind(this));
     },
 

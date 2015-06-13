@@ -14,6 +14,7 @@ var _ = require("lodash");
 var Debug = require("../debug");
 var ModelEntity = require("./modelentity");
 var BlockCollisionBody = require("../components/blockcollisionbody");
+var Beam = require("./beam");
 
 var Ship = function(params) {
     ModelEntity.call(this, new ShipModel());
@@ -27,11 +28,21 @@ var Ship = function(params) {
 
     //weapons
     var laser = new Laser();
-    this.weapons = [new Weapon({
+    var beam = new Beam();
+    var laserWeapon = new Weapon({
         ammo: laser,
         actor: this,
-        fireInterval: 5
-    })];
+        fireInterval: 5,
+        fireMode: "auto"
+    });
+    var beamWeapon = new Weapon({
+        ammo: beam,
+        actor: this,
+        fireInterval: 1,
+        fireMode: "auto"
+    });
+
+    this.weapons = [beamWeapon];
 
     this.engines = _.filter(this.blockEntities, function(entity) {
         return entity.type == "Engine";

@@ -29,7 +29,7 @@ AttackCommand.prototype.update = function() {
         this.weaponController = this.actor.getComponent("WeaponController");
     }
 
-    this.actor.weaponController.fireIfReady(this.target);
+    this.actor.weaponController.triggerDown(this.target);
     this.shipController.orbit(this.target.position, 200);
 }
 

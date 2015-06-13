@@ -36,29 +36,43 @@ PlayerControl.prototype.update = function() {
 };
 
 PlayerControl.prototype.updateShoot = function() {
-    var shoot = this.control.keyHold("shoot");
-    if (!shoot) {
-        return;
+    var keyDown = this.control.keyDown("shoot");
+    var keyUp = this.control.keyUp("shoot");
+    var keyHold = this.control.keyHold("shoot");
+
+    if (keyDown) {
+        this.weaponController.triggerDown();
     }
 
-    var vector = MathUtils.getUnitVector(this.entity.rotation).setLength(100);
-    var position = new THREE.Vector3().copy(this.entity.worldPosition).add(vector);
+    if (keyUp) {
+        this.weaponController.triggerUp();
+    }
 
-    this.weaponController.fireIfReady(null, position);
+    if (keyHold) {
+        var vector = MathUtils.getUnitVector(this.entity.rotation).setLength(100);
+        var position = new THREE.Vector3().copy(this.entity.worldPosition).add(vector);
+
+        this.weaponController.updateTarget(null, position);
+    }
 };
 
 PlayerControl.prototype.updateMouseShoot = function() {
-    var shoot = this.control.mouseHold;
-    if (!shoot) {
-        return;
+    var mouseDown = this.control.mouseDown;
+    var mouseUp = this.control.mouseUp;
+    var mouseHold = this.control.mouseHold;
+
+    if (mouseDown) {
+        this.weaponController.triggerDown();
     }
 
-    var point = this.getGroundIntersectPoint();
-    if (point == null) {
-        return;
+    if (mouseUp) {
+        this.weaponController.triggerUp();
     }
 
-    this.weaponController.fireIfReady(null, point);
+    if (mouseHold) {
+        var point = this.getGroundIntersectPoint();
+        this.weaponController.updateTarget(null, position);
+    }
 };
 
 // get intersect point with plane where y == entity.y, from camera ray caster
