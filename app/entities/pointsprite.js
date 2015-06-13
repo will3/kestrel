@@ -3,15 +3,20 @@ var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
 var PointSpriteRenderComponent = require("../components/pointspriterendercomponent");
 
-var PointSprite = function() {
+var PointSprite = function(params) {
     Entity.call(this);
 
-    this.renderComponent = new PointSpriteRenderComponent();
+    params = params || {};
+
+    this.renderComponent = new PointSpriteRenderComponent({
+        texture: params.texture,
+        color: params.color
+    });
+
     this.rigidBody = new RigidBody({
         defaultFriction: 1
     });
 
-    this.texture = null;
     this.size = 4;
     this.sizeOverTimeFunc = null;
     this.velocityOverTimeFunc = null;

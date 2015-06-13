@@ -1780,11 +1780,13 @@ var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
 
-var PointSpriteRenderComponent = function() {
+var PointSpriteRenderComponent = function(params) {
     RenderComponent.call(this);
-    
-    this.texture = null;
-    this.color = null;
+
+    params = params || {};
+
+    this.texture = params.texture;
+    this.color = params.color;
 }
 
 PointSpriteRenderComponent.prototype = Object.create(RenderComponent.prototype);
@@ -1795,8 +1797,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
     map.minFilter = THREE.NearestFilter;
     var material = new THREE.SpriteMaterial({
         map: map,
-        color: this.color != null ? this.color.getHex() : 0xffffff,
-        fog: true
+        color: this.color != null ? this.color.getHex() : 0xffffff
     });
 
     return new THREE.Sprite(material);
@@ -2838,15 +2839,20 @@ var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
 var PointSpriteRenderComponent = require("../components/pointspriterendercomponent");
 
-var PointSprite = function() {
+var PointSprite = function(params) {
     Entity.call(this);
 
-    this.renderComponent = new PointSpriteRenderComponent();
+    params = params || {};
+
+    this.renderComponent = new PointSpriteRenderComponent({
+        texture: params.texture,
+        color: params.color
+    });
+
     this.rigidBody = new RigidBody({
         defaultFriction: 1
     });
 
-    this.texture = null;
     this.size = 4;
     this.sizeOverTimeFunc = null;
     this.velocityOverTimeFunc = null;
@@ -3820,6 +3826,9 @@ var Ship = require("./entities/ship");
 var SphereModel = require("./models/spheremodel");
 var Entity = require("./entity");
 var ModelRenderComponent = require("./components/modelrendercomponent");
+var PointSprite = require("./entities/pointsprite");
+var TextureLoader = require("./textureloader");
+var THREE = require("THREE");
 
 var ObjectMapping = function() {
     return {
@@ -3833,17 +3842,15 @@ var ObjectMapping = function() {
             ship.addPlayerControl();
             return ship;
         },
-        "sphere": function(){
-            var sphere = new Entity();
-            var sphereModel = new SphereModel(8);
-            sphere.addComponent(new ModelRenderComponent(sphereModel));
-            return sphere;
+        "target": function() {
+            var target = new TargetCircle();
+            return target;
         }
     };
 }();
 
 module.exports = ObjectMapping;
-},{"./components/modelrendercomponent":21,"./entities/ship":40,"./entity":42,"./models/spheremodel":50}],53:[function(require,module,exports){
+},{"./components/modelrendercomponent":21,"./entities/pointsprite":39,"./entities/ship":40,"./entity":42,"./models/spheremodel":50,"./textureloader":53,"THREE":56}],53:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){

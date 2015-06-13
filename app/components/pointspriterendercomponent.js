@@ -2,11 +2,13 @@ var RenderComponent = require("./rendercomponent");
 var TextureLoader = require("../textureloader");
 var THREE = require("THREE");
 
-var PointSpriteRenderComponent = function() {
+var PointSpriteRenderComponent = function(params) {
     RenderComponent.call(this);
-    
-    this.texture = null;
-    this.color = null;
+
+    params = params || {};
+
+    this.texture = params.texture;
+    this.color = params.color;
 }
 
 PointSpriteRenderComponent.prototype = Object.create(RenderComponent.prototype);
@@ -17,8 +19,7 @@ PointSpriteRenderComponent.prototype.initObject = function(geometry, material) {
     map.minFilter = THREE.NearestFilter;
     var material = new THREE.SpriteMaterial({
         map: map,
-        color: this.color != null ? this.color.getHex() : 0xffffff,
-        fog: true
+        color: this.color != null ? this.color.getHex() : 0xffffff
     });
 
     return new THREE.Sprite(material);
