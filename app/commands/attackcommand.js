@@ -12,6 +12,8 @@ var AttackCommand = function() {
     // this.orbitCommand = new OrbitCommand();
     this.shipController = null;
     this.weaponController = null;
+
+    this.isTriggerDown = false;
 }
 
 AttackCommand.prototype = Object.create(Command.prototype);
@@ -29,7 +31,12 @@ AttackCommand.prototype.update = function() {
         this.weaponController = this.actor.getComponent("WeaponController");
     }
 
-    this.actor.weaponController.triggerDown(this.target);
+    if(!this.isTriggerDown){
+        this.weaponController.triggerDown();
+        this.isTriggerDown = true;
+    }
+
+    this.weaponController.updateTarget(this.target, null);
     this.shipController.orbit(this.target.position, 200);
 }
 

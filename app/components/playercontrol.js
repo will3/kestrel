@@ -71,7 +71,7 @@ PlayerControl.prototype.updateMouseShoot = function() {
 
     if (mouseHold) {
         var point = this.getGroundIntersectPoint();
-        this.weaponController.updateTarget(null, position);
+        this.weaponController.updateTarget(null, point);
     }
 };
 

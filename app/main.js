@@ -8,17 +8,17 @@ var CommandMapping = require("./commandmapping");
 var AddCommand = require("./commands/addcommand");
 
 window["THREE"] = require("THREE");
-require("../three-master/examples/js/shaders/ConvolutionShader.js");
-require("../three-master/examples/js/shaders/CopyShader.js");
-require("../three-master/examples/js/shaders/FXAAShader.js");
-require("../three-master/examples/js/shaders/HorizontalBlurShader.js");
-require("../three-master/examples/js/shaders/VerticalBlurShader.js");
-require("../three-master/examples/js/shaders/AdditiveBlendShader.js");
-require("../three-master/examples/js/postprocessing/EffectComposer.js");
-require("../three-master/examples/js/postprocessing/MaskPass.js");
-require("../three-master/examples/js/postprocessing/RenderPass.js");
-require("../three-master/examples/js/postprocessing/ShaderPass.js");
-require("../three-master/examples/js/postprocessing/BloomPass.js");
+require("../three.js-master/examples/js/shaders/ConvolutionShader.js");
+require("../three.js-master/examples/js/shaders/CopyShader.js");
+require("../three.js-master/examples/js/shaders/FXAAShader.js");
+require("../three.js-master/examples/js/shaders/HorizontalBlurShader.js");
+require("../three.js-master/examples/js/shaders/VerticalBlurShader.js");
+require("./threex/AdditiveBlendShader.js");
+require("../three.js-master/examples/js/postprocessing/EffectComposer.js");
+require("../three.js-master/examples/js/postprocessing/MaskPass.js");
+require("../three.js-master/examples/js/postprocessing/RenderPass.js");
+require("../three.js-master/examples/js/postprocessing/ShaderPass.js");
+require("../three.js-master/examples/js/postprocessing/BloomPass.js");
 
 var container = $('#container');
 // <input type="text" id="console_text">
@@ -32,7 +32,9 @@ game.seedRandom("kestrel");
 
 game.control.registerKeyFunc = function(key) {
     MouseTrap.bind(KeyMap[key], function() {
-        this.keydowns.push(key);
+        if(!_.contains(this.keyholds, key)){
+            this.keydowns.push(key);    
+        }
         this.keyholds.push(key);
     }.bind(this));
 
@@ -51,9 +53,10 @@ console.commandMapping = CommandMapping;
 console.runScenario(
     [
         "add playership",
-        // "add ship 150 0 150",
-        // "select ship0",
-        // "orbit playership0 300"
+        "add ship 150 0 150",
+        "select ship0",
+        "orbit playership0 300",
+        "attack playership0"
     ]
 );
 

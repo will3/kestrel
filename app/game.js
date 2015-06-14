@@ -129,7 +129,7 @@ Game.prototype = {
         var render2Pass = new THREE.RenderPass(this.scene2, this.camera);
         this.composer2.addPass(render2Pass);
 
-        var effectBloom = new THREE.BloomPass(2, 25, 4.0, 256);
+        var effectBloom = new THREE.BloomPass(2.5, 25, 4.0, 256);
         this.composer2.addPass(effectBloom);
 
         this.composer = new THREE.EffectComposer(this.renderer);

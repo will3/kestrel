@@ -5,6 +5,7 @@ var SphereCollisionBody = function(radius) {
     CollisionBody.call(this);
 
     this.type = "SphereCollisionBody";
+    this.bodyType = "sphere";
 
     this.radius = radius;
 };
@@ -24,10 +25,6 @@ SphereCollisionBody.prototype.hitTest = function(body) {
     }
 
     throw "hit test not implemented for type " + body;
-};
-
-SphereCollisionBody.prototype.shouldResolveHitTest = function(body) {
-    return body.type == "SphereCollisionBody";
 };
 
 module.exports = SphereCollisionBody;

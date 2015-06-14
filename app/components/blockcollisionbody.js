@@ -10,7 +10,8 @@ var BlockCollisionBody = function(model) {
     this.model = model;
 
     this.type = "BlockCollisionBody";
-
+    this.bodyType = "block";
+    
     //hit test iteration against a moving target
     //every unit it travels,
     //actual test iterations are rounded up
@@ -92,10 +93,6 @@ BlockCollisionBody.prototype.hitTestSphere = function(sphere, position) {
     return {
         result: false
     };
-}
-
-BlockCollisionBody.prototype.shouldResolveHitTest = function(body) {
-    return body.type == "SphereCollisionBody" || body.type == "BlockCollisionBody";
 }
 
 module.exports = BlockCollisionBody;

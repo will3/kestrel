@@ -51,17 +51,31 @@ Collision.prototype.update = function() {
     this.visitCollisionBodies(function(a, b) {
         var hitTestResult = this.hitTest(a, b);
 
+        if(hitTestResult == null){
+            return;
+        }
+
         if (hitTestResult.result == true) {
             this.notifyCollision(a, b, hitTestResult);
         }
     }.bind(this));
 };
 
+var shouldResolveHitTest = function(a, b){
+    var type1 = a.bodyType;
+    var type2 = b.bodyType;
+
+    return type1 == type2 ||
+    type1 == "block" && type2 == "sphere" ||
+    type1 == "ray" && type2 == "block" ||
+    type1 == "ray" && type2 == "sphere";
+}
+
 Collision.prototype.hitTest = function(a, b) {
     var hitTestResult;
-    if (a.shouldResolveHitTest(b)) {
+    if (shouldResolveHitTest(a, b)) {
         hitTestResult = a.hitTest(b);
-    } else if (b.shouldResolveHitTest(a)) {
+    } else if (shouldResolveHitTest(b, a)) {
         hitTestResult = b.hitTest(a);
     } else {
         throw "cannot resolve collisions between " + a.type + " and " + b.type;

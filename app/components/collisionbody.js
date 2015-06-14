@@ -3,7 +3,8 @@ var Component = require("../component");
 var CollisionBody = function() {
     Component.call(this);
 
-    this.type = CollisionBody;
+    this.type = "CollisionBody";
+    this.bodyType = null;
 
     this.filterFunc = null;
 };
@@ -16,10 +17,6 @@ CollisionBody.prototype.filter = function(filterFunc) {
 };
 
 CollisionBody.prototype.hitTest = function() {
-    throw "must override";
-};
-
-CollisionBody.prototype.shouldResolveHitTest = function(body) {
     throw "must override";
 };
 

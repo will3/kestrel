@@ -15,18 +15,19 @@ var Weapon = function(params) {
     }
 
     this.ammo = params.ammo;
-    this.actor = params.actor;
     this.fireInterval = params.fireInterval || 8;
     this.fireMode = params.fireMode || "auto";
 
     this.cooldown = this.fireInterval;
 
-    this.isDown = false;
-    this.isUp = false;
-    this.isHold = false;
+    this.isTriggerDown = false;
+    this.isTriggerUp = false;
+    this.isTriggerHold = false;
 
     this.target = null;
     this.point = null;
+
+    this.lastAmmoInstance = null;
 }
 
 Weapon.prototype = Object.create(Entity.prototype);
@@ -37,16 +38,16 @@ Weapon.prototype.setDelta = function(value) {
 };
 
 Weapon.prototype.shoot = function(target, point) {
-    assert(this.actor != null, "actor cannot be empty");
-
     var ammoInstance = this.ammo.createInstance();
-    ammoInstance.actor = this.actor;
+    ammoInstance.actor = this.parent;
     ammoInstance.target = target;
     ammoInstance.point = point;
-    ammoInstance.position = this.actor.worldPosition;
+    ammoInstance.position = this.parent.worldPosition;
     ammoInstance.weapon = this;
 
     this.root.addEntity(ammoInstance);
+
+    this.lastAmmoInstance = ammoInstance;
 };
 
 Weapon.prototype.start = function() {
@@ -59,31 +60,49 @@ Weapon.prototype.update = function() {
     }
 
     var isReady = this.cooldown == this.fireInterval;
-    if(!isReady){
+    if (!isReady) {
         return;
     }
 
-    if(this.fireMode == "auto"){
-        if(this.isHold){
+    if (this.fireMode == "auto") {
+        if (this.isTriggerHold) {
             this.shoot(this.target, this.point);
             this.cooldown = 0;
+        }
+    } else if (this.fireMode == "beam") {
+        if (this.isTriggerDown) {
+            this.shoot(this.target, this.point);
+        }
+
+        if (this.isTriggerHold) {
+            this.lastAmmoInstance.target = this.target;
+            this.lastAmmoInstance.point = this.point;
+        }
+
+        if (this.isTriggerUp) {
+            if (this.lastAmmoInstance != null) {
+                this.lastAmmoInstance.removeFromParent();
+            }
         }
     }
 };
 
 Weapon.prototype.triggerDown = function() {
-    this.isDown = true;
-    this.isHold = true;
+    if(this.isTriggerDown){
+        throw "trigger already down";
+    }
+    this.isTriggerDown = true;
+    this.isTriggerHold = true;
 };
 
 Weapon.prototype.triggerUp = function() {
-    this.isUp = true;
-    this.isHold = false;
+    this.isTriggerUp = true;
+    this.isTriggerHold = false;
 };
 
-Weapon.prototype.lateUpdate = function(){
-    this.isDown = false;
-    this.isUp = false;
+Weapon.prototype.lateUpdate = function() {
+    this.isTriggerDown = false;
+    this.isTriggerUp = false;
     this.target = null;
     this.point = null;
 };

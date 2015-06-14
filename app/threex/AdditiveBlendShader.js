@@ -1,18 +1,15 @@
 /**
- * @author alteredq / http://alteredqualia.com/
+ * @author stemkoski / http://github.com/stemkoski
  *
- * Blend two textures
+ * Blend two textures additively
  */
 
-THREE.BlendShader = {
+THREE.AdditiveBlendShader = {
 
 	uniforms: {
-
+	
 		"tDiffuse1": { type: "t", value: null },
-		"tDiffuse2": { type: "t", value: null },
-		"mixRatio":  { type: "f", value: 0.5 },
-		"opacity":   { type: "f", value: 1.0 }
-
+		"tDiffuse2": { type: "t", value: null }
 	},
 
 	vertexShader: [
@@ -30,9 +27,6 @@ THREE.BlendShader = {
 
 	fragmentShader: [
 
-		"uniform float opacity;",
-		"uniform float mixRatio;",
-
 		"uniform sampler2D tDiffuse1;",
 		"uniform sampler2D tDiffuse2;",
 
@@ -42,8 +36,7 @@ THREE.BlendShader = {
 
 			"vec4 texel1 = texture2D( tDiffuse1, vUv );",
 			"vec4 texel2 = texture2D( tDiffuse2, vUv );",
-			"gl_FragColor = opacity * mix( texel1, texel2, mixRatio );",
-
+			"gl_FragColor = texel1 + texel2;",
 		"}"
 
 	].join("\n")

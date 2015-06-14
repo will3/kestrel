@@ -26,23 +26,7 @@ var Ship = function(params) {
     this.weaponController = new WeaponController();
     this.playerControl = null;
 
-    //weapons
-    var laser = new Laser();
-    var beam = new Beam();
-    var laserWeapon = new Weapon({
-        ammo: laser,
-        actor: this,
-        fireInterval: 5,
-        fireMode: "auto"
-    });
-    var beamWeapon = new Weapon({
-        ammo: beam,
-        actor: this,
-        fireInterval: 1,
-        fireMode: "auto"
-    });
-
-    this.weapons = [beamWeapon];
+    this.weapons = [];
 
     this.engines = _.filter(this.blockEntities, function(entity) {
         return entity.type == "Engine";
