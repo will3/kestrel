@@ -1,4 +1,3 @@
-var THREE = require("THREE");
 var EntityRunner = require("./entityrunner");
 var MathUtils = require("./mathutils");
 var Control = require("./control");
@@ -6,10 +5,12 @@ var _ = require("lodash");
 var Console = require("./console");
 var CANNON = require("CANNON");
 var Collision = require("./collision");
+var THREE = require("THREE");
 require("seedrandom");
 
 var Game = function() {
     this.scene = null;
+    this.scene2 = null;
     this.camera = null;
     this.renderer = null;
     this.target = new THREE.Vector3();
@@ -32,6 +33,8 @@ var Game = function() {
     this.worldTransformMatrix = new THREE.Matrix4();
     this.control = new Control();
     this.composer = null;
+    this.composer2 = null;
+    this.window = null;
 }
 
 Game._instance = null;
@@ -95,6 +98,7 @@ Game.prototype = {
             FAR);
 
         this.scene = new THREE.Scene();
+        this.scene2 = new THREE.Scene();
 
         this.renderer.setSize(WIDTH, HEIGHT);
 
@@ -106,26 +110,48 @@ Game.prototype = {
 
         this.scene.add(this.camera);
 
-        // var renderModel = new THREE.RenderPass(this.scene, this.camera);
-        // var effectBloom = new THREE.BloomPass(1.3);
-        // var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+        var renderModel = new THREE.RenderPass(this.scene, this.camera);
 
-        // var effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+        // strength = (strength !== undefined) ? strength : 1;
+        // kernelSize = (kernelSize !== undefined) ? kernelSize : 25;
+        // sigma = (sigma !== undefined) ? sigma : 4.0;
+        // resolution = (resolution !== undefined) ? resolution : 256;
 
-        // var width = this.container.width() || 2;
-        // var height = this.container.height() || 2;
+        var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
 
-        // effectFXAA.uniforms['resolution'].value.set(1 / width, 1 / height);
-        // effectCopy.renderToScreen = true;
+        var width = this.container.width() || 2;
+        var height = this.container.height() || 2;
 
-        // this.composer = new THREE.EffectComposer(renderer);
+        effectCopy.renderToScreen = true;
 
-        // this.composer.addPass(renderModel);
-        // this.composer.addPass(effectFXAA);
-        // this.composer.addPass(effectBloom);
-        // this.composer.addPass(effectCopy);
+        this.composer2 = new THREE.EffectComposer(this.renderer);
+
+        var render2Pass = new THREE.RenderPass(this.scene2, this.camera);
+        this.composer2.addPass(render2Pass);
+
+        var effectBloom = new THREE.BloomPass(2, 25, 4.0, 256);
+        this.composer2.addPass(effectBloom);
+
+        this.composer = new THREE.EffectComposer(this.renderer);
+        this.composer.addPass(renderModel);
+
+        var effectBlend = new THREE.ShaderPass(THREE.AdditiveBlendShader, "tDiffuse1");
+        effectBlend.uniforms['tDiffuse2'].value = this.composer2.renderTarget2;
+        effectBlend.renderToScreen = true;
+        this.composer.addPass(effectBlend);
 
         this.render();
+
+        this.window.addEventListener('resize', onWindowResize, false);
+
+        var onWindowResize = function() {
+            camera.aspect = this.window.innerWidth / this.window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(this.window.innerWidth, this.window.innerHeight);
+
+            this.composer.reset();
+        }.bind(this);
     },
 
     zoomIn: function() {
@@ -147,9 +173,9 @@ Game.prototype = {
             this.stats.begin();
         }
 
-        this.renderer.render(this.scene, this.camera);
-        // this.renderer.clear();
-        // this.composer.render();
+        this.renderer.clear();
+        this.composer2.render();
+        this.composer.render();
 
         if (this.stats != null) {
             this.stats.end();

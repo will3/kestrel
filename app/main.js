@@ -7,10 +7,25 @@ var _ = require("lodash");
 var CommandMapping = require("./commandmapping");
 var AddCommand = require("./commands/addcommand");
 
+window["THREE"] = require("THREE");
+require("../three-master/examples/js/shaders/ConvolutionShader.js");
+require("../three-master/examples/js/shaders/CopyShader.js");
+require("../three-master/examples/js/shaders/FXAAShader.js");
+require("../three-master/examples/js/shaders/HorizontalBlurShader.js");
+require("../three-master/examples/js/shaders/VerticalBlurShader.js");
+require("../three-master/examples/js/shaders/AdditiveBlendShader.js");
+require("../three-master/examples/js/postprocessing/EffectComposer.js");
+require("../three-master/examples/js/postprocessing/MaskPass.js");
+require("../three-master/examples/js/postprocessing/RenderPass.js");
+require("../three-master/examples/js/postprocessing/ShaderPass.js");
+require("../three-master/examples/js/postprocessing/BloomPass.js");
+
 var container = $('#container');
 // <input type="text" id="console_text">
 // var input = $('#console_text');
 var game = Game.getInstance();
+game.window = window;
+
 var console = Console.getInstance();
 
 game.seedRandom("kestrel");

@@ -30,8 +30,7 @@
     "testp": "mocha testp --recursive",
     "cov": "istanbul cover node_modules/.bin/_mocha -- test --recursive",
     "start": "nodemon server.js",
-    "build": "browserify app/main.js -o public/js/bundle.js",
-    "buildblock": "browserify app/blocktest.js -o public/js/bundle.js"
+    "build": "browserify app/main.js > public/js/bundle.js"
   },
   "config": {
     "blanket": {

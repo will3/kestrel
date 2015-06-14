@@ -67,7 +67,7 @@ Weapon.prototype.update = function() {
         if(this.isHold){
             this.shoot(this.target, this.point);
             this.cooldown = 0;
-        }    
+        }
     }
 };
 

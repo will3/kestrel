@@ -28,6 +28,8 @@ module.exports = Beam;
 var BeamRenderComponent = function() {
     RenderComponent.call(this);
 
+    this.hasGlow = true;
+    
     this.point = null;
     this.geometry = null;
     this.material = null;
@@ -38,7 +40,7 @@ BeamRenderComponent.prototype.constructor = BeamRenderComponent;
 
 BeamRenderComponent.prototype.initGeometry = function() {
 	assert(this.point != null, "point cannot be empty");
-	
+
     this.geometry = new THREE.Geometry();
     this.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
     var direction = new THREE.Vector3().subVectors(this.point, this.transform.position);
