@@ -49,8 +49,51 @@ ModelEntity.prototype.onRemove = function(block, x, y, z) {
     debri.position = debriPosition;
     debri.rotation = debriRotation;
     debri.rigidBody.velocity.copy(this.rigidBody.velocity);
+    debri.updatePivot();
 
     this.root.addEntity(debri);
+
+    this.updatePivot();
+};
+
+ModelEntity.prototype.onRemoveGroup = function(blockInfos) {
+    var debriPosition = this.model.getWorldPosition(new THREE.Vector3(0, 0, 0));
+    var debriRotation = this.model.getWorldRotation();
+
+    var model = new BlockModel({
+        halfSize: this.model.halfSize
+    });
+    blockInfos.forEach(function(blockInfo) {
+        model.add(blockInfo.x, blockInfo.y, blockInfo.z, blockInfo.block);
+    });
+    var debri = new ModelEntity(model);
+    debri.position = debriPosition;
+    debri.rotation = debriRotation;
+    debri.rigidBody.velocity.copy(this.rigidBody.velocity);
+    debri.updatePivot();
+
+    this.root.addEntity(debri);
+
+    this.updatePivot();
+};
+
+ModelEntity.prototype.updatePivot = function() {
+    var c1 = this.model.centerOfMass == null ? new THREE.Vector3(0, 0, 0) : this.model.centerOfMass.clone();
+    this.model.center();
+    var c2 = this.model.centerOfMass.clone();
+
+    var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
+
+    if (this.blockEntities != null) {
+        this.blockEntities.forEach(function(blockEntity) {
+            blockEntity.setPositionFromModel(this.model);
+        }.bind(this));
+    }
+
+    diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
+    this.position.add(diff);
+
+    this.model.update();
 };
 
 ModelEntity.prototype.damage = function(x, y, z, amount) {
@@ -113,10 +156,12 @@ ModelEntity.prototype.breakApart = function() {
             return;
         }
 
+        var blockInfos = [];
         group.forEach(function(blockInfo) {
             this.model.remove(blockInfo.x, blockInfo.y, blockInfo.z);
-            this.onRemove(blockInfo.block, blockInfo.x, blockInfo.y, blockInfo.z);
+            blockInfos.push(blockInfo);
         }.bind(this));
+        this.onRemoveGroup(blockInfos);
     }.bind(this));
 };
 
