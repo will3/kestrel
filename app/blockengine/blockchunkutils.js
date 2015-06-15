@@ -5,6 +5,10 @@ var BlockChunkUtils = function() {
         //smoke test contiguous
         checkContiguous: function(chunk) {
             var count = 0;
+            if(chunk.blockCount == 0){
+                return true;
+            }
+
             var firstBlock = chunk.getFirstBlock();
 
             this._visitBlocksContiguous(chunk, firstBlock.x, firstBlock.y, firstBlock.z, function(block, x, y, z) {

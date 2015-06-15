@@ -41,6 +41,10 @@ var BlockModel = function(params) {
 BlockModel.prototype = {
     constructor: BlockModel,
 
+    get: function(x, y, z) {
+        return this.chunk.get(x, y, z);
+    },
+
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block, true);
         this._updateDirty(x, y, z);
@@ -53,7 +57,7 @@ BlockModel.prototype = {
         this._updateBlockMapping(x, y, z, block, true);
 
         if (this.onRemoveCallback != null) {
-            this.onRemoveCallback(x, y, z);
+            this.onRemoveCallback(block, x, y, z);
         }
 
         if (this.shouldUpdateBroken) {
@@ -107,25 +111,28 @@ BlockModel.prototype = {
             }
         });
 
+
+        this.startUpdate();
+
         groups.forEach(function(group) {
             if (group == maxGroup) {
                 return;
             }
 
-            this.startUpdate();
             group.forEach(function(blockInfo) {
                 this.remove(blockInfo.x, blockInfo.y, blockInfo.z);
             }.bind(this));
-            this.endUpdate();
         }.bind(this));
+
+        this.endUpdate();
     },
 
     startUpdate: function() {
-        this.shouldUpdateBroken = true;
+        this.shouldUpdateBroken = false;
     },
 
     endUpdate: function() {
-        this.shouldUpdateBroken = false;
+        this.shouldUpdateBroken = true;
         this.updateBroken();
     },
 
@@ -168,34 +175,6 @@ BlockModel.prototype = {
         if (this.blockCountIsDirty) {
             this._updateBlockCount();
         }
-    },
-
-    damage: function(x, y, z, amount) {
-        var block = this.chunk.get(x, y, z);
-        if (block == null) {
-            return;
-        }
-
-        var integrity = block.integrity;
-        integrity -= amount;
-        if (integrity < 0) {
-            integrity = 0;
-        }
-
-        block.integrity = integrity;
-
-        if (block.integrity == 0) {
-            this.remove(x, y, z);
-        }
-
-        this._updateDirty(x, y, z);
-    },
-
-    damageArea: function(centerX, centerY, centerZ, amount, blockRadius) {
-        BlockUtils.visitRange(centerX, centerY, centerZ, blockRadius, function(x, y, z, distance) {
-            var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
-            this.damage(x, y, z, amount * ratio);
-        }.bind(this));
     },
 
     //centers model around center of mass
@@ -243,6 +222,14 @@ BlockModel.prototype = {
         return m;
     },
 
+    getWorldPosition: function(blockCoords) {
+        return blockCoords.clone().applyMatrix4(this.getWorldMatrix());
+    },
+
+    getWorldRotation: function() {
+        return this.object.rotation.clone();
+    },
+
     //matrix that transforms block coords to world vector
     // = local matrix * this.object.matrixWorld
     getWorldMatrix: function() {
@@ -263,6 +250,10 @@ BlockModel.prototype = {
 
     visitBlocks: function(callback) {
         this.chunk.visitBlocks(callback);
+    },
+
+    setNeedsUpdate: function(x, y, z) {
+        this._updateDirty(x, y, z);
     },
 
     _updateDirty: function(x, y, z) {

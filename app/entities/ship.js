@@ -2,7 +2,6 @@ var Entity = require("../entity");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
-var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
@@ -39,7 +38,6 @@ var Ship = function(params) {
         powerSource: this
     });
 
-    this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
 
     this.collisionBody = new BlockCollisionBody(this.model);
@@ -82,7 +80,7 @@ Object.defineProperty(Ship.prototype, "power", {
         if (power < 0) {
             power = 0;
         }
-        return Math.pow(power, 2);
+        return Math.pow(power, 1.4);
     }
 });
 
@@ -91,8 +89,6 @@ Ship.prototype.start = function() {
 
     this.shipController.engines = this.engines;
 
-    this.addComponent(this.renderComponent);
-    this.addComponent(this.rigidBody);
     this.addComponent(this.shipController);
     this.addComponent(this.weaponController);
 
@@ -116,12 +112,12 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Laser) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
+            this.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
             this.model.update();
         }
     } else if (entity instanceof Beam) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
+            this.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
             this.model.update();
         }
     }

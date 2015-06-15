@@ -8,7 +8,7 @@ var RigidBody = function(params) {
 
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
-    this.friction = 0.98;
+    this.friction = 0.99;
 
     if (params == null) {
         params = {};

@@ -57,6 +57,7 @@ console.runScenario(
         "select ship0",
         "orbit playership0 300",
         "attack playership0"
+        // "add block"
     ]
 );
 

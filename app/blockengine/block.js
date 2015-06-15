@@ -32,10 +32,12 @@ Block.prototype = {
     },
 
     _updateColor: function(){
+        // var dim = this.integrity;
+        var dim = 1.0;
         this.color = new THREE.Color(
-            this.originalColor.r * this.integrity,
-            this.originalColor.g * this.integrity,
-            this.originalColor.b * this.integrity
+            this.originalColor.r * dim,
+            this.originalColor.g * dim,
+            this.originalColor.b * dim
             );
     },
 

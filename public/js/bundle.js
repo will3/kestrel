@@ -33,10 +33,12 @@ Block.prototype = {
     },
 
     _updateColor: function(){
+        // var dim = this.integrity;
+        var dim = 1.0;
         this.color = new THREE.Color(
-            this.originalColor.r * this.integrity,
-            this.originalColor.g * this.integrity,
-            this.originalColor.b * this.integrity
+            this.originalColor.r * dim,
+            this.originalColor.g * dim,
+            this.originalColor.b * dim
             );
     },
 
@@ -430,6 +432,10 @@ var BlockChunkUtils = function() {
         //smoke test contiguous
         checkContiguous: function(chunk) {
             var count = 0;
+            if(chunk.blockCount == 0){
+                return true;
+            }
+
             var firstBlock = chunk.getFirstBlock();
 
             this._visitBlocksContiguous(chunk, firstBlock.x, firstBlock.y, firstBlock.z, function(block, x, y, z) {
@@ -613,6 +619,10 @@ var BlockModel = function(params) {
 BlockModel.prototype = {
     constructor: BlockModel,
 
+    get: function(x, y, z) {
+        return this.chunk.get(x, y, z);
+    },
+
     add: function(x, y, z, block) {
         this.chunk.add(x, y, z, block, true);
         this._updateDirty(x, y, z);
@@ -625,7 +635,7 @@ BlockModel.prototype = {
         this._updateBlockMapping(x, y, z, block, true);
 
         if (this.onRemoveCallback != null) {
-            this.onRemoveCallback(x, y, z);
+            this.onRemoveCallback(block, x, y, z);
         }
 
         if (this.shouldUpdateBroken) {
@@ -679,25 +689,28 @@ BlockModel.prototype = {
             }
         });
 
+
+        this.startUpdate();
+
         groups.forEach(function(group) {
             if (group == maxGroup) {
                 return;
             }
 
-            this.startUpdate();
             group.forEach(function(blockInfo) {
-                this.quickremove(blockInfo.x, blockInfo.y, blockInfo.z);
+                this.remove(blockInfo.x, blockInfo.y, blockInfo.z);
             }.bind(this));
-            this.endUpdate();
         }.bind(this));
+
+        this.endUpdate();
     },
 
     startUpdate: function() {
-        this.shouldUpdateBroken = true;
+        this.shouldUpdateBroken = false;
     },
 
     endUpdate: function() {
-        this.shouldUpdateBroken = false;
+        this.shouldUpdateBroken = true;
         this.updateBroken();
     },
 
@@ -740,34 +753,6 @@ BlockModel.prototype = {
         if (this.blockCountIsDirty) {
             this._updateBlockCount();
         }
-    },
-
-    damage: function(x, y, z, amount) {
-        var block = this.chunk.get(x, y, z);
-        if (block == null) {
-            return;
-        }
-
-        var integrity = block.integrity;
-        integrity -= amount;
-        if (integrity < 0) {
-            integrity = 0;
-        }
-
-        block.integrity = integrity;
-
-        if (block.integrity == 0) {
-            this.remove(x, y, z);
-        }
-
-        this._updateDirty(x, y, z);
-    },
-
-    damageArea: function(centerX, centerY, centerZ, amount, blockRadius) {
-        BlockUtils.visitRange(centerX, centerY, centerZ, blockRadius, function(x, y, z, distance) {
-            var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
-            this.damage(x, y, z, amount * ratio);
-        }.bind(this));
     },
 
     //centers model around center of mass
@@ -815,6 +800,14 @@ BlockModel.prototype = {
         return m;
     },
 
+    getWorldPosition: function(blockCoords) {
+        return blockCoords.clone().applyMatrix4(this.getWorldMatrix());
+    },
+
+    getWorldRotation: function() {
+        return this.object.rotation.clone();
+    },
+
     //matrix that transforms block coords to world vector
     // = local matrix * this.object.matrixWorld
     getWorldMatrix: function() {
@@ -835,6 +828,10 @@ BlockModel.prototype = {
 
     visitBlocks: function(callback) {
         this.chunk.visitBlocks(callback);
+    },
+
+    setNeedsUpdate: function(x, y, z) {
+        this._updateDirty(x, y, z);
     },
 
     _updateDirty: function(x, y, z) {
@@ -2091,7 +2088,7 @@ var RigidBody = function(params) {
 
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
-    this.friction = 0.98;
+    this.friction = 0.99;
 
     if (params == null) {
         params = {};
@@ -2799,6 +2796,7 @@ BlockEntity.prototype.setPositionFromModel = function(model) {
 };
 
 module.exports = BlockEntity;
+
 },{"../blockengine/blockcoord":4,"../entity":45,"THREE":60}],38:[function(require,module,exports){
 var Entity = require("../entity");
 var ParticleSystem = require("./particlesystem");
@@ -3038,6 +3036,10 @@ module.exports = Laser;
 var Entity = require("../entity");
 var RigidBody = require("../components/rigidbody");
 var THREE = require("THREE");
+var BlockModel = require("../blockengine/blockmodel");
+var ModelRenderComponent = require("../components/modelrendercomponent");
+var Block = require("../blockengine/block");
+var BlockUtils = require("../blockengine/blockutils");
 
 var ModelEntity = function(model) {
     Entity.call(this);
@@ -3049,6 +3051,10 @@ var ModelEntity = function(model) {
     this.rigidBody = new RigidBody({
         mass: this.model.blockCount * Math.pow(this.model.gridSize, 3)
     });
+    this.addComponent(this.rigidBody);
+
+    this.renderComponent = new ModelRenderComponent(this.model);
+    this.addComponent(this.renderComponent);
 
     this.blockEntities = this.initBlockEntities();
 
@@ -3061,37 +3067,83 @@ var ModelEntity = function(model) {
 ModelEntity.prototype = Object.create(Entity.prototype);
 ModelEntity.prototype.constructor = ModelEntity;
 
-Object.defineProperty(ModelEntity.prototype, "health", function(){
+Object.defineProperty(ModelEntity.prototype, "health", function() {
     return this.model.blockCount / this.maxHealth;
 });
 
 //override this
-ModelEntity.prototype.initBlockEntities = function(){
-	return null;
+ModelEntity.prototype.initBlockEntities = function() {
+    return null;
 };
 
-ModelEntity.prototype.onRemove = function() {
-    var c1 = this.model.centerOfMass.clone();
-    this.model.center();
-    var c2 = this.model.centerOfMass.clone();
+ModelEntity.prototype.onRemove = function(block, x, y, z) {
+    var debriPosition = this.model.getWorldPosition(new THREE.Vector3(x, y, z));
+    var debriRotation = this.model.getWorldRotation();
+    var model = new BlockModel({
+        halfSize: 4
+    });
+    model.add(0, 0, 0, block);
+    var debri = new ModelEntity(model);
+    debri.position = debriPosition;
+    debri.rotation = debriRotation;
+    debri.rigidBody.velocity.copy(this.rigidBody.velocity);
 
-    var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
-    this.blockEntities.forEach(function(blockEntity) {
-        blockEntity.setPositionFromModel(this.model);
+    this.root.addEntity(debri);
+
+    // this.centerModelToCenterOfMass();
+};
+
+// ModelEntity.prototype.centerModelToCenterOfMass = function() {
+//     var c1 = this.model.centerOfMass.clone();
+//     this.model.center();
+//     var c2 = this.model.centerOfMass.clone();
+
+//     var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
+//     this.blockEntities.forEach(function(blockEntity) {
+//         blockEntity.setPositionFromModel(this.model);
+//     }.bind(this));
+
+//     diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
+//     this.position.add(diff);
+
+//     this.model.update();
+// };
+
+ModelEntity.prototype.damage = function(x, y, z, amount) {
+    var block = this.model.get(x, y, z);
+    if (block == null) {
+        return;
+    }
+
+    var integrity = block.integrity;
+    var minIntegrity = 0.0;
+    integrity -= amount;
+    if (integrity < minIntegrity) {
+        integrity = minIntegrity;
+    }
+
+    block.integrity = integrity;
+
+    if (block.integrity == minIntegrity) {
+        this.model.remove(x, y, z);
+    }
+
+    this.model.setNeedsUpdate(x, y, z);
+};
+
+ModelEntity.prototype.damageArea = function(centerX, centerY, centerZ, amount, blockRadius) {
+    BlockUtils.visitRange(centerX, centerY, centerZ, blockRadius, function(x, y, z, distance) {
+        var ratio = (blockRadius - distance + 1) / (blockRadius + 1);
+        this.damage(x, y, z, amount * ratio);
     }.bind(this));
-
-    diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
-    this.position.add(diff);
-
-    this.model.update();
 };
 
-ModelEntity.prototype.onBroken = function(){
-	this.model.breakApart();
+ModelEntity.prototype.onBroken = function() {
+    this.model.breakApart();
 };
 
 module.exports = ModelEntity;
-},{"../components/rigidbody":27,"../entity":45,"THREE":60}],41:[function(require,module,exports){
+},{"../blockengine/block":1,"../blockengine/blockmodel":5,"../blockengine/blockutils":6,"../components/modelrendercomponent":22,"../components/rigidbody":27,"../entity":45,"THREE":60}],41:[function(require,module,exports){
 var Entity = require("../entity");
 var PointSprite = require("./pointsprite");
 var Debug = require("../debug");
@@ -3230,7 +3282,6 @@ var Entity = require("../entity");
 var Laser = require("./laser");
 var Weapon = require("./weapon");
 var ShipModel = require("../models/shipmodel");
-var ModelRenderComponent = require("../components/modelrendercomponent");
 var Ammo = require("./ammo");
 var ShipController = require("../components/shipcontroller");
 var WeaponController = require("../components/weaponcontroller");
@@ -3267,7 +3318,6 @@ var Ship = function(params) {
         powerSource: this
     });
 
-    this.renderComponent = new ModelRenderComponent(this.model);
     this.destroyable = true;
 
     this.collisionBody = new BlockCollisionBody(this.model);
@@ -3310,7 +3360,7 @@ Object.defineProperty(Ship.prototype, "power", {
         if (power < 0) {
             power = 0;
         }
-        return Math.pow(power, 2);
+        return Math.pow(power, 1.4);
     }
 });
 
@@ -3319,8 +3369,6 @@ Ship.prototype.start = function() {
 
     this.shipController.engines = this.engines;
 
-    this.addComponent(this.renderComponent);
-    this.addComponent(this.rigidBody);
     this.addComponent(this.shipController);
     this.addComponent(this.weaponController);
 
@@ -3344,12 +3392,12 @@ Ship.prototype.update = function() {
 Ship.prototype.onCollision = function(entity, hitTest) {
     if (entity instanceof Laser) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
+            this.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
             this.model.update();
         }
     } else if (entity instanceof Beam) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
+            this.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
             this.model.update();
         }
     }
@@ -3361,7 +3409,7 @@ Ship.prototype.addPlayerControl = function() {
 };
 
 module.exports = Ship;
-},{"../components/blockcollisionbody":20,"../components/modelrendercomponent":22,"../components/playercontrol":23,"../components/rigidbody":27,"../components/shipcontroller":28,"../components/weaponcontroller":31,"../debug":34,"../entity":45,"../models/shipmodel":52,"./ammo":35,"./beam":36,"./engine":38,"./laser":39,"./modelentity":40,"./weapon":44,"THREE":60,"lodash":228}],44:[function(require,module,exports){
+},{"../components/blockcollisionbody":20,"../components/playercontrol":23,"../components/rigidbody":27,"../components/shipcontroller":28,"../components/weaponcontroller":31,"../debug":34,"../entity":45,"../models/shipmodel":52,"./ammo":35,"./beam":36,"./engine":38,"./laser":39,"./modelentity":40,"./weapon":44,"THREE":60,"lodash":228}],44:[function(require,module,exports){
 var Entity = require("../entity");
 var THREE = require("THREE");
 var extend = require("extend");
@@ -3881,7 +3929,7 @@ Game.prototype = {
         var render2Pass = new THREE.RenderPass(this.scene2, this.camera);
         this.composer2.addPass(render2Pass);
 
-        var effectBloom = new THREE.BloomPass(2.5, 25, 4.0, 512);
+        var effectBloom = new THREE.BloomPass(2.5, 25, 4.0, 256);
         this.composer2.addPass(effectBloom);
 
         this.composer = new THREE.EffectComposer(this.renderer);
@@ -4235,6 +4283,9 @@ var THREE = require("THREE");
 var Laser = require("./entities/laser");
 var Beam = require("./entities/beam");
 var Weapon = require("./entities/weapon");
+var ModelEntity = require("./entities/modelentity");
+var Block = require("./blockengine/block");
+var BlockModel = require("./blockengine/blockmodel");
 
 //weapons
 var laser = new Laser();
@@ -4268,12 +4319,20 @@ var ObjectMapping = function() {
             ship.weapons = [getLaserWeapon()];
             ship.addPlayerControl();
             return ship;
+        },
+        "block": function() {
+            var model = new BlockModel({
+                halfSize: 4
+            });
+            model.add(0, 0, 0, new Block());
+            var entity = new ModelEntity(model);
+            return entity;
         }
     };
 }();
 
 module.exports = ObjectMapping;
-},{"./components/modelrendercomponent":22,"./entities/beam":36,"./entities/laser":39,"./entities/pointsprite":42,"./entities/ship":43,"./entities/weapon":44,"./entity":45,"./models/spheremodel":53,"./textureloader":56,"THREE":60}],56:[function(require,module,exports){
+},{"./blockengine/block":1,"./blockengine/blockmodel":5,"./components/modelrendercomponent":22,"./entities/beam":36,"./entities/laser":39,"./entities/modelentity":40,"./entities/pointsprite":42,"./entities/ship":43,"./entities/weapon":44,"./entity":45,"./models/spheremodel":53,"./textureloader":56,"THREE":60}],56:[function(require,module,exports){
 var THREE = require("THREE");
 
 var TextureLoader = function(){
@@ -95937,6 +95996,7 @@ console.runScenario(
         "select ship0",
         "orbit playership0 300",
         "attack playership0"
+        // "add block"
     ]
 );
 
