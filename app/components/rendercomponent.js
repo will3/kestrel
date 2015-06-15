@@ -23,14 +23,6 @@ var RenderComponent = function() {
 RenderComponent.prototype = Object.create(Component.prototype);
 RenderComponent.prototype.constructor = RenderComponent;
 
-Object.defineProperty(RenderComponent.prototype, "elementsNeedUpdate", {
-    set: function() {
-        this.objects.forEach(function(object) {
-            object.geometry.elementsNeedUpdate = true;
-        });
-    }
-});
-
 RenderComponent.prototype.updateTransform = function() {
     var transform = this.entity.transform;
     var position = this.entity.worldPosition;

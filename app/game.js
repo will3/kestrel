@@ -101,6 +101,7 @@ Game.prototype = {
         this.scene2 = new THREE.Scene();
 
         this.renderer.setSize(WIDTH, HEIGHT);
+        renderer.autoClear = false;
 
         this.container.append(this.renderer.domElement);
 

@@ -23,7 +23,7 @@ var getBeamWeapon = function() {
     return new Weapon({
         ammo: beam,
         fireInterval: 1,
-        fireMode: "beam"
+        fireMode: "guided"
     });
 }
 

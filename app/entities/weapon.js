@@ -69,7 +69,7 @@ Weapon.prototype.update = function() {
             this.shoot(this.target, this.point);
             this.cooldown = 0;
         }
-    } else if (this.fireMode == "beam") {
+    } else if (this.fireMode == "guided") {
         if (this.isTriggerDown) {
             this.shoot(this.target, this.point);
         }

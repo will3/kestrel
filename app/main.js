@@ -8,17 +8,17 @@ var CommandMapping = require("./commandmapping");
 var AddCommand = require("./commands/addcommand");
 
 window["THREE"] = require("THREE");
-require("../three.js-master/examples/js/shaders/ConvolutionShader.js");
-require("../three.js-master/examples/js/shaders/CopyShader.js");
-require("../three.js-master/examples/js/shaders/FXAAShader.js");
-require("../three.js-master/examples/js/shaders/HorizontalBlurShader.js");
-require("../three.js-master/examples/js/shaders/VerticalBlurShader.js");
+require("../three.js/examples/js/shaders/ConvolutionShader.js");
+require("../three.js/examples/js/shaders/CopyShader.js");
+require("../three.js/examples/js/shaders/FXAAShader.js");
+require("../three.js/examples/js/shaders/HorizontalBlurShader.js");
+require("../three.js/examples/js/shaders/VerticalBlurShader.js");
 require("./threex/AdditiveBlendShader.js");
-require("../three.js-master/examples/js/postprocessing/EffectComposer.js");
-require("../three.js-master/examples/js/postprocessing/MaskPass.js");
-require("../three.js-master/examples/js/postprocessing/RenderPass.js");
-require("../three.js-master/examples/js/postprocessing/ShaderPass.js");
-require("../three.js-master/examples/js/postprocessing/BloomPass.js");
+require("../three.js/examples/js/postprocessing/EffectComposer.js");
+require("../three.js/examples/js/postprocessing/MaskPass.js");
+require("../three.js/examples/js/postprocessing/RenderPass.js");
+require("../three.js/examples/js/postprocessing/ShaderPass.js");
+require("../three.js/examples/js/postprocessing/BloomPass.js");
 
 var container = $('#container');
 // <input type="text" id="console_text">
