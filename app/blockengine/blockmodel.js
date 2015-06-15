@@ -34,6 +34,8 @@ var BlockModel = function(params) {
 
     this.onRemoveCallback = null;
     this.onBrokenCallback = null;
+
+    this.shouldUpdateBroken = true;
 };
 
 BlockModel.prototype = {
@@ -54,18 +56,18 @@ BlockModel.prototype = {
             this.onRemoveCallback(x, y, z);
         }
 
+        if (this.shouldUpdateBroken) {
+            this.updateBroken();
+        }
+    },
+
+    updateBroken: function() {
         if (this.onBrokenCallback != null) {
             var contiguous = BlockChunkUtils.checkContiguous(this.chunk);
             if (!contiguous) {
                 this.onBrokenCallback();
             }
         }
-    },
-
-    quickremove: function(x, y, z) {
-        var block = this.chunk.remove(x, y, z);
-        this._updateDirty(x, y, z);
-        this._updateBlockMapping(x, y, z, block, true);
     },
 
     onRemove: function(callback) {
@@ -110,10 +112,21 @@ BlockModel.prototype = {
                 return;
             }
 
+            this.startUpdate();
             group.forEach(function(blockInfo) {
-                this.quickremove(blockInfo.x, blockInfo.y, blockInfo.z);
+                this.remove(blockInfo.x, blockInfo.y, blockInfo.z);
             }.bind(this));
+            this.endUpdate();
         }.bind(this));
+    },
+
+    startUpdate: function() {
+        this.shouldUpdateBroken = true;
+    },
+
+    endUpdate: function() {
+        this.shouldUpdateBroken = false;
+        this.updateBroken();
     },
 
     _updateBlockMapping: function(x, y, z, block, isRemove) {

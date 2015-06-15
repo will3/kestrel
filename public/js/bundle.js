@@ -606,6 +606,8 @@ var BlockModel = function(params) {
 
     this.onRemoveCallback = null;
     this.onBrokenCallback = null;
+
+    this.shouldUpdateBroken = true;
 };
 
 BlockModel.prototype = {
@@ -626,18 +628,18 @@ BlockModel.prototype = {
             this.onRemoveCallback(x, y, z);
         }
 
+        if (this.shouldUpdateBroken) {
+            this.updateBroken();
+        }
+    },
+
+    updateBroken: function() {
         if (this.onBrokenCallback != null) {
             var contiguous = BlockChunkUtils.checkContiguous(this.chunk);
             if (!contiguous) {
                 this.onBrokenCallback();
             }
         }
-    },
-
-    quickremove: function(x, y, z) {
-        var block = this.chunk.remove(x, y, z);
-        this._updateDirty(x, y, z);
-        this._updateBlockMapping(x, y, z, block, true);
     },
 
     onRemove: function(callback) {
@@ -682,10 +684,21 @@ BlockModel.prototype = {
                 return;
             }
 
+            this.startUpdate();
             group.forEach(function(blockInfo) {
                 this.quickremove(blockInfo.x, blockInfo.y, blockInfo.z);
             }.bind(this));
+            this.endUpdate();
         }.bind(this));
+    },
+
+    startUpdate: function() {
+        this.shouldUpdateBroken = true;
+    },
+
+    endUpdate: function() {
+        this.shouldUpdateBroken = false;
+        this.updateBroken();
     },
 
     _updateBlockMapping: function(x, y, z, block, isRemove) {
@@ -1998,14 +2011,6 @@ var RenderComponent = function() {
 
 RenderComponent.prototype = Object.create(Component.prototype);
 RenderComponent.prototype.constructor = RenderComponent;
-
-Object.defineProperty(RenderComponent.prototype, "elementsNeedUpdate", {
-    set: function() {
-        this.objects.forEach(function(object) {
-            object.geometry.elementsNeedUpdate = true;
-        });
-    }
-});
 
 RenderComponent.prototype.updateTransform = function() {
     var transform = this.entity.transform;
@@ -3344,7 +3349,7 @@ Ship.prototype.onCollision = function(entity, hitTest) {
         }
     } else if (entity instanceof Beam) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.5, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
             this.model.update();
         }
     }
@@ -3428,7 +3433,7 @@ Weapon.prototype.update = function() {
             this.shoot(this.target, this.point);
             this.cooldown = 0;
         }
-    } else if (this.fireMode == "beam") {
+    } else if (this.fireMode == "guided") {
         if (this.isTriggerDown) {
             this.shoot(this.target, this.point);
         }
@@ -3847,6 +3852,7 @@ Game.prototype = {
         this.scene2 = new THREE.Scene();
 
         this.renderer.setSize(WIDTH, HEIGHT);
+        this.renderer.autoClear = false;
 
         this.container.append(this.renderer.domElement);
 
@@ -3875,7 +3881,7 @@ Game.prototype = {
         var render2Pass = new THREE.RenderPass(this.scene2, this.camera);
         this.composer2.addPass(render2Pass);
 
-        var effectBloom = new THREE.BloomPass(2.5, 25, 4.0, 256);
+        var effectBloom = new THREE.BloomPass(2.5, 25, 4.0, 512);
         this.composer2.addPass(effectBloom);
 
         this.composer = new THREE.EffectComposer(this.renderer);
@@ -4244,7 +4250,7 @@ var getBeamWeapon = function() {
     return new Weapon({
         ammo: beam,
         fireInterval: 1,
-        fireMode: "beam"
+        fireMode: "guided"
     });
 }
 
@@ -4259,7 +4265,7 @@ var ObjectMapping = function() {
             var ship = new Ship({
                 agilityBonus: 5
             });
-            ship.weapons = [getBeamWeapon()];
+            ship.weapons = [getLaserWeapon()];
             ship.addPlayerControl();
             return ship;
         }
@@ -95882,17 +95888,17 @@ var CommandMapping = require("./commandmapping");
 var AddCommand = require("./commands/addcommand");
 
 window["THREE"] = require("THREE");
-require("../three.js-master/examples/js/shaders/ConvolutionShader.js");
-require("../three.js-master/examples/js/shaders/CopyShader.js");
-require("../three.js-master/examples/js/shaders/FXAAShader.js");
-require("../three.js-master/examples/js/shaders/HorizontalBlurShader.js");
-require("../three.js-master/examples/js/shaders/VerticalBlurShader.js");
+require("../three.js/examples/js/shaders/ConvolutionShader.js");
+require("../three.js/examples/js/shaders/CopyShader.js");
+require("../three.js/examples/js/shaders/FXAAShader.js");
+require("../three.js/examples/js/shaders/HorizontalBlurShader.js");
+require("../three.js/examples/js/shaders/VerticalBlurShader.js");
 require("./threex/AdditiveBlendShader.js");
-require("../three.js-master/examples/js/postprocessing/EffectComposer.js");
-require("../three.js-master/examples/js/postprocessing/MaskPass.js");
-require("../three.js-master/examples/js/postprocessing/RenderPass.js");
-require("../three.js-master/examples/js/postprocessing/ShaderPass.js");
-require("../three.js-master/examples/js/postprocessing/BloomPass.js");
+require("../three.js/examples/js/postprocessing/EffectComposer.js");
+require("../three.js/examples/js/postprocessing/MaskPass.js");
+require("../three.js/examples/js/postprocessing/RenderPass.js");
+require("../three.js/examples/js/postprocessing/ShaderPass.js");
+require("../three.js/examples/js/postprocessing/BloomPass.js");
 
 var container = $('#container');
 // <input type="text" id="console_text">
@@ -95948,4 +95954,4 @@ game.stats = stats;
 Mousetrap.bind('`', function() {
     console.focus();
 }.bind(this), 'keyup');
-},{"../three.js-master/examples/js/postprocessing/BloomPass.js":236,"../three.js-master/examples/js/postprocessing/EffectComposer.js":237,"../three.js-master/examples/js/postprocessing/MaskPass.js":238,"../three.js-master/examples/js/postprocessing/RenderPass.js":239,"../three.js-master/examples/js/postprocessing/ShaderPass.js":240,"../three.js-master/examples/js/shaders/ConvolutionShader.js":241,"../three.js-master/examples/js/shaders/CopyShader.js":242,"../three.js-master/examples/js/shaders/FXAAShader.js":243,"../three.js-master/examples/js/shaders/HorizontalBlurShader.js":244,"../three.js-master/examples/js/shaders/VerticalBlurShader.js":245,"./commandmapping":10,"./commands/addcommand":11,"./console":32,"./game":47,"./keymap":48,"./threex/AdditiveBlendShader.js":57,"Mousetrap":59,"THREE":60,"jquery":226,"lodash":228}]},{},[246]);
+},{"../three.js/examples/js/postprocessing/BloomPass.js":236,"../three.js/examples/js/postprocessing/EffectComposer.js":237,"../three.js/examples/js/postprocessing/MaskPass.js":238,"../three.js/examples/js/postprocessing/RenderPass.js":239,"../three.js/examples/js/postprocessing/ShaderPass.js":240,"../three.js/examples/js/shaders/ConvolutionShader.js":241,"../three.js/examples/js/shaders/CopyShader.js":242,"../three.js/examples/js/shaders/FXAAShader.js":243,"../three.js/examples/js/shaders/HorizontalBlurShader.js":244,"../three.js/examples/js/shaders/VerticalBlurShader.js":245,"./commandmapping":10,"./commands/addcommand":11,"./console":32,"./game":47,"./keymap":48,"./threex/AdditiveBlendShader.js":57,"Mousetrap":59,"THREE":60,"jquery":226,"lodash":228}]},{},[246]);

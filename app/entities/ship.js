@@ -121,7 +121,7 @@ Ship.prototype.onCollision = function(entity, hitTest) {
         }
     } else if (entity instanceof Beam) {
         if (entity.actor != this) {
-            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.5, 2);
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.1, 2);
             this.model.update();
         }
     }
