@@ -20,8 +20,7 @@ BeamRenderComponent.prototype.initGeometry = function() {
 
     this.geometry = new THREE.Geometry();
     this.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    var direction = new THREE.Vector3().subVectors(this.point, this.transform.position);
-    this.geometry.vertices.push(direction.setLength(5000));
+    this.geometry.vertices.push(this.point);
 
     this.geometry.colors.push(new THREE.Color(1.0, 0.0, 0.0));
     this.geometry.colors.push(new THREE.Color(1.0, 0.0, 0.0));

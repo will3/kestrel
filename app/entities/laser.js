@@ -4,6 +4,7 @@ var PointSprite = require("./pointsprite");
 var RigidBody = require("../components/rigidbody");
 var assert = require("assert");
 var MathUtils = require("../mathutils");
+var SphereCollisionBody = require("../components/spherecollisionbody");
 
 var Laser = function() {
     Ammo.call(this);
@@ -11,6 +12,20 @@ var Laser = function() {
     this.rigidBody = new RigidBody({
         defaultFriction: 1,
     });
+
+    this.collisionBody = new SphereCollisionBody(2);
+    this.collisionBody.filter(function(entity) {
+        if (entity == this.actor) {
+            return false;
+        }
+
+        if (entity instanceof Ammo) {
+            return false;
+        }
+
+        return true;
+    }.bind(this));
+    this.addComponent(this.collisionBody);
 
     this.velocity = null;
     this.speed = 16;
@@ -79,8 +94,7 @@ Laser.prototype.createSprites = function(time) {
 
     for (var i = 0; i < num; i++) {
         this.addEntity(this.createSprite(
-            power * (num - i) / num, 
-            -i / this.speed * 4,
+            power * (num - i) / num, -i / this.speed * 4,
             this.life));
     }
 };

@@ -27,13 +27,13 @@ Collision.prototype.visitCollisionBodies = function(callback) {
             }
 
             if (bodies[i].filterFunc != null) {
-                if (!bodies[i].filterFunc(bodies[j])) {
+                if (!bodies[i].filterFunc(bodies[j].entity)) {
                     continue;
                 }
             }
 
             if (bodies[j].filterFunc != null) {
-                if (!bodies[j].filterFunc(bodies[i])) {
+                if (!bodies[j].filterFunc(bodies[i].entity)) {
                     continue;
                 }
             }
@@ -78,7 +78,7 @@ Collision.prototype.hitTest = function(a, b) {
     } else if (shouldResolveHitTest(b, a)) {
         hitTestResult = b.hitTest(a);
     } else {
-        throw "cannot resolve collisions between " + a.type + " and " + b.type;
+        throw "cannot resolve collisions between " + a.bodyType + " and " + b.bodyType;
     }
     return hitTestResult;
 }

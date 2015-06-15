@@ -16,17 +16,35 @@ var BlockCollisionBody = function(model) {
     //every unit it travels,
     //actual test iterations are rounded up
     this.velocityIteration = 0.25;
+
+    //THREE Object3D representing bounding sphere for collision body
+    this.boundingSphere = null;
 };
 
 BlockCollisionBody.prototype = Object.create(CollisionBody.prototype);
 BlockCollisionBody.prototype.constructor = BlockCollisionBody;
+
+BlockCollisionBody.prototype.getBoundingSphere = function(){
+    if(this.boundingSphere == null){
+        this.boundingSphereRadius = this.model.blockRadius * this.model.gridSize;
+        var geometry = new THREE.SphereGeometry(this.boundingSphereRadius);
+        var material = new THREE.MeshBasicMaterial();
+        this.boundingSphere = new THREE.Mesh(geometry, material);
+    }
+
+    this.boundingSphere.position.copy(this.transform.position);
+
+    this.boundingSphere.updateMatrixWorld();
+
+    return this.boundingSphere;
+};
 
 BlockCollisionBody.prototype.hitTest = function(body) {
     if (body.type == "SphereCollisionBody") {
         var velocity = body.velocity;
 
         if(velocity == null){
-            return this.hitTestSphere(body, body.transform.position);
+            return this.hitTestSphere(body.radius, body.transform.position);
         }
 
         var testInterval = Math.ceil(velocity.length() * this.velocityIteration);
@@ -34,7 +52,7 @@ BlockCollisionBody.prototype.hitTest = function(body) {
 
         var position = new THREE.Vector3().copy(body.transform.position);
         for (var i = 0; i < testInterval; i++) {
-            var hitTest = this.hitTestSphere(body, position);
+            var hitTest = this.hitTestSphere(body.radius, position);
             if (hitTest.result) {
                 return hitTest;
             }
@@ -53,9 +71,7 @@ BlockCollisionBody.prototype.hitTest = function(body) {
     throw "hitTest not implemented for type " + body.type;
 };
 
-BlockCollisionBody.prototype.hitTestSphere = function(sphere, position) {
-    var radius = sphere.radius;
-
+BlockCollisionBody.prototype.hitTestSphere = function(radius, position) {
     var distance = position.distanceTo(this.model.object.position);
     if (distance > (radius + this.model.blockRadius * this.model.gridSize)) {
         return {
@@ -78,9 +94,11 @@ BlockCollisionBody.prototype.hitTestSphere = function(sphere, position) {
         }
         var block = this.model.chunk.get(x, y, z);
         if (block != null) {
+            var point = new THREE.Vector3(x,y,z).applyMatrix4(this.model.getWorldMatrix());
             result = {
                 result: true,
                 block: block,
+                point: point,
                 coord: new BlockCoord(x, y, z)
             }
         }

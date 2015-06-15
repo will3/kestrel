@@ -76,13 +76,13 @@ Object.defineProperty(ShipController.prototype, "rigidBody", {
 
 Object.defineProperty(ShipController.prototype, "turnRate", {
     get: function() {
-        return 0.035 * this.agilityBonus * this.powerSource.power;
+        return 0.045 * this.agilityBonus * this.powerSource.power;
     }
 });
 
 Object.defineProperty(ShipController.prototype, "yawCurve", {
     get: function() {
-        return 0.035 / this.turnRate * 0.6;
+        return 0.030 / this.turnRate * 0.6;
     }
 });
 

@@ -110,13 +110,18 @@ Ship.prototype.update = function() {
         this.command.update();
     }
 
-    Debug.draw(this.worldPosition.clone().add(new THREE.Vector3(0, 10, 0)), 8, new THREE.Color(1.0, 0.0, 0.0), 8);
+    Debug.draw(this.worldPosition.clone().add(new THREE.Vector3(0, 10, 0)), 8, new THREE.Color(1.0, 0.0, 0.0), 2);
 };
 
 Ship.prototype.onCollision = function(entity, hitTest) {
-    if (entity instanceof Ammo) {
+    if (entity instanceof Laser) {
         if (entity.actor != this) {
             this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 1.0, 2);
+            this.model.update();
+        }
+    } else if (entity instanceof Beam) {
+        if (entity.actor != this) {
+            this.model.damageArea(hitTest.coord.x, hitTest.coord.y, hitTest.coord.z, 0.5, 2);
             this.model.update();
         }
     }

@@ -13,7 +13,7 @@ var Debug = function(){
 			indicator.color = color || new THREE.Color(1.0, 1.0, 1.0);
 			indicator.life = life;
 			indicator.sizeOverTime(function(time){
-				return 2 - time * (2 / life);
+				return size - time * (size / life);
 			});
 
 			indicator.position = point;

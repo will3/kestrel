@@ -38,7 +38,7 @@ var ObjectMapping = function() {
             var ship = new Ship({
                 agilityBonus: 5
             });
-            ship.weapons = [getLaserWeapon()];
+            ship.weapons = [getBeamWeapon()];
             ship.addPlayerControl();
             return ship;
         }
