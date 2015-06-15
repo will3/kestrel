@@ -5,7 +5,6 @@ var BlockModel = require("../blockengine/blockmodel");
 var ModelRenderComponent = require("../components/modelrendercomponent");
 var Block = require("../blockengine/block");
 var BlockUtils = require("../blockengine/blockutils");
-var BlockChunkUtils = require("../blockengine/blockchunkutils");
 
 var ModelEntity = function(model) {
     Entity.call(this);
@@ -52,25 +51,7 @@ ModelEntity.prototype.onRemove = function(block, x, y, z) {
     debri.rigidBody.velocity.copy(this.rigidBody.velocity);
 
     this.root.addEntity(debri);
-
-    // this.centerModelToCenterOfMass();
 };
-
-// ModelEntity.prototype.centerModelToCenterOfMass = function() {
-//     var c1 = this.model.centerOfMass.clone();
-//     this.model.center();
-//     var c2 = this.model.centerOfMass.clone();
-
-//     var diff = new THREE.Vector3().subVectors(c2, c1).multiplyScalar(this.model.gridSize);
-//     this.blockEntities.forEach(function(blockEntity) {
-//         blockEntity.setPositionFromModel(this.model);
-//     }.bind(this));
-
-//     diff.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(this.rotation));
-//     this.position.add(diff);
-
-//     this.model.update();
-// };
 
 ModelEntity.prototype.damage = function(x, y, z, amount) {
     var block = this.model.get(x, y, z);
@@ -91,7 +72,7 @@ ModelEntity.prototype.damage = function(x, y, z, amount) {
         var block = this.model.remove(x, y, z);
 
         this.onRemove(block, x, y, z);
-        var contiguous = BlockChunkUtils.checkContiguous(this.model.chunk);
+        var contiguous = BlockUtils.checkContiguous(this.model.chunk);
         if (!contiguous) {
             this.onBroken();
         }
@@ -112,7 +93,7 @@ ModelEntity.prototype.onBroken = function() {
 };
 
 ModelEntity.prototype.breakApart = function() {
-    var groups = BlockChunkUtils.getContiguousGroups(this.model.chunk);
+    var groups = BlockUtils.getContiguousGroups(this.model.chunk);
 
     if (groups.count <= 1) {
         throw "can't break apart contiguous block model";

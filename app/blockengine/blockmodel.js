@@ -4,7 +4,6 @@ var BlockCoord = require("./blockcoord");
 var _ = require("lodash");
 var CANNON = require("CANNON");
 var BlockUtils = require("./blockutils");
-var BlockChunkUtils = require("./blockchunkutils");
 
 var BlockModel = function(params) {
     params = params || {};
