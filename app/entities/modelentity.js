@@ -5,6 +5,7 @@ var BlockModel = require("../blockengine/blockmodel");
 var ModelRenderComponent = require("../components/modelrendercomponent");
 var Block = require("../blockengine/block");
 var BlockUtils = require("../blockengine/blockutils");
+var BlockChunkUtils = require("../blockengine/blockchunkutils");
 
 var ModelEntity = function(model) {
     Entity.call(this);
@@ -22,9 +23,6 @@ var ModelEntity = function(model) {
     this.addComponent(this.renderComponent);
 
     this.blockEntities = this.initBlockEntities();
-
-    this.model.onRemove(this.onRemove.bind(this));
-    this.model.onBroken(this.onBroken.bind(this));
 
     this.maxBlockSize = this.model.blockCount;
 };
@@ -90,7 +88,13 @@ ModelEntity.prototype.damage = function(x, y, z, amount) {
     block.integrity = integrity;
 
     if (block.integrity == minIntegrity) {
-        this.model.remove(x, y, z);
+        var block = this.model.remove(x, y, z);
+
+        this.onRemove(block, x, y, z);
+        var contiguous = BlockChunkUtils.checkContiguous(this.model.chunk);
+        if (!contiguous) {
+            this.onBroken();
+        }
     }
 
     this.model.setNeedsUpdate(x, y, z);
@@ -104,7 +108,35 @@ ModelEntity.prototype.damageArea = function(centerX, centerY, centerZ, amount, b
 };
 
 ModelEntity.prototype.onBroken = function() {
-    this.model.breakApart();
+    this.breakApart();
+};
+
+ModelEntity.prototype.breakApart = function() {
+    var groups = BlockChunkUtils.getContiguousGroups(this.model.chunk);
+
+    if (groups.count <= 1) {
+        throw "can't break apart contiguous block model";
+    }
+
+    var maxLength = 0;
+    var maxGroup = null;
+    groups.forEach(function(group) {
+        if (group.length > maxLength) {
+            maxLength = group.length;
+            maxGroup = group;
+        }
+    });
+
+    groups.forEach(function(group) {
+        if (group == maxGroup) {
+            return;
+        }
+
+        group.forEach(function(blockInfo) {
+            this.model.remove(blockInfo.x, blockInfo.y, blockInfo.z);
+            this.onRemove(blockInfo.block, blockInfo.x, blockInfo.y, blockInfo.z);
+        }.bind(this));
+    }.bind(this));
 };
 
 module.exports = ModelEntity;

@@ -31,11 +31,6 @@ var BlockModel = function(params) {
     this.centerOfMass = null;
     this.min = null;
     this.max = null;
-
-    this.onRemoveCallback = null;
-    this.onBrokenCallback = null;
-
-    this.shouldUpdateBroken = true;
 };
 
 BlockModel.prototype = {
@@ -55,31 +50,7 @@ BlockModel.prototype = {
         var block = this.chunk.remove(x, y, z);
         this._updateDirty(x, y, z);
         this._updateBlockMapping(x, y, z, block, true);
-
-        if (this.onRemoveCallback != null) {
-            this.onRemoveCallback(block, x, y, z);
-        }
-
-        if (this.shouldUpdateBroken) {
-            this.updateBroken();
-        }
-    },
-
-    updateBroken: function() {
-        if (this.onBrokenCallback != null) {
-            var contiguous = BlockChunkUtils.checkContiguous(this.chunk);
-            if (!contiguous) {
-                this.onBrokenCallback();
-            }
-        }
-    },
-
-    onRemove: function(callback) {
-        this.onRemoveCallback = callback;
-    },
-
-    onBroken: function(callback) {
-        this.onBrokenCallback = callback;
+        return block;
     },
 
     get blockCount() {
@@ -93,47 +64,6 @@ BlockModel.prototype = {
     //simplify to sphere r n
     get rotationalInertia() {
         return 2 / 5.0 * this.mass * this.blockRadius * this.blockRadius;
-    },
-
-    breakApart: function() {
-        var groups = BlockChunkUtils.getContiguousGroups(this.chunk);
-
-        if (groups.count <= 1) {
-            throw "can't break apart contiguous block model";
-        }
-
-        var maxLength = 0;
-        var maxGroup = null;
-        groups.forEach(function(group) {
-            if (group.length > maxLength) {
-                maxLength = group.length;
-                maxGroup = group;
-            }
-        });
-
-
-        this.startUpdate();
-
-        groups.forEach(function(group) {
-            if (group == maxGroup) {
-                return;
-            }
-
-            group.forEach(function(blockInfo) {
-                this.remove(blockInfo.x, blockInfo.y, blockInfo.z);
-            }.bind(this));
-        }.bind(this));
-
-        this.endUpdate();
-    },
-
-    startUpdate: function() {
-        this.shouldUpdateBroken = false;
-    },
-
-    endUpdate: function() {
-        this.shouldUpdateBroken = true;
-        this.updateBroken();
     },
 
     _updateBlockMapping: function(x, y, z, block, isRemove) {
